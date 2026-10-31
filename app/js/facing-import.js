@@ -122,6 +122,37 @@ async function assignLayoutByLanguage(){
    status("Cannot confidently determine English/Hebrew placement from this source. Verify both previews before exporting.");
  }
 }
+async function recognizeScannedPages(){
+ if(!window.Tesseract){status("OCR library unavailable. Check detected titles and languages manually.");return}
+ const needs=["left","right"].filter(side=>$(side+"-lang").value==="Uncertain"||!$(side+"-title").value.trim());
+ if(!needs.length)return;
+ status("Analyzing scanned prayer text for language and headings...");
+ for(const side of needs){
+  try{
+   const source=$(side+"-canvas"),c=state.crops[side],canvas=document.createElement("canvas");
+   canvas.width=Math.max(1,Math.round(source.width*c.w/100));
+   canvas.height=Math.max(1,Math.round(source.height*c.h/100));
+   canvas.getContext("2d").drawImage(source,source.width*c.x/100,source.height*c.y/100,canvas.width,canvas.height,0,0,canvas.width,canvas.height);
+   const result=await Tesseract.recognize(canvas,"heb+eng");
+   const recognized=result.data.text||"",hebrew=(recognized.match(/[\u0590-\u05ff]/g)||[]).length,latin=(recognized.match(/[A-Za-z]/g)||[]).length;
+   if($(side+"-lang").value==="Uncertain"){
+    $(side+"-lang").value=hebrew>=10&&hebrew>latin*1.3?"Hebrew":latin>=15&&latin>hebrew*1.5?"English":"Uncertain";
+   }
+   if(!$(side+"-title").value.trim()){
+    const lines=(result.data.lines||[]).filter(line=>line.text&&line.text.trim().length>=3);
+    lines.sort((a,b)=>(a.bbox?.y0||0)-(b.bbox?.y0||0));
+    const title=lines.find(line=>(line.bbox?.y0||0)<canvas.height*.23&&!/^\s*\d+\s*$/.test(line.text));
+    if(title)$(side+"-title").value=title.text.trim().slice(0,85);
+   }
+  }catch(e){console.warn("OCR unavailable for "+side,e)}
+ }
+ await assignLayoutByLanguage();
+ await refreshLayout();
+ await recognizeScannedPages();
+ if(["left","right"].some(side=>$(side+"-lang").value==="Uncertain"))
+  status("OCR could not confidently identify both languages. Inspect the finished spread before download.");
+ else status("OCR analysis complete. Check the automatically prepared facing spread and titles.");
+}
 async function detectTitle(side){
  const num=Number($(side+"-page").value),page=await state.view.getPage(num);
  const items=(await page.getTextContent()).items;
