@@ -21,3 +21,12 @@ This is a prototype, **not yet browser-tested against the actual siddur**. The n
 Add a removable registration margin with working page IDs; role highlighting; configurable status, instruction and melody QR blocks; then book assembly with a locked service header. Each stage should save editable settings and export a testable PDF.
 
 Publication variants will be presets of components rather than separate production engines.
+
+
+## Stage 1 page-heading and language metadata (design requirement)
+
+- Detect the source page's heading/title, preserve its exact text and source bounding box as page metadata, and remove it from the standardized content image only after confirming that it is not prayer text.
+- Store detected languages as a **list**, with optional primary language and script information; support mixed Hebrew/English pages and Ladino in Hebrew or Latin script.
+- Keep heading extraction, language detection, and heading removal independently reviewable in the side-by-side original/processed viewer. The reviewer can correct text, adjust removal bounds, or disable removal.
+- Do not destroy source content: retain original source reference, editable settings, and confidence/review status. The heading may later be rendered as a reusable header/section block.
+- Distinguish proposed metadata from verified metadata; scanned pages may require OCR and manual correction. Never treat OCR as infallible.
