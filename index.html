@@ -24,7 +24,7 @@
 <select id="guides"><option value="template">Template</option></select>
 <button id="settings" disabled>Settings</button><button id="blank" disabled>Blank</button>
 </div>
-<footer>Original PDF stays on your device.</footer></main><script>
+<footer>Original PDF stays on your device. · Build 2026-10-31 / deployment-check-14</footer></main><script>
 window.addEventListener("error",function(e){const el=document.getElementById("status");if(el)el.textContent="Application error: "+(e.message||"Script failed to load");});
 window.addEventListener("unhandledrejection",function(e){const el=document.getElementById("status");if(el)el.textContent="Preview error: "+(e.reason?.message||String(e.reason));});
 window.addEventListener("load",function(){setTimeout(function(){const el=document.getElementById("status");if(el&&!window.PDFLib)el.textContent="PDF library did not load. Check your connection or content blocker.";},1000);});
