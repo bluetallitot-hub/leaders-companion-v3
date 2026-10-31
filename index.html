@@ -3,11 +3,11 @@
 <title>Leader's Companion — Page Preparation</title>
 <link rel="stylesheet" href="src/style.css?v=20261031-6">
 <script defer src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script defer src="src/app.js?v=20261031-13"></script></head>
+<script defer src="src/app.js?v=20261031-15"></script></head>
 <body><main>
 <header><p class="eyebrow">Leader's Companion · Page preparation</p><h1>Prepare a siddur page</h1><p>Upload a PDF, select a page, preview the layout, and download a clean page.</p></header>
 <section class="panel"><h2>1. Upload</h2><label for="source">Siddur PDF</label><input id="source" type="file" accept=".pdf,application/pdf"><p id="source-info" class="muted" aria-live="polite">No PDF selected</p><label style="display:flex;align-items:center;gap:10px;font-weight:600"><input id="use-test" type="checkbox"> Use reference test page</label><p id="test-info" class="muted" aria-live="polite">Uses the fixed reference page when available; otherwise uses a locally saved test.pdf.</p>
-<div class="fields"><div><label for="page">PDF page</label><input id="page" type="number" min="1" value="1"></div><div><label for="printed">New page number</label><input id="printed" type="text" value="1"></div></div></section>
+<div class="fields"><div><label for="service-name">Service name (metadata)</label><input id="service-name" type="text" placeholder="e.g. Friday Evening"></div><div><label for="page-title">Page title (metadata)</label><input id="page-title" type="text" placeholder="e.g. Lecha Dodi"></div></div><div class="fields"><div><label for="page">PDF page</label><input id="page" type="number" min="1" value="1"></div><div><label for="printed">New page number</label><input id="printed" type="text" value="1"></div></div></section>
 <section class="panel"><h2>2. Review and export</h2><p class="muted">Preview without an uploaded PDF shows the blank template bounding boxes. With a PDF, preview shows the page and guides.</p>
 <div class="actions"><button id="preview" type="button" onclick="document.getElementById('status').textContent='Preview requested…';">Preview layout</button><button id="download" disabled class="secondary">Download clean PDF</button></div><p id="status" role="status" aria-live="polite"></p></section>
 <section class="panel"><h2>Layout preview</h2><iframe id="viewer" title="PDF layout preview" style="width:100%;height:650px;border:1px solid #d8e0d9" hidden></iframe></section>
