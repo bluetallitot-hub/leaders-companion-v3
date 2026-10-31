@@ -86,13 +86,14 @@ async function readMetadata(source,pageIndex,canvas,bands){
  try{textItems=(await page.getTextContent()).items||[]}catch(e){}
  const topText=textItems.filter(t=>t.transform&&t.transform[5]>v.height/1.5*.73)
   .map(t=>String(t.str||"").trim()).filter(Boolean);
- let heading="",number="",language="unknown";
+ let heading="",runningHeader="",number="",language="unknown";
  const textAll=textItems.map(t=>String(t.str||"")).join(" ");
  if(/[\u0590-\u05ff]/u.test(textAll))language="Hebrew";
  else if(/[a-z]{3}/i.test(textAll))language="English";
  const textNumber=topText.find(t=>/^\d{1,4}$/.test(t));
  if(textNumber)number=textNumber;
- heading=topText.find(t=>t!==number&&/[\p{L}]/u.test(t))||"";
+ // The topmost line is a running header, not necessarily a prayer heading.
+ runningHeader=topText.find(t=>t!==number&&/[\p{L}]/u.test(t))||"";
  let ocrLines=[];
  if(window.Tesseract){
   try{
@@ -104,9 +105,12 @@ async function readMetadata(source,pageIndex,canvas,bands){
  }
  const candidateNumbers=ocrLines.filter(l=>/^\d{1,4}$/.test(l.text)&&l.confidence>=40);
  if(!number&&candidateNumbers.length===1)number=candidateNumbers[0].text;
- if(!heading){
-  const candidates=ocrLines.filter(l=>/[\p{L}]/u.test(l.text)&&l.text!==number);
-  if(candidates.length)heading=candidates[0].text;
+ // Do not promote the first OCR line to a section heading: it often contains
+ // the folio number, a running header, or mixed-language OCR artifacts.
+ if(!runningHeader){
+  const candidates=ocrLines.map(l=>l.text.replace(/^\s*\d{1,4}\s*/, "").trim())
+   .filter(t=>/[\p{L}]/u.test(t));
+  if(candidates.length)runningHeader=candidates[0];
  }
  if(language==="unknown"){
   const sample=ocrLines.map(l=>l.text).join(" ");
@@ -163,7 +167,7 @@ async function readMetadata(source,pageIndex,canvas,bands){
   }catch(e){console.warn("Digit-specific folio OCR unavailable",e)}
   finally{if(worker)await worker.terminate()}
  }
- return {number,heading,language,ocrLines};
+ return {number,heading,runningHeader,language,ocrLines};
 }
 function detectCrop(canvas,meta){
  const w=canvas.width,h=canvas.height,ctx=canvas.getContext("2d",{willReadFrequently:true});
@@ -207,7 +211,7 @@ function makeIntakeRecord(meta,sourceIndex){
   source:{sourceId:null,sourceFilename:filename+".pdf",sourcePdfPage:sourceIndex+1,
    originalPageNumber:pageNumber,sourcePage:pageNumber&&code?pageNumber+code:null,
    languageCode:code,language:meta.language||"unknown",
-   originalHeadingOCR:meta.heading||null},
+   originalHeadingOCR:meta.heading||null,runningHeaderOCR:meta.runningHeader||null},
   identification:{prayerName:null,unitType:null,serviceCode:null,cueId:null,binderOrder:null},
   leadership:{role:null,roleReviewNeeded:true,highlight:null},
   production:{paperClass:null,color:null,melodyId:null,sourceTextRegion:"V3 Siddur Text",
@@ -227,6 +231,7 @@ function storePageMetadata(page,record){
   LCLanguage:record.source.language,
   LCLanguageCode:record.source.languageCode||"",
   LCOriginalHeadingOCR:record.source.originalHeadingOCR||"",
+  LCRunningHeaderOCR:record.source.runningHeaderOCR||"",
   LCSourceFilename:record.source.sourceFilename,
   LCSourcePdfPage:String(record.source.sourcePdfPage),
   LCIntakeStatus:record.intake.status
@@ -275,7 +280,8 @@ function displayMetadata(){
   const fields=[
    ["Original page number",source.originalPageNumber||"Not detected"],
    ["Language",source.language],["Page convention",source.sourcePage||"Not detected"],
-   ["Original heading (OCR)",source.originalHeadingOCR||"Not detected"],
+   ["Original heading (OCR)",source.originalHeadingOCR||"Not reliably detected"],
+   ["Running header (OCR)",source.runningHeaderOCR||"Not detected"],
    ["Source PDF",source.sourceFilename],["Source PDF page",String(source.sourcePdfPage)],
    ["Source ID",source.sourceId||"Unassigned"],
    ["Prayer / unit",ident.prayerName||"Unassigned"],
