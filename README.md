@@ -38,3 +38,10 @@ Publication variants will be presets of components rather than separate producti
 - Do not infer side unconditionally from odd/even PDF page numbers: Hebrew/right-to-left pagination, covers, and missing pages can break parity assumptions.
 - Include a simple Left / Right / Unknown override in the side-by-side reviewer.
 - Distinguish original-book side from final publication placement, which may differ after assembly.
+
+## Original page-number position as book-side evidence
+
+- Detect the original printed page number and its bounding box before cropping/removal; retain number text, bounding box, confidence, and page-edge position in per-page metadata.
+- For books with page numbers on outer margins, a left-edge number suggests a left-hand page (binding at right); a right-edge number suggests a right-hand page (binding at left).
+- Treat this as a configurable inference, not a universal rule. Cross-check page geometry and neighboring pages; allow human correction in the side-by-side viewer.
+- Use the inferred binding edge to choose gutter shadow removal and dewarping orientation.
