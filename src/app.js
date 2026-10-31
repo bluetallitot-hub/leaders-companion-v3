@@ -35,7 +35,8 @@ function templateRegions(W,H,textX,companionX,textW,sideW,bottom,headerHeight,ou
  ["Instructions",textX,instructionY,textW,instructionTop-instructionY],
  ["Corner block",companionX,instructionY,sideW,titleY+titleH-instructionY],
  ["Siddur text",textX,bottom,textW,H-headerHeight-bottom],
- ["Companion column",companionX,bottom,sideW,H-headerHeight-bottom],
+ ["Begin / End cues",textX,54,textW,bottom-54-gutter],
+ ["Companion column",companionX,54,sideW,H-headerHeight-54],
  ["Bottom status bar",contentLeft,28,contentRight-contentLeft,26]
  ];
 }
@@ -43,7 +44,7 @@ function templateRegions(W,H,textX,companionX,textW,sideW,bottom,headerHeight,ou
 // Insets are contained within existing geometry and never change page margins.
 function safeInset(name){
  if(name==="Siddur text"||name==="Companion column")return 7.2; // 0.10 inch
- if(name==="Bottom status bar")return 4.32; // 0.06 inch
+ if(name==="Bottom status bar"||name==="Begin / End cues")return 4.32; // 0.06 inch
  return 5.76; // 0.08 inch for header metadata
 }
 function drawRegionGuides(page,regions,font){
