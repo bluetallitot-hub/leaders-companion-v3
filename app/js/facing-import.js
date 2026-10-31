@@ -35,10 +35,35 @@ async function findTrimBoxes(bytes,count){
   for(let y=0;y<h;y+=2)if(rows[y]>=minRow){top=Math.min(top,y);bottom=Math.max(bottom,y+2)}
   for(let x=0;x<w;x+=2)if(cols[x]>=minCol){left=Math.min(left,x);right=Math.max(right,x+2)}
   if(right<=left||bottom<=top){boxes.push(null);continue}
+  // Identify an isolated printed heading at the top, using the blank gap
+  // separating it from the prayer. Never discard a line without that gap.
+  const active=[];
+  for(let y=top;y<=bottom;y+=2)if(rows[y]>=minRow)active.push(y);
+  const bands=[];
+  for(const y of active){
+   const last=bands[bands.length-1];
+   if(!last||y-last.end>Math.max(8,Math.round(h*.008)))bands.push({start:y,end:y});
+   else last.end=y;
+  }
+  if(bands.length>=2){
+   const first=bands[0],second=bands[1];
+   const gap=second.start-first.end;
+   const headingLimit=h*.24;
+   const separated=gap>=Math.max(16,Math.round(h*.018));
+   const plausibleHeading=first.start<headingLimit&&first.end<headingLimit&&
+      first.end-first.start<h*.065;
+   if(separated&&plausibleHeading){
+    top=Math.max(top,second.start-Math.max(7,Math.round(h*.008)));
+   }
+   // An isolated folio number at the foot can also be omitted.
+   const last=bands[bands.length-1],before=bands[bands.length-2];
+   if(last.start>h*.78&&last.start-before.end>Math.max(18,h*.02)&&
+      last.end-last.start<h*.045)bottom=before.end+2;
+  }
   // Generous safety padding protects accents, vowel points and first/last lines.
   const px=Math.max(15,Math.round(w*.025)),py=Math.max(20,Math.round(h*.03));
   left=Math.max(0,left-px);right=Math.min(w,right+px);
-  top=Math.max(0,top-py);bottom=Math.min(h,bottom+py);
+  top=Math.max(0,top-(bands.length>=2&&top>bands[0].start?Math.max(6,Math.round(h*.007)):py));bottom=Math.min(h,bottom+py);
   const originalWidth=page.view[2]-page.view[0],originalHeight=page.view[3]-page.view[1];
   boxes.push({left:originalWidth*left/w,right:originalWidth*right/w,
    bottom:originalHeight*(1-bottom/h),top:originalHeight*(1-top/h)});
@@ -90,7 +115,7 @@ $("source").addEventListener("change",async()=>{
   output=await createPdf(new Uint8Array(await file.arrayBuffer()));
   await preview(output);
   $("download").disabled=false;
-  status("PDF ready. Outer whitespace trimmed automatically; original printed lettering preserved.");
+  status("PDF ready. Outer margins trimmed; separated printed headings and footer folios removed when detectable.");
  }catch(e){console.error(e);status("Import failed: "+e.message)}
 });
 $("download").addEventListener("click",()=>{
