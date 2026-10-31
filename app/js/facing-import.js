@@ -13,20 +13,55 @@ function drawTemplate(page,side){
  boxes.push([numberX,746,48,24],[colorX,746,18,24],[serviceX,746,max-min-66,24]);
  for(const [x,y,w,h] of boxes)page.drawRectangle({x,y,width:w,height:h,borderColor:PDFLib.rgb(.26,.44,.54),borderWidth:.75});
 }
+async function findTrimBoxes(bytes,count){
+ const pdfjs=window.pdfjsLib;
+ pdfjs.GlobalWorkerOptions.workerSrc="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+ const doc=await pdfjs.getDocument({data:bytes.slice()}).promise,boxes=[];
+ for(let n=1;n<=count;n++){
+  const page=await doc.getPage(n),v=page.getViewport({scale:1.3});
+  const canvas=document.createElement("canvas");canvas.width=Math.ceil(v.width);canvas.height=Math.ceil(v.height);
+  const ctx=canvas.getContext("2d",{willReadFrequently:true});
+  ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
+  await page.render({canvasContext:ctx,viewport:v}).promise;
+  const w=canvas.width,h=canvas.height,pixels=ctx.getImageData(0,0,w,h).data;
+  const rows=new Uint32Array(h),cols=new Uint32Array(w);
+  // Count dark ink, ignoring near-white scanning noise.
+  for(let y=0;y<h;y+=2)for(let x=0;x<w;x+=2){
+   const j=4*(y*w+x),r=pixels[j],g=pixels[j+1],b=pixels[j+2];
+   if(Math.min(r,g,b)<135&&r+g+b<550){rows[y]++;cols[x]++}
+  }
+  const minRow=Math.max(2,Math.floor(w/380)),minCol=Math.max(2,Math.floor(h/450));
+  let top=h,bottom=0,left=w,right=0;
+  for(let y=0;y<h;y+=2)if(rows[y]>=minRow){top=Math.min(top,y);bottom=Math.max(bottom,y+2)}
+  for(let x=0;x<w;x+=2)if(cols[x]>=minCol){left=Math.min(left,x);right=Math.max(right,x+2)}
+  if(right<=left||bottom<=top){boxes.push(null);continue}
+  // Generous safety padding protects accents, vowel points and first/last lines.
+  const px=Math.max(15,Math.round(w*.025)),py=Math.max(20,Math.round(h*.03));
+  left=Math.max(0,left-px);right=Math.min(w,right+px);
+  top=Math.max(0,top-py);bottom=Math.min(h,bottom+py);
+  const originalWidth=page.view[2]-page.view[0],originalHeight=page.view[3]-page.view[1];
+  boxes.push({left:originalWidth*left/w,right:originalWidth*right/w,
+   bottom:originalHeight*(1-bottom/h),top:originalHeight*(1-top/h)});
+ }
+ return boxes;
+}
 async function createPdf(bytes){
  const source=await PDFLib.PDFDocument.load(bytes,{ignoreEncryption:false});
  if(!source.getPageCount())throw Error("The PDF contains no pages.");
  const out=await PDFLib.PDFDocument.create();
  const count=Math.min(2,source.getPageCount());
+ const trims=await findTrimBoxes(bytes,count);
  for(let i=0;i<count;i++){
   const page=out.addPage([W,H]);drawTemplate(page,i);
   const original=source.getPage(i);
-  // Keep the entire printed page, including its original page number.
-  // Never crop or reconstruct the Hebrew letters or nikkud.
-  const embedded=await out.embedPage(original);
+  // Trim outer whitespace while embedding the original PDF artwork, not OCR text.
+  const trim=trims[i];
+  const embedded=trim?await out.embedPage(original,trim):await out.embedPage(original);
   const region=REGIONS[i],pad=6;
-  const scale=Math.min((region.w-2*pad)/original.getWidth(),(region.h-2*pad)/original.getHeight());
-  const width=original.getWidth()*scale,height=original.getHeight()*scale;
+  const sourceWidth=trim?trim.right-trim.left:original.getWidth();
+  const sourceHeight=trim?trim.top-trim.bottom:original.getHeight();
+  const scale=Math.min((region.w-2*pad)/sourceWidth,(region.h-2*pad)/sourceHeight);
+  const width=sourceWidth*scale,height=sourceHeight*scale;
   page.drawPage(embedded,{x:region.x+(region.w-width)/2,y:region.y+(region.h-height)/2,width,height});
  }
  return new Uint8Array(await out.save());
@@ -55,7 +90,7 @@ $("source").addEventListener("change",async()=>{
   output=await createPdf(new Uint8Array(await file.arrayBuffer()));
   await preview(output);
   $("download").disabled=false;
-  status("PDF ready. The original Siddur pages are preserved without cropping.");
+  status("PDF ready. Outer whitespace trimmed automatically; original printed lettering preserved.");
  }catch(e){console.error(e);status("Import failed: "+e.message)}
 });
 $("download").addEventListener("click",()=>{
