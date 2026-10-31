@@ -303,17 +303,35 @@ function detectPrintedLines(canvas,side){
 let sourceTextLines=[[],[]];
 let cueMatchReport="Automatic cue matching has not run.";
 function normalizeCueText(s){return String(s||"").normalize("NFKD").replace(/[\u0591-\u05c7]/g,"").replace(/[‘’“”"'.,:;!?—–-]/g," ").replace(/\s+/g," ").trim().toLowerCase()}
+function cueSimilarity(a,b){
+ const x=normalizeCueText(a),y=normalizeCueText(b);
+ if(!x||!y)return 0;
+ if(x.includes(y)||y.includes(x))return Math.min(x.length,y.length)/Math.max(x.length,y.length)*.25+.75;
+ const aw=x.split(" ").filter(w=>w.length>1),bw=y.split(" ").filter(w=>w.length>1);
+ if(!aw.length||!bw.length)return 0;
+ const matched=bw.filter(w=>aw.some(v=>v===w||(w.length>4&&v.length>4&&v.slice(0,4)===w.slice(0,4)))).length;
+ return matched/Math.max(aw.length,bw.length);
+}
 function matchingCueLine(lines,phrase){
  const needle=normalizeCueText(phrase);
- if(!needle)return null;
- const words=needle.split(" ").filter(Boolean);
- if(words.length<2)return null;
- const candidates=[];
+ if(needle.length<6)return null;
+ const scores=[];
  for(let i=0;i<lines.length;i++){
-  const joined=normalizeCueText(lines.slice(i,i+3).map(l=>l.text).join(" "));
-  if(joined.includes(needle))candidates.push(i);
+  // Score contiguous OCR lines. Never allow a loose match to select a passage.
+  let best=0;
+  for(let n=1;n<=3&&i+n<=lines.length;n++){
+   const slice=lines.slice(i,i+n);
+   if(slice.some(l=>l.column!==slice[0].column))break;
+   best=Math.max(best,cueSimilarity(slice.map(l=>l.text).join(" "),needle));
+  }
+  if(best>=.78)scores.push({index:i,score:best});
  }
- return candidates.length===1?candidates[0]:null;
+ scores.sort((a,b)=>b.score-a.score);
+ if(!scores.length)return null;
+ // Neighboring windows of the same phrase are not separate occurrences.
+ const runner=scores.find(c=>Math.abs(c.index-scores[0].index)>2);
+ if(runner&&scores[0].score-runner.score<.12)return null;
+ return scores[0].index;
 }
 function assignCueHighlights(side){
  const record=pageMetadata[side],ocr=sourceTextLines[side]||[],geometry=detectedLines[side]||[];
@@ -437,20 +455,29 @@ async function recognizeCueLines(side){
  const region=REGIONS[side],x=Math.round(region.x),y=Math.round(H-region.y-region.h);
  const crop=canvasCrop(canvas,{left:x,top:y,right:Math.round(region.x+region.w),bottom:Math.round(H-region.y)});
  const result=await Tesseract.recognize(crop,lang);
- const raw=result.data.lines||[];
- const geometry=detectedLines[side]||[],assigned=new Set(),mapped=[];
- for(const line of raw){
-  const text=String(line.text||"").trim(),box=line.bbox;
-  if(!text||!box)continue;
+ const data=result.data||{},raw=Array.isArray(data.lines)?data.lines:[];
+ // Tesseract builds differ in whether they expose lines or words.
+ const candidates=raw.length?raw:(Array.isArray(data.words)?data.words:[]);
+ const geometry=detectedLines[side]||[],mapped=[];
+ for(const line of candidates){
+  const value=String(line.text||"").trim(),box=line.bbox;
+  if(!value||!box)continue;
   const cy=(y+(box.y0+box.y1)/2)/canvas.height,cx=(x+(box.x0+box.x1)/2)/canvas.width;
-  const closest=geometry.filter(g=>!assigned.has(g.id)&&cx>=g.x-.04&&cx<=g.x+g.width+.04)
+  const closest=geometry.filter(g=>cx>=g.x-.04&&cx<=g.x+g.width+.04)
    .sort((a,b)=>Math.abs(cy-a.y-a.height/2)-Math.abs(cy-b.y-b.height/2))[0];
-  if(closest&&Math.abs(cy-closest.y-closest.height/2)<.022){
-   assigned.add(closest.id);mapped.push({id:closest.id,text,y:closest.y,column:closest.column});
+  if(closest&&Math.abs(cy-closest.y-closest.height/2)<.018){
+   mapped.push({id:closest.id,text:value,y:closest.y,column:closest.column});
   }
  }
- mapped.sort((a,b)=>a.y-b.y||a.column-b.column);
- return mapped;
+ // Combine OCR words assigned to the same printed line.
+ const groups=new Map();
+ for(const item of mapped){
+  if(!groups.has(item.id))groups.set(item.id,{...item,text:[]});
+  groups.get(item.id).text.push(item.text);
+ }
+ const lines=[...groups.values()].map(l=>({...l,text:l.text.join(" ")}));
+ lines.sort((a,b)=>a.y-b.y||a.column-b.column);
+ return lines;
 }
 async function autoMatchCues(){
  if(!pageMetadata.length||!importedCues.length)return;
