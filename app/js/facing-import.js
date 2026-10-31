@@ -12,14 +12,13 @@ const RATIO=380.88/540;
 function lockCrop(side,c){const canvas=$(side+"-canvas"),ratio=RATIO*canvas.height/canvas.width;let w=Math.max(c.w,c.h*ratio),h=w/ratio;const k=Math.min(1,100/w,100/h);w*=k;h*=k;return {x:clamp(c.x+c.w/2-w/2,0,100-w),y:clamp(c.y+c.h/2-h/2,0,100-h),w,h}}
 function sourceZone(side,w,h){
  const shared=$("left-page").value===$("right-page").value;
- return {x0:shared?(side==="left"?0:w/2):0,x1:shared?(side==="left"?w/2:w):w,y0:h*.29,y1:h*.89};
+ return {x0:shared?(side==="left"?0:w/2):0,x1:shared?(side==="left"?w/2:w):w,y0:h*.085,y1:h*.91};
 }
 function suggestCrop(side){
  const canvas=$(side+"-canvas"),w=canvas.width,h=canvas.height;
  const data=canvas.getContext("2d",{willReadFrequently:true}).getImageData(0,0,w,h).data;
  const z=sourceZone(side,w,h),step=2;
- // Restrict detection to the prayer-text region: omit source header, titles,
- // instructions, original page numbers and lower cue/status regions.
+ // Restrict detection to the source body; neutral-ink filtering rejects blue template guides.
  const row=new Uint32Array(h),col=new Uint32Array(w);
  for(let y=Math.ceil(z.y0);y<z.y1;y+=step)for(let x=Math.ceil(z.x0+12);x<z.x1-12;x+=step){
   const i=(y*w+x)*4,r=data[i],g=data[i+1],b=data[i+2];
