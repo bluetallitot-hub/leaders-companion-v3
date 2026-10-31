@@ -258,6 +258,7 @@ function applyImportedCues(){
 // Lightweight in-memory line geometry: no SIP/SGM/CIP sidecars.
 let detectedLines=[[],[]];
 let highlightView="highlights";
+let selectionMode="line";
 function detectPrintedLines(canvas,side){
  const ctx=canvas.getContext("2d",{willReadFrequently:true}),w=canvas.width,h=canvas.height;
  const pixels=ctx.getImageData(0,0,w,h).data,region=REGIONS[side],result=[];
@@ -364,18 +365,64 @@ function roleColor(role){
  const r=String(role||"").toUpperCase();
  return r.includes("RABBI")?"#F5D03C":r.includes("PRESIDENT")?"#5C9CE8":r.includes("READER")?"#66C78B":r.includes("SOLO")?"#F0A2CA":"#F5D03C";
 }
+// Word candidates are derived from actual ink gaps, never equal-width divisions.
+// Ambiguous spacing may merge adjacent words; manual line mode remains available.
+function wordCandidates(side,line){
+ const canvas=$(side===0?"output-left":"output-right"),ctx=canvas.getContext("2d",{willReadFrequently:true});
+ const w=canvas.width,h=canvas.height;
+ const x0=Math.max(0,Math.floor(line.x*w)),x1=Math.min(w,Math.ceil((line.x+line.width)*w));
+ const y0=Math.max(0,Math.floor(line.y*h)),y1=Math.min(h,Math.ceil((line.y+line.height)*h));
+ if(x1-x0<8||y1-y0<3)return [];
+ const image=ctx.getImageData(x0,y0,x1-x0,y1-y0),columns=[];
+ for(let x=0;x<image.width;x++){
+  let ink=0;for(let y=0;y<image.height;y++)if(image.data[(y*image.width+x)*4]<150)ink++;
+  columns.push(ink);
+ }
+ const bands=[];let first=-1,last=-1;
+ for(let x=0;x<columns.length;x++){
+  if(columns[x]>0){if(first<0)first=x;last=x}
+  else if(first>=0){bands.push([first,last]);first=-1}
+ }
+ if(first>=0)bands.push([first,last]);
+ if(!bands.length)return [];
+ // Typical inter-letter gaps are narrow; a word gap must exceed the
+ // local median positive gap by a conservative margin.
+ const gaps=bands.slice(1).map((b,i)=>b[0]-bands[i][1]-1).sort((a,b)=>a-b);
+ const median=gaps.length?gaps[Math.floor(gaps.length/2)]:0;
+ const splitAt=Math.max(4,Math.ceil(median*2.2));
+ const words=[];let start=bands[0][0],end=bands[0][1];
+ const emit=()=>{if(end-start<2)return;
+  const xx=Math.max(x0,x0+start-2),right=Math.min(x1,x0+end+3);
+  words.push({id:line.id+"-word-"+words.length,lineId:line.id,column:line.column,
+   x:xx/w,y:line.y,width:(right-xx)/w,height:line.height});
+ };
+ for(let i=1;i<bands.length;i++){
+  const gap=bands[i][0]-end-1;
+  if(gap>=splitAt){emit();start=bands[i][0]}
+  end=bands[i][1];
+ }
+ emit();
+ return words;
+}
+function getWordGeometry(side){
+ return detectedLines[side].flatMap(l=>wordCandidates(side,l));
+}
 function drawHighlights(){
  for(let i=0;i<2;i++){
   const overlay=$("highlight-"+i),base=$(i===0?"output-left":"output-right");
   if(!overlay||!base)return;
   overlay.width=base.width;overlay.height=base.height;
   const ctx=overlay.getContext("2d");ctx.clearRect(0,0,overlay.width,overlay.height);
-  const selections=new Map((pageMetadata[i]?.leadership?.highlights||[]).map(h=>[h.lineId,h]));
-  for(const line of detectedLines[i]){
-   const h=selections.get(line.id),active=Boolean(h);
-   if(!active&&highlightView!=="detection")continue;
-   const x=line.x*overlay.width,y=line.y*overlay.height,w=line.width*overlay.width,ht=line.height*overlay.height;
-   ctx.fillStyle=active?roleColor(h.roleId)+"40":"rgba(24,105,160,.19)";
+  const selected=pageMetadata[i]?.leadership?.highlights||[];
+  const words=selectionMode==="word"?getWordGeometry(i):[];
+  const shapes=[...detectedLines[i],...words];
+  for(const shape of shapes){
+   const h=selected.find(v=>v.wordId===shape.id||(!v.wordId&&v.lineId===shape.id));
+   if(!h&&highlightView!=="detection")continue;
+   // Word-mode diagnostics show word boundaries, not the line behind them.
+   if(selectionMode==="word"&&!shape.lineId&&highlightView==="detection")continue;
+   const x=shape.x*overlay.width,y=shape.y*overlay.height,w=shape.width*overlay.width,ht=shape.height*overlay.height;
+   ctx.fillStyle=h?roleColor(h.roleId)+"40":"rgba(24,105,160,.19)";
    ctx.fillRect(x,y,w,ht);
   }
  }
@@ -430,20 +477,31 @@ function installHighlightSelection(){
    return lines.filter(l=>p.x>=l.x-.02&&p.x<=l.x+l.width+.02&&Math.abs(p.y-l.y-l.height/2)<.014)
     .sort((a,b)=>Math.abs(p.y-a.y-a.height/2)-Math.abs(p.y-b.y-b.height/2))[0]||null;
   };
-  layer.addEventListener("pointerdown",e=>{if(!pageMetadata[i])return;start=nearest(point(e));if(start)layer.setPointerCapture(e.pointerId)});
+  const target=p=>{
+   if(selectionMode==="line")return nearest(p);
+   const words=getWordGeometry(i);
+   const matches=words.filter(w=>p.x>=w.x-.003&&p.x<=w.x+w.width+.003&&p.y>=w.y-.008&&p.y<=w.y+w.height+.008);
+   return matches.sort((a,b)=>Math.abs(p.x-a.x-a.width/2)-Math.abs(p.x-b.x-b.width/2))[0]||null;
+  };
+  layer.addEventListener("pointerdown",e=>{if(!pageMetadata[i])return;start=target(point(e));if(start)layer.setPointerCapture(e.pointerId)});
   layer.addEventListener("pointerup",e=>{
    if(!start||!pageMetadata[i])return;
-   const end=nearest(point(e))||start,lines=detectedLines[i];
-   const a=lines.indexOf(start),b=lines.indexOf(end),chosen=a===b?[start]:lines.slice(Math.min(a,b),Math.max(a,b)+1).filter(l=>l.column===start.column);
+   const end=target(point(e))||start,items=selectionMode==="word"?getWordGeometry(i):detectedLines[i];
+   const a=items.findIndex(x=>x.id===start.id),b=items.findIndex(x=>x.id===end.id);
+   if(a<0||b<0){start=null;return}
+   const chosen=a===b?[start]:items.slice(Math.min(a,b),Math.max(a,b)+1).filter(l=>l.column===start.column);
    const highlights=pageMetadata[i].leadership.highlights;
-   for(const line of chosen){
-    const old=highlights.findIndex(h=>h.lineId===line.id);
+   for(const item of chosen){
+    const old=highlights.findIndex(h=>selectionMode==="word"?h.wordId===item.id:!h.wordId&&h.lineId===item.id);
     if(old>=0)highlights.splice(old,1);
-    else highlights.push({highlightId:"HL-"+line.id,lineId:line.id,roleId:pageMetadata[i].leadership.cues[0]?.role||roleConfig.id,
-     x:line.x,y:line.y,width:line.width,height:line.height,coordinateSystem:"normalized-top-left",visibleInPdf:false});
+    else highlights.push({highlightId:"HL-"+item.id,lineId:item.lineId||item.id,
+     ...(selectionMode==="word"?{wordId:item.id}:{}),
+     roleId:pageMetadata[i].leadership.cues[0]?.role||roleConfig.id,
+     x:item.x,y:item.y,width:item.width,height:item.height,
+     coordinateSystem:"normalized-top-left",visibleInPdf:false});
    }
    start=null;drawHighlights();
-   status(highlights.length+" snapped lines selected on "+(i===0?"English/left":"Hebrew/right")+" page. Download to embed selections in PDF metadata.");
+   status(highlights.length+" selections on "+(i===0?"left":"right")+" page ("+selectionMode+" mode). Download to save metadata.");
   });
   layer.addEventListener("pointercancel",()=>{start=null});
  }
@@ -489,6 +547,7 @@ async function autoMatchCues(){
   try{sourceTextLines[side]=await recognizeCueLines(side);total+=assignCueHighlights(side)}
   catch(e){console.warn("Cue OCR unavailable",e);for(const cue of pageMetadata[side].leadership.cues)cue.matchStatus="ocr-error: "+e.message}
  }
+ $("ocr-diagnostics").textContent=pageMetadata.map((r,i)=>"Page "+(r.source.sourcePage||i+1)+" OCR ("+(sourceTextLines[i]||[]).length+" mapped lines):\\n"+(sourceTextLines[i]||[]).map(l=>l.text).join("\\n")).join("\\n\\n");
  cueMatchReport=total+" of "+pageMetadata.reduce((n,r)=>n+r.leadership.cues.length,0)+" cues automatically matched. "+pageMetadata.flatMap(r=>r.leadership.cues.map(c=>c.cueId+": "+c.matchStatus)).join("; ");
  drawHighlights();displayMetadata();status(cueMatchReport);
 }
@@ -619,6 +678,7 @@ $("cue-file").addEventListener("change",async()=>{
  }catch(e){status("Cue import failed: "+e.message)}
 });
 $("highlight-view").addEventListener("change",()=>{highlightView=$("highlight-view").value;drawHighlights()});
+$("selection-mode").addEventListener("change",()=>{selectionMode=$("selection-mode").value;drawHighlights()});
 installHighlightSelection();
 $("download").addEventListener("click",async()=>{
  if(!output)return;
