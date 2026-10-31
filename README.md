@@ -51,3 +51,11 @@ Publication variants will be presets of components rather than separate producti
 - All siddur, instruction, companion, and status-bar region rectangles are internal positioning guides only. Never draw their borders in generated PDFs.
 - Maintain coordinates and dimensions in page metadata for consistent placement; only actual text, page numbers, instructions, QR codes, and intentionally designed status-bar content are visible.
 - Optional visual guides belong exclusively in the editing interface, never in exported production PDFs.
+
+## Upper corner reserved block
+
+- Reserve a distinct, independently addressable Corner Block where the top instruction region meets the companion column.
+- Keep its position and dimensions in the layout preset and page metadata; leave it blank unless assigned content.
+- Support later placement of a short instruction, QR code, melody reference, or service indicator.
+- Mirror its position when the companion column moves between left and right layouts.
+- This region is a nonprinting guide: do not draw a bounding box or placeholder in exported PDFs.
