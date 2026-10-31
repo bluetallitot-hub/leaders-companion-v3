@@ -301,6 +301,7 @@ function detectPrintedLines(canvas,side){
 // Cue anchors are matched against the source PDF's text layer when present.
 // Scanned-only pages need OCR; never claim a match from geometry alone.
 let sourceTextLines=[[],[]];
+let cueMatchReport="Automatic cue matching has not run.";
 function normalizeCueText(s){return String(s||"").normalize("NFKD").replace(/[\u0591-\u05c7]/g,"").replace(/[‘’“”"'.,:;!?—–-]/g," ").replace(/\s+/g," ").trim().toLowerCase()}
 function matchingCueLine(lines,phrase){
  const needle=normalizeCueText(phrase);
@@ -316,12 +317,12 @@ function matchingCueLine(lines,phrase){
 }
 function assignCueHighlights(side){
  const record=pageMetadata[side],ocr=sourceTextLines[side]||[],geometry=detectedLines[side]||[];
- if(!record||!ocr.length)return 0;
+ if(!record||!ocr.length){if(record)for(const cue of record.leadership.cues)cue.matchStatus="ocr-lines-unavailable";return 0;}
  let matches=0;
  for(const cue of record.leadership.cues){
   // Never convert ambiguous OCR into a guessed selection.
   const begin=matchingCueLine(ocr,cue.startCue),end=matchingCueLine(ocr,cue.endCue);
-  if(begin===null||end===null){cue.matchStatus="anchor-review-required";continue}
+  if(begin===null||end===null){cue.matchStatus="anchor-review-required ("+(begin===null?"START ":"")+(end===null?"END":"")+")";continue}
   const first=ocr[begin],last=ocr[end];
   if(!first||!last){cue.matchStatus="anchor-review-required";continue}
   // The OCR endpoints are anchors only. Fill all intervening printed lines
@@ -459,10 +460,10 @@ async function autoMatchCues(){
   if(!pageMetadata[side].leadership.cues.length)continue;
   status("Reading "+(side===0?"left":"right")+" page for cue anchors...");
   try{sourceTextLines[side]=await recognizeCueLines(side);total+=assignCueHighlights(side)}
-  catch(e){console.warn("Cue OCR unavailable",e)}
+  catch(e){console.warn("Cue OCR unavailable",e);for(const cue of pageMetadata[side].leadership.cues)cue.matchStatus="ocr-error: "+e.message}
  }
- drawHighlights();displayMetadata();
- status(total+" cue passages have provisional line highlights. Review boundaries carefully; OCR and partial-line matching remain experimental.");
+ cueMatchReport=total+" of "+pageMetadata.reduce((n,r)=>n+r.leadership.cues.length,0)+" cues automatically matched. "+pageMetadata.flatMap(r=>r.leadership.cues.map(c=>c.cueId+": "+c.matchStatus)).join("; ");
+ drawHighlights();displayMetadata();status(cueMatchReport);
 }
 async function syncHighlightMetadata(){
  if(!output)return;
@@ -541,6 +542,7 @@ function displayMetadata(){
    ["Cue ID",ident.cueId||"Unassigned"],
    ["Binder order",ident.binderOrder||"Unassigned"],
    ["Role",record.leadership.role||"Unassigned"],
+   ["Automatically matched cues",(record.leadership.cues||[]).filter(c=>c.matchStatus==="candidate-review-required").length+" / "+(record.leadership.cues||[]).length],
    ["Imported cues",(record.leadership.cues||[]).map(c=>[c.cueId,c.role,"Style: "+c.style,"Start: "+c.startCue,"End: "+c.endCue,c.matchStatus].join(" | ")).join(" ; ")||"None"],
    ["Melody ID",record.production.melodyId||"Unassigned"],
    ["Paper class",record.production.paperClass||"Unassigned"],
@@ -575,7 +577,7 @@ $("source").addEventListener("change",async()=>{
   if(!window.PDFLib||!window.pdfjsLib)throw Error("PDF libraries unavailable.");
   output=await createPdf(new Uint8Array(await file.arrayBuffer()));
   await preview(output);$("download").disabled=false;
-  status("PDF ready. Review cue match status and highlight selections.");
+  status(cueMatchReport);
  }catch(e){console.error(e);status("Import failed: "+e.message)}
 });
 $("cue-file").addEventListener("change",async()=>{
@@ -586,7 +588,7 @@ $("cue-file").addEventListener("change",async()=>{
   importedCues=rows;
   applyImportedCues();
   if(pageMetadata.length)await autoMatchCues();
-  status("Loaded "+rows.length+" cue rows. "+(pageMetadata.length?"Matched to preview page metadata.":"Now upload the test PDF."));
+  status(pageMetadata.length?cueMatchReport:"Loaded "+rows.length+" cue rows. Now upload the test PDF.");
  }catch(e){status("Cue import failed: "+e.message)}
 });
 $("highlight-view").addEventListener("change",()=>{highlightView=$("highlight-view").value;drawHighlights()});
