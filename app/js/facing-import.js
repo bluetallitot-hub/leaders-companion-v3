@@ -62,6 +62,18 @@ async function renderSide(side){
  await page.render({canvasContext:canvas.getContext("2d"),viewport:v}).promise;
  sync(side);
 }
+async function detectTitle(side){
+ const num=Number($(side+"-page").value),page=await state.view.getPage(num);
+ const items=(await page.getTextContent()).items;
+ const viewport=page.getViewport({scale:1}),shared=$("left-page").value===$("right-page").value;
+ const candidates=items.filter(it=>it.str&&it.str.trim().length>2&&it.transform)
+ .map(it=>({text:it.str.trim(),x:it.transform[4],y:viewport.height-it.transform[5],size:Math.abs(it.transform[0])}))
+ .filter(it=>it.y>viewport.height*.035&&it.y<viewport.height*.30&&it.text.length<85)
+ .filter(it=>!shared||(side==="left"?it.x<viewport.width/2:it.x>=viewport.width/2))
+ .filter(it=>!/^\d+$/.test(it.text)).sort((a,b)=>b.size-a.size||a.y-b.y);
+ $(side+"-title").value=candidates[0]?.text||"";
+ if(!candidates.length)$("title-note").textContent="At least one title was not found in selectable PDF text. Image-only scans need OCR (not implemented); enter the title manually.";
+}
 async function loadSource(){
  const file=$("source").files[0];if(!file)return;
  state.raw=new Uint8Array(await file.arrayBuffer());
@@ -69,11 +81,12 @@ async function loadSource(){
  pdfjs.GlobalWorkerOptions.workerSrc="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
  state.view=await pdfjs.getDocument({data:state.raw.slice()}).promise;
  state.count=state.view.numPages;
- for(const side of ["left","right"]){$(side+"-page").max=state.count;$(side+"-page").value=1}
+ for(const side of ["left","right"]){$(side+"-page").max=state.count;$(side+"-page").value=(side==="right"&&state.count>1?2:1)}
  // For separate PDF pages, begin with near-full-page crops on both.
  if(state.count>1){state.crops.left={x:5,y:6,w:90,h:88};state.crops.right={x:5,y:6,w:90,h:88}}
  else{state.crops.left={x:4,y:8,w:42,h:84};state.crops.right={x:54,y:8,w:42,h:84}}
  await Promise.all(["left","right"].map(renderSide));
+ await Promise.all(["left","right"].map(detectTitle));
  for(const side of ["left","right"]){state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side)}
  state.output=null;$("download").disabled=true;
  status("Source loaded ("+state.count+" PDF page(s)). Adjust both crop rectangles to include only printed prayer text.");
@@ -108,6 +121,8 @@ async function generate(){
  if(!state.raw)throw Error("Upload a source PDF.");
  const src=await PDFLib.PDFDocument.load(state.raw.slice());
  const review=$("guides").value==="review",out=await PDFLib.PDFDocument.create();
+ const start=Number($("start-number").value);if(!Number.isInteger(start)||start<1||start>998)throw Error("Starting page number must be 1–998.");
+ const font=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
  if(review){const master=await loadReviewMaster();const pages=await out.copyPages(master,[0,1]);pages.forEach(p=>out.addPage(p))}
  else{for(const side of ["left","right"]){const p=out.addPage([W,H]);drawCleanTemplate(p,side)}}
  for(let i=0;i<2;i++){
@@ -122,12 +137,23 @@ async function generate(){
    // Clear the development label in review mode without changing bounding box geometry.
    if(review)target.drawRectangle({x:r.x+1,y:r.y+1,width:r.w-2,height:r.h-2,color:PDFLib.rgb(1,1,1)});
    target.drawPage(embedded,{x,y,width:dw,height:dh});
+   const number=String(start+i),pageNoX=side==="left"?20.16:544.96;
+   if(review)target.drawRectangle({x:pageNoX+1,y:747,width:46,height:22,color:PDFLib.rgb(1,1,1)});
+   const numberWidth=font.widthOfTextAtSize(number,18);
+   target.drawText(number,{x:pageNoX+24-numberWidth/2,y:751,size:18,font,color:PDFLib.rgb(.75,.12,.16)});
+   const title=$(side+"-title").value.trim();
+   if(title&&/^[\x20-\x7e\u00a0-\u00ff]+$/.test(title)){
+     const tw=font.widthOfTextAtSize(title,16),size=Math.min(16,16*(REGIONS[side].w-12)/Math.max(tw,1));
+     if(review)target.drawRectangle({x:REGIONS[side].x+1,y:711,width:REGIONS[side].w-2,height:28,color:PDFLib.rgb(1,1,1)});
+     target.drawText(title,{x:REGIONS[side].x+6,y:718,size,font,color:PDFLib.rgb(.14,.23,.28)});
+   }
+
  }
  return new Uint8Array(await out.save());
 }
 for(const side of ["left","right"]){
  attachCrop(side);
- $(side+"-page").addEventListener("change",()=>renderSide(side).catch(e=>status(e.message)));
+ $(side+"-page").addEventListener("change",async()=>{try{await renderSide(side);state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side);await detectTitle(side)}catch(e){status(e.message)}});
 }
 $("source").addEventListener("change",()=>loadSource().catch(e=>status("Source error: "+e.message)));
 $("generate").addEventListener("click",async()=>{
