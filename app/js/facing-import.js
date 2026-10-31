@@ -95,39 +95,42 @@ async function readMetadata(source,pageIndex,canvas,bands){
  // The topmost line is a running header, not necessarily a prayer heading.
  runningHeader=topText.find(t=>t!==number&&/[\p{L}]/u.test(t))||"";
  let ocrLines=[];
+ // Identify the script from the body, not the bilingual/numbered running header.
  if(window.Tesseract){
   try{
-   const strip=canvasCrop(canvas,{left:0,top:0,right:canvas.width,bottom:Math.min(canvas.height,Math.round(canvas.height*.30))});
-   const result=await Tesseract.recognize(strip,"heb+eng");
-   ocrLines=(result.data.lines||[]).map(l=>({text:(l.text||"").trim(),bbox:l.bbox,confidence:l.confidence||0})).filter(l=>l.text);
-   if(!ocrLines.length&&result.data.text)ocrLines=result.data.text.split(/\n/).map(t=>({text:t.trim(),bbox:null,confidence:0})).filter(l=>l.text);
-  }catch(e){console.warn("OCR unavailable:",e)}
+   const body=canvasCrop(canvas,{left:Math.floor(canvas.width*.12),
+    right:Math.ceil(canvas.width*.88),top:Math.floor(canvas.height*.22),
+    bottom:Math.ceil(canvas.height*.76)});
+   const sample=await Tesseract.recognize(body,"heb+eng");
+   const raw=sample.data.text||"";
+   const heb=(raw.match(/[\u0590-\u05ff]/g)||[]).length;
+   const eng=(raw.match(/[A-Za-z]/g)||[]).length;
+   if(heb>eng*1.2)language="Hebrew";
+   else if(eng>heb*1.2)language="English";
+  }catch(e){console.warn("Body language OCR unavailable",e)}
  }
- const candidateNumbers=ocrLines.filter(l=>/^\d{1,4}$/.test(l.text)&&l.confidence>=40);
- if(!number&&candidateNumbers.length===1)number=candidateNumbers[0].text;
- // Do not promote the first OCR line to a section heading: it often contains
- // the folio number, a running header, or mixed-language OCR artifacts.
- if(!runningHeader){
-  const candidates=ocrLines.map(l=>l.text.replace(/^\s*\d{1,4}\s*/, "").trim())
-   .filter(t=>/[\p{L}]/u.test(t));
-  if(candidates.length)runningHeader=candidates[0];
- }
- if(language==="unknown"){
-  const sample=ocrLines.map(l=>l.text).join(" ");
-  language=/[\u0590-\u05ff]/u.test(sample)?"Hebrew":/[a-z]{3}/i.test(sample)?"English":"unknown";
- }
- // Use the main prayer body, not just the header, to determine language.
- if(language==="unknown"&&window.Tesseract){
+ // Read running header and section heading independently, in the detected script.
+ // Mask the folio corners so digits cannot contaminate the heading text.
+ if(window.Tesseract&&language!=="unknown"){
+  const w=canvas.width,h=canvas.height,ocrLang=language==="Hebrew"?"heb":"eng";
+  const recognizeZone=async(top,bottom)=>{
+   const region=canvasCrop(canvas,{left:Math.floor(w*.09),right:Math.ceil(w*.91),
+    top:Math.floor(h*top),bottom:Math.ceil(h*bottom)});
+   const ctx=region.getContext("2d");
+   ctx.fillStyle="#fff";
+   const maskW=Math.ceil(region.width*.24);
+   ctx.fillRect(0,0,maskW,Math.ceil(h*.07));
+   ctx.fillRect(region.width-maskW,0,maskW,Math.ceil(h*.07));
+   const result=await Tesseract.recognize(region,ocrLang);
+   return (result.data.text||"").split(/\n/).map(t=>t.trim())
+    .filter(t=>language==="Hebrew"?/[\u0590-\u05ff]/.test(t):/[A-Za-z]/.test(t));
+  };
   try{
-   const sampleCanvas=document.createElement("canvas");
-   sampleCanvas.width=600;sampleCanvas.height=Math.round(canvas.height*600/canvas.width);
-   sampleCanvas.getContext("2d").drawImage(canvas,0,0,600,sampleCanvas.height);
-   const result=await Tesseract.recognize(sampleCanvas,"heb+eng");
-   const sample=result.data.text||"";
-   const heb=(sample.match(/[\u0590-\u05ff]/g)||[]).length;
-   const eng=(sample.match(/[A-Za-z]/g)||[]).length;
-   language=heb>eng*.55?"Hebrew":eng>heb*.55?"English":"unknown";
-  }catch(e){console.warn("Body OCR unavailable",e)}
+   const lines=await recognizeZone(0,.075);
+   if(lines.length)runningHeader=lines[0];
+   const sections=await recognizeZone(.075,.19);
+   if(sections.length)heading=sections[0];
+  }catch(e){console.warn("Language-specific heading OCR unavailable",e)}
  }
  // Tight folio crops: verified against the scanned 159 Hebrew/English test pair.
  // Use digit-only single-line OCR; the heading must not share the OCR region.
