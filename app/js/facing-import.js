@@ -361,6 +361,44 @@ function drawHighlights(){
   }
  }
 }
+// Recovery for legitimate lines missed by the projection detector.
+// Only creates a candidate when dark source ink is present near the click.
+function recoverClickedLine(side,p){
+ const canvas=$(side===0?"output-left":"output-right"),ctx=canvas.getContext("2d",{willReadFrequently:true});
+ const w=canvas.width,h=canvas.height,region=REGIONS[side];
+ const x0=Math.round(region.x),x1=Math.round(region.x+region.w);
+ const y0=Math.round(H-region.y-region.h),y1=Math.round(H-region.y);
+ const px=Math.round(p.x*w),py=Math.round(p.y*h);
+ if(px<x0||px>x1||py<y0||py>y1)return null;
+ const slices=pageMetadata[side]?.source?.languageCode==="H"?[[.02,.49],[.51,.98]]:[[.02,.98]];
+ const col=slices.findIndex(([a,b])=>px>=x0+region.w*a&&px<=x0+region.w*b);
+ if(col<0)return null;
+ const [a,b]=slices[col],left=Math.round(x0+region.w*a),right=Math.round(x0+region.w*b);
+ const image=ctx.getImageData(left,Math.max(y0,py-20),right-left,Math.min(y1,py+21)-Math.max(y0,py-20));
+ const rw=image.width,rh=image.height,top=Math.max(y0,py-20),rows=[];
+ for(let yy=0;yy<rh;yy++){
+  let n=0;for(let xx=0;xx<rw;xx+=2)if(image.data[(yy*rw+xx)*4]<155)n++;
+  rows.push(n);
+ }
+ const threshold=Math.max(2,Math.floor(rw/145)),centers=[];
+ for(let yy=1;yy<rh-1;yy++)if(rows[yy]>=threshold)centers.push(yy);
+ if(!centers.length)return null;
+ const center=centers.reduce((best,v)=>Math.abs(top+v-py)<Math.abs(top+best-py)?v:best,centers[0]);
+ let first=center,last=center;
+ while(first>0&&(rows[first-1]>=threshold||first>1&&rows[first-2]>=threshold&&center-first<17))first--;
+ while(last<rh-1&&(rows[last+1]>=threshold||last<rh-2&&rows[last+2]>=threshold&&last-center<17))last++;
+ if(last-first>32)return null;
+ let min=rw,max=0;
+ for(let yy=first;yy<=last;yy++)for(let xx=0;xx<rw;xx++)if(image.data[(yy*rw+xx)*4]<155){min=Math.min(min,xx);max=Math.max(max,xx)}
+ if(max-min<15)return null;
+ const line={id:"manual-"+col+"-"+(top+first),column:col,
+  x:Math.max(0,left+min-3)/w,y:Math.max(0,top+first-3)/h,
+  width:(Math.min(w,left+max+4)-Math.max(0,left+min-3))/w,
+  height:(Math.min(h,top+last+4)-Math.max(0,top+first-3))/h};
+ const existing=detectedLines[side].find(l=>l.column===col&&Math.abs(l.y+l.height/2-line.y-line.height/2)<.009);
+ if(existing)return existing;
+ detectedLines[side].push(line);return line;
+}
 function installHighlightSelection(){
  for(let i=0;i<2;i++){
   const layer=$("highlight-"+i);let start=null;
@@ -369,7 +407,8 @@ function installHighlightSelection(){
    const lines=detectedLines[i]||[];
    const inside=lines.filter(l=>p.x>=l.x-.01&&p.x<=l.x+l.width+.01&&p.y>=l.y-.007&&p.y<=l.y+l.height+.007);
    if(inside.length)return inside[0];
-   return lines.filter(l=>p.x>=l.x-.02&&p.x<=l.x+l.width+.02)
+   const recovered=recoverClickedLine(i,p);if(recovered)return recovered;
+   return lines.filter(l=>p.x>=l.x-.02&&p.x<=l.x+l.width+.02&&Math.abs(p.y-l.y-l.height/2)<.014)
     .sort((a,b)=>Math.abs(p.y-a.y-a.height/2)-Math.abs(p.y-b.y-b.height/2))[0]||null;
   };
   layer.addEventListener("pointerdown",e=>{if(!pageMetadata[i])return;start=nearest(point(e));if(start)layer.setPointerCapture(e.pointerId)});
