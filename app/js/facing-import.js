@@ -120,31 +120,34 @@ async function readMetadata(source,pageIndex,canvas,bands){
    language=heb>eng*.55?"Hebrew":eng>heb*.55?"English":"unknown";
   }catch(e){console.warn("Body OCR unavailable",e)}
  }
- // Printed folios usually sit in the upper outside corners.
- // Search these small regions first, before any cropping or cleanup.
+ // Check the customary outer corner first, determined by the page language.
+ // The other corner and a wider margin are fallbacks, never competing votes.
  if(!number&&window.Tesseract){
-  const w=canvas.width,h=canvas.height,found=[];
-  for(const [left,right] of [[0,.22],[.78,1]]){
-   try{
-    const strip=canvasCrop(canvas,{left:Math.floor(w*left),right:Math.ceil(w*right),
-      top:0,bottom:Math.ceil(h*.20)});
-    const result=await Tesseract.recognize(strip,"eng");
-    const candidates=(result.data.text||"").split(/\n/)
-      .map(t=>t.trim().replace(/^[^0-9]+|[^0-9]+$/g,""))
-      .filter(t=>/^\d{1,4}$/.test(t));
-    found.push(...candidates);
-   }catch(e){console.warn("Corner folio OCR unavailable",e)}
+  const w=canvas.width,h=canvas.height;
+  const right=[.75,1],left=[0,.25];
+  const corners=language==="Hebrew"?[right,left]:[left,right];
+  const recognize=async(range,topFraction)=>{
+   const strip=canvasCrop(canvas,{left:Math.floor(w*range[0]),right:Math.ceil(w*range[1]),
+     top:0,bottom:Math.ceil(h*topFraction)});
+   // Upscale the small folio before OCR for thin old-style numerals.
+   const enlarged=document.createElement("canvas");
+   enlarged.width=strip.width*2;enlarged.height=strip.height*2;
+   const context=enlarged.getContext("2d");
+   context.fillStyle="#fff";context.fillRect(0,0,enlarged.width,enlarged.height);
+   context.drawImage(strip,0,0,enlarged.width,enlarged.height);
+   const result=await Tesseract.recognize(enlarged,"eng");
+   const candidates=(result.data.text||"").split(/\n/)
+    .map(t=>t.trim().replace(/^[^0-9]+|[^0-9]+$/g,""))
+    .filter(t=>/^\d{1,4}$/.test(t));
+   const distinct=[...new Set(candidates)];
+   return distinct.length===1?distinct[0]:"";
+  };
+  for(const corner of corners){
+   try{number=await recognize(corner,.22)}catch(e){console.warn("Corner folio OCR unavailable",e)}
+   if(number)break;
   }
-  if(new Set(found).size===1)number=found[0];
-  // Wider upper margin only if the corners did not yield one unambiguous number.
   if(!number){
-   try{
-    const strip=canvasCrop(canvas,{left:0,right:w,top:0,bottom:Math.ceil(h*.23)});
-    const result=await Tesseract.recognize(strip,"eng");
-    const candidates=(result.data.text||"").split(/\n/).map(t=>t.trim())
-      .filter(t=>/^\d{1,4}$/.test(t));
-    if(new Set(candidates).size===1)number=candidates[0];
-   }catch(e){console.warn("Upper margin folio OCR unavailable",e)}
+   try{number=await recognize([0,1],.23)}catch(e){console.warn("Upper margin folio OCR unavailable",e)}
   }
  }
  return {number,heading,language,ocrLines};
