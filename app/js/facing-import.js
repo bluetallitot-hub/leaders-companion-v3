@@ -257,6 +257,7 @@ function applyImportedCues(){
 }
 // Lightweight in-memory line geometry: no SIP/SGM/CIP sidecars.
 let detectedLines=[[],[]];
+let highlightView="highlights";
 function detectPrintedLines(canvas,side){
  const ctx=canvas.getContext("2d",{willReadFrequently:true}),w=canvas.width,h=canvas.height;
  const pixels=ctx.getImageData(0,0,w,h).data,region=REGIONS[side],result=[];
@@ -305,35 +306,38 @@ function matchingCueLine(lines,phrase){
  const needle=normalizeCueText(phrase);
  if(!needle)return null;
  const words=needle.split(" ").filter(Boolean);
- if(!words.length)return null;
+ if(words.length<2)return null;
+ const candidates=[];
  for(let i=0;i<lines.length;i++){
-  const joined=normalizeCueText(lines.slice(i,i+4).map(l=>l.text).join(" "));
-  if(joined.includes(needle)||words.length>=3&&words.slice(0,3).every(w=>joined.includes(w)))return i;
+  const joined=normalizeCueText(lines.slice(i,i+3).map(l=>l.text).join(" "));
+  if(joined.includes(needle))candidates.push(i);
  }
- return null;
+ return candidates.length===1?candidates[0]:null;
 }
 function assignCueHighlights(side){
- const record=pageMetadata[side],lines=sourceTextLines[side]||[];
- if(!record||!lines.length)return 0;
+ const record=pageMetadata[side],ocr=sourceTextLines[side]||[],geometry=detectedLines[side]||[];
+ if(!record||!ocr.length)return 0;
  let matches=0;
  for(const cue of record.leadership.cues){
-  const begin=matchingCueLine(lines,cue.startCue),end=matchingCueLine(lines,cue.endCue);
+  // Never convert ambiguous OCR into a guessed selection.
+  const begin=matchingCueLine(ocr,cue.startCue),end=matchingCueLine(ocr,cue.endCue);
   if(begin===null||end===null){cue.matchStatus="anchor-review-required";continue}
-  const lo=Math.min(begin,end),hi=Math.max(begin,end);
-  const selected=lines.slice(lo,hi+1).map(l=>l.id);
-  const geometry=detectedLines[side];
-  let attached=0;
-  for(const id of selected){
-   const line=geometry.find(l=>l.id===id);
-   if(!line)continue;
-   if(!record.leadership.highlights.some(h=>h.lineId===id)){
-    record.leadership.highlights.push({highlightId:"HL-"+cue.cueId+"-"+id,lineId:id,cueId:cue.cueId,roleId:cue.role,
+  const first=ocr[begin],last=ocr[end];
+  if(!first||!last){cue.matchStatus="anchor-review-required";continue}
+  // The OCR endpoints are anchors only. Fill all intervening printed lines
+  // from image geometry, including lines OCR could not read.
+  // Cross-column Hebrew paths are not yet safe to infer.
+  if(first.column!==last.column){cue.matchStatus="column-path-review-required";continue}
+  const lo=Math.min(first.y,last.y)-.004,hi=Math.max(first.y,last.y)+.004;
+  const selected=geometry.filter(l=>l.column===first.column&&l.y+l.height/2>=lo&&l.y+l.height/2<=hi);
+  if(!selected.length){cue.matchStatus="geometry-review-required";continue}
+  for(const line of selected){
+   if(!record.leadership.highlights.some(h=>h.lineId===line.id)){
+    record.leadership.highlights.push({highlightId:"HL-"+cue.cueId+"-"+line.id,lineId:line.id,cueId:cue.cueId,roleId:cue.role,
       x:line.x,y:line.y,width:line.width,height:line.height,coordinateSystem:"normalized-top-left",visibleInPdf:false});
    }
-   attached++;
   }
-  cue.matchStatus=attached?"candidate-review-required":"anchor-review-required";
-  matches+=Number(attached>0);
+  cue.matchStatus="candidate-review-required";matches++;
  }
  return matches;
 }
@@ -349,12 +353,11 @@ function drawHighlights(){
   const ctx=overlay.getContext("2d");ctx.clearRect(0,0,overlay.width,overlay.height);
   const selections=new Map((pageMetadata[i]?.leadership?.highlights||[]).map(h=>[h.lineId,h]));
   for(const line of detectedLines[i]){
-   const active=selections.has(line.id);
-   ctx.fillStyle=active?roleColor(selections.get(line.id)?.roleId||pageMetadata[i]?.leadership?.role)+"A6":"rgba(24,105,160,.19)";
-   ctx.strokeStyle=active?"rgba(25,80,45,.65)":"rgba(25,105,160,.32)";
-   ctx.lineWidth=active?1.1:.55;
-   const x=line.x*overlay.width,y=line.y*overlay.height,ww=line.width*overlay.width,hh=line.height*overlay.height;
-   ctx.fillRect(x,y,ww,hh);ctx.strokeRect(x,y,ww,hh);
+   const h=selections.get(line.id),active=Boolean(h);
+   if(!active&&highlightView!=="detection")continue;
+   const x=line.x*overlay.width,y=line.y*overlay.height,w=line.width*overlay.width,ht=line.height*overlay.height;
+   ctx.fillStyle=active?roleColor(h.roleId)+"40":"rgba(24,105,160,.19)";
+   ctx.fillRect(x,y,w,ht);
   }
  }
 }
@@ -412,6 +415,7 @@ async function recognizeCueLines(side){
 async function autoMatchCues(){
  if(!pageMetadata.length||!importedCues.length)return;
  let total=0;
+ for(const record of pageMetadata){record.leadership.highlights=record.leadership.highlights.filter(h=>!h.cueId)}
  for(let side=0;side<pageMetadata.length;side++){
   if(!pageMetadata[side].leadership.cues.length)continue;
   status("Reading "+(side===0?"left":"right")+" page for cue anchors...");
@@ -532,7 +536,7 @@ $("source").addEventListener("change",async()=>{
   if(!window.PDFLib||!window.pdfjsLib)throw Error("PDF libraries unavailable.");
   output=await createPdf(new Uint8Array(await file.arrayBuffer()));
   await preview(output);$("download").disabled=false;
-  status("PDF ready. Trimmed and cleaned, with detected page numbers and embedded page metadata.");
+  status("PDF ready. Review cue match status and highlight selections.");
  }catch(e){console.error(e);status("Import failed: "+e.message)}
 });
 $("cue-file").addEventListener("change",async()=>{
@@ -546,6 +550,7 @@ $("cue-file").addEventListener("change",async()=>{
   status("Loaded "+rows.length+" cue rows. "+(pageMetadata.length?"Matched to preview page metadata.":"Now upload the test PDF."));
  }catch(e){status("Cue import failed: "+e.message)}
 });
+$("highlight-view").addEventListener("change",()=>{highlightView=$("highlight-view").value;drawHighlights()});
 installHighlightSelection();
 $("download").addEventListener("click",async()=>{
  if(!output)return;
