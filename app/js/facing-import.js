@@ -7,6 +7,21 @@ const state={raw:null,view:null,count:0,crops:{left:{x:4,y:8,w:42,h:84},right:{x
 function status(t){$("status").textContent=t}
 const clamp=(v,lo,hi)=>Math.min(hi,Math.max(lo,v));
 function validCrop(c){return Object.values(c).every(Number.isFinite)&&c.x>=0&&c.y>=0&&c.w>=1&&c.h>=1&&c.x+c.w<=100.001&&c.y+c.h<=100.001}
+
+const RATIO=380.88/540;
+function lockCrop(side,c){const canvas=$(side+"-canvas"),ratio=RATIO*canvas.height/canvas.width;let w=Math.max(c.w,c.h*ratio),h=w/ratio;const k=Math.min(1,100/w,100/h);w*=k;h*=k;return {x:clamp(c.x+c.w/2-w/2,0,100-w),y:clamp(c.y+c.h/2-h/2,0,100-h),w,h}}
+function suggestCrop(side){
+ const canvas=$(side+"-canvas"),w=canvas.width,h=canvas.height;
+ const p=canvas.getContext("2d").getImageData(0,0,w,h).data;
+ const shared=$("left-page").value===$("right-page").value;
+ const a=shared?(side==="left"?0:Math.floor(w/2)):0,b=shared?(side==="left"?Math.floor(w/2):w):w;
+ let minX=w,maxX=0,minY=h,maxY=0,count=0;
+ for(let y=Math.floor(h*.10);y<h*.93;y+=3)for(let x=a+Math.floor((b-a)*.06);x<b-Math.floor((b-a)*.06);x+=3){
+ const i=4*(y*w+x);if(p[i]+p[i+1]+p[i+2]<450){minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);count++}
+ }
+ if(count<30)return null;
+ return lockCrop(side,{x:Math.max(0,minX-10)/w*100,y:Math.max(0,minY-10)/h*100,w:(maxX-minX+20)/w*100,h:(maxY-minY+20)/h*100});
+}
 function sync(side){
  const c=state.crops[side],box=$(side+"-crop");
  Object.assign(box.style,{left:c.x+"%",top:c.y+"%",width:c.w+"%",height:c.h+"%",display:"block"});
@@ -17,7 +32,7 @@ function attachCrop(side){
  for(const input of $(side+"-fields").querySelectorAll("input"))input.addEventListener("change",()=>{
    const key=input.dataset.key,v=Number(input.value),c={...state.crops[side],[key]:v};
    if(!validCrop(c)){status("Invalid "+side+" crop. Keep the rectangle entirely within the source page.");sync(side);return}
-   state.crops[side]=c;sync(side);
+   state.crops[side]=lockCrop(side,c);sync(side);
  });
  let drag=null;
  box.addEventListener("pointerdown",e=>{
@@ -59,6 +74,7 @@ async function loadSource(){
  if(state.count>1){state.crops.left={x:5,y:6,w:90,h:88};state.crops.right={x:5,y:6,w:90,h:88}}
  else{state.crops.left={x:4,y:8,w:42,h:84};state.crops.right={x:54,y:8,w:42,h:84}}
  await Promise.all(["left","right"].map(renderSide));
+ for(const side of ["left","right"]){state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side)}
  state.output=null;$("download").disabled=true;
  status("Source loaded ("+state.count+" PDF page(s)). Adjust both crop rectangles to include only printed prayer text.");
 }
