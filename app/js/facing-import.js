@@ -297,6 +297,46 @@ function detectPrintedLines(canvas,side){
  }
  return result;
 }
+// Cue anchors are matched against the source PDF's text layer when present.
+// Scanned-only pages need OCR; never claim a match from geometry alone.
+let sourceTextLines=[[],[]];
+function normalizeCueText(s){return String(s||"").normalize("NFKD").replace(/[\u0591-\u05c7]/g,"").replace(/[‘’“”"'.,:;!?—–-]/g," ").replace(/\s+/g," ").trim().toLowerCase()}
+function matchingCueLine(lines,phrase){
+ const needle=normalizeCueText(phrase);
+ if(!needle)return null;
+ const words=needle.split(" ").filter(Boolean);
+ if(!words.length)return null;
+ for(let i=0;i<lines.length;i++){
+  const joined=normalizeCueText(lines.slice(i,i+4).map(l=>l.text).join(" "));
+  if(joined.includes(needle)||words.length>=3&&words.slice(0,3).every(w=>joined.includes(w)))return i;
+ }
+ return null;
+}
+function assignCueHighlights(side){
+ const record=pageMetadata[side],lines=sourceTextLines[side]||[];
+ if(!record||!lines.length)return 0;
+ let matches=0;
+ for(const cue of record.leadership.cues){
+  const begin=matchingCueLine(lines,cue.startCue),end=matchingCueLine(lines,cue.endCue);
+  if(begin===null||end===null){cue.matchStatus="anchor-review-required";continue}
+  const lo=Math.min(begin,end),hi=Math.max(begin,end);
+  const selected=lines.slice(lo,hi+1).map(l=>l.id);
+  const geometry=detectedLines[side];
+  let attached=0;
+  for(const id of selected){
+   const line=geometry.find(l=>l.id===id);
+   if(!line)continue;
+   if(!record.leadership.highlights.some(h=>h.lineId===id)){
+    record.leadership.highlights.push({highlightId:"HL-"+cue.cueId+"-"+id,lineId:id,cueId:cue.cueId,roleId:cue.role,
+      x:line.x,y:line.y,width:line.width,height:line.height,coordinateSystem:"normalized-top-left",visibleInPdf:false});
+   }
+   attached++;
+  }
+  cue.matchStatus=attached?"candidate-review-required":"anchor-review-required";
+  matches+=Number(attached>0);
+ }
+ return matches;
+}
 function roleColor(role){
  const r=String(role||"").toUpperCase();
  return r.includes("RABBI")?"#F5D03C":r.includes("PRESIDENT")?"#5C9CE8":r.includes("READER")?"#66C78B":r.includes("SOLO")?"#F0A2CA":"#F5D03C";
@@ -307,10 +347,10 @@ function drawHighlights(){
   if(!overlay||!base)return;
   overlay.width=base.width;overlay.height=base.height;
   const ctx=overlay.getContext("2d");ctx.clearRect(0,0,overlay.width,overlay.height);
-  const selected=new Set((pageMetadata[i]?.leadership?.highlights||[]).map(h=>h.lineId));
+  const selections=new Map((pageMetadata[i]?.leadership?.highlights||[]).map(h=>[h.lineId,h]));
   for(const line of detectedLines[i]){
-   const active=selected.has(line.id);
-   ctx.fillStyle=active?roleColor(pageMetadata[i]?.leadership?.cues?.[0]?.role||pageMetadata[i]?.leadership?.role)+"A6":"rgba(24,105,160,.19)";
+   const active=selections.has(line.id);
+   ctx.fillStyle=active?roleColor(selections.get(line.id)?.roleId||pageMetadata[i]?.leadership?.role)+"A6":"rgba(24,105,160,.19)";
    ctx.strokeStyle=active?"rgba(25,80,45,.65)":"rgba(25,105,160,.32)";
    ctx.lineWidth=active?1.1:.55;
    const x=line.x*overlay.width,y=line.y*overlay.height,ww=line.width*overlay.width,hh=line.height*overlay.height;
@@ -346,6 +386,40 @@ function installHighlightSelection(){
   });
   layer.addEventListener("pointercancel",()=>{start=null});
  }
+}
+async function recognizeCueLines(side){
+ const canvas=$(side===0?"output-left":"output-right"),record=pageMetadata[side];
+ if(!canvas||!record||!window.Tesseract)return [];
+ const lang=record.source.languageCode==="H"?"heb":"eng";
+ const region=REGIONS[side],x=Math.round(region.x),y=Math.round(H-region.y-region.h);
+ const crop=canvasCrop(canvas,{left:x,top:y,right:Math.round(region.x+region.w),bottom:Math.round(H-region.y)});
+ const result=await Tesseract.recognize(crop,lang);
+ const raw=result.data.lines||[];
+ const geometry=detectedLines[side]||[],assigned=new Set(),mapped=[];
+ for(const line of raw){
+  const text=String(line.text||"").trim(),box=line.bbox;
+  if(!text||!box)continue;
+  const cy=(y+(box.y0+box.y1)/2)/canvas.height,cx=(x+(box.x0+box.x1)/2)/canvas.width;
+  const closest=geometry.filter(g=>!assigned.has(g.id)&&cx>=g.x-.04&&cx<=g.x+g.width+.04)
+   .sort((a,b)=>Math.abs(cy-a.y-a.height/2)-Math.abs(cy-b.y-b.height/2))[0];
+  if(closest&&Math.abs(cy-closest.y-closest.height/2)<.022){
+   assigned.add(closest.id);mapped.push({id:closest.id,text,y:closest.y,column:closest.column});
+  }
+ }
+ mapped.sort((a,b)=>a.y-b.y||a.column-b.column);
+ return mapped;
+}
+async function autoMatchCues(){
+ if(!pageMetadata.length||!importedCues.length)return;
+ let total=0;
+ for(let side=0;side<pageMetadata.length;side++){
+  if(!pageMetadata[side].leadership.cues.length)continue;
+  status("Reading "+(side===0?"left":"right")+" page for cue anchors...");
+  try{sourceTextLines[side]=await recognizeCueLines(side);total+=assignCueHighlights(side)}
+  catch(e){console.warn("Cue OCR unavailable",e)}
+ }
+ drawHighlights();displayMetadata();
+ status(total+" cue passages have provisional line highlights. Review boundaries carefully; OCR and partial-line matching remain experimental.");
 }
 async function syncHighlightMetadata(){
  if(!output)return;
@@ -446,7 +520,7 @@ async function preview(bytes){
   canvas.width=Math.ceil(v.width);canvas.height=Math.ceil(v.height);
   await page.render({canvasContext:canvas.getContext("2d"),viewport:v}).promise;
  }
- displayMetadata();$("spread-preview").hidden=false;$("empty-preview").hidden=true;detectedLines=[0,1].map(i=>i<doc.numPages?detectPrintedLines($(i===0?"output-left":"output-right"),i):[]);drawHighlights();status("Detected "+detectedLines.map(a=>a.length).join(" / ")+" candidate printed lines. Click a line to toggle its highlight, or drag within one column to select a range.");
+ displayMetadata();$("spread-preview").hidden=false;$("empty-preview").hidden=true;detectedLines=[0,1].map(i=>i<doc.numPages?detectPrintedLines($(i===0?"output-left":"output-right"),i):[]);drawHighlights();status("Detected "+detectedLines.map(a=>a.length).join(" / ")+" candidate printed lines.");await autoMatchCues();
 }
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 $("source").addEventListener("change",async()=>{
@@ -468,6 +542,7 @@ $("cue-file").addEventListener("change",async()=>{
   if(!rows.length||!rows.every(c=>c.printed_page&&c.language&&c.begin_cue&&c.end_cue))throw Error("CSV needs printed_page, language, begin_cue, end_cue columns.");
   importedCues=rows;
   applyImportedCues();
+  if(pageMetadata.length)await autoMatchCues();
   status("Loaded "+rows.length+" cue rows. "+(pageMetadata.length?"Matched to preview page metadata.":"Now upload the test PDF."));
  }catch(e){status("Cue import failed: "+e.message)}
 });
