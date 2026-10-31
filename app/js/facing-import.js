@@ -148,7 +148,6 @@ async function recognizeScannedPages(){
  }
  await assignLayoutByLanguage();
  await refreshLayout();
- await recognizeScannedPages();
  if(["left","right"].some(side=>$(side+"-lang").value==="Uncertain"))
   status("OCR could not confidently identify both languages. Inspect the finished spread before download.");
  else status("OCR analysis complete. Check the automatically prepared facing spread and titles.");
@@ -182,6 +181,7 @@ async function loadSource(){
  for(const side of ["left","right"]){state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side)}
  await assignLayoutByLanguage();
  await refreshLayout();
+ await recognizeScannedPages();
 
 }
 function cropToPdf(page,c){
