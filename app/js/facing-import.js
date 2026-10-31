@@ -118,6 +118,7 @@ async function assignLayoutByLanguage(){
  const left=$("left-lang").value,right=$("right-lang").value;
  if(left==="Hebrew"&&right==="English"){
    if($("left-page").value!==$("right-page").value){
+     const number=$("left-number").value;$("left-number").value=$("right-number").value;$("right-number").value=number;
      const a=$("left-page").value;
      $("left-page").value=$("right-page").value;$("right-page").value=a;
      await Promise.all(["left","right"].map(renderSide));
@@ -127,6 +128,7 @@ async function assignLayoutByLanguage(){
    }else{
      const a=state.crops.left;
      state.crops.left=state.crops.right;state.crops.right=a;
+     const number=$("left-number").value;$("left-number").value=$("right-number").value;$("right-number").value=number;
      const title=$("left-title").value;$("left-title").value=$("right-title").value;$("right-title").value=title;
      sync("left");sync("right");
      // Both source halves remain on the same PDF page; their crop regions are swapped.
@@ -136,6 +138,33 @@ async function assignLayoutByLanguage(){
  }else if(left==="Uncertain"||right==="Uncertain"){
    status("Cannot confidently determine English/Hebrew placement from this source. Verify both previews before exporting.");
  }
+}
+async function detectOriginalNumbers(){
+ for(const side of ["left","right"]){
+  const page=await state.view.getPage(Number($(side+"-page").value)),view=page.getViewport({scale:1});
+  const shared=$("left-page").value===$("right-page").value;
+  const items=(await page.getTextContent()).items;
+  const matches=items.filter(it=>it.transform&&/^\s*\d{1,4}\s*$/.test(it.str||""))
+   .filter(it=>view.height-it.transform[5]<view.height*.23)
+   .filter(it=>!shared||(side==="left"?it.transform[4]<view.width/2:it.transform[4]>=view.width/2))
+   .map(it=>Number(it.str.trim())).filter(n=>n>0);
+  const input=$(side+"-number");
+  input.value=matches.length===1?String(matches[0]):"";
+  input.dataset.source=matches.length===1?"pdf-text":"unverified";
+ }
+}
+async function recognizePrintedNumber(side){
+ const input=$(side+"-number");if(input.value)return;
+ if(!window.Tesseract)return;
+ const source=$(side+"-canvas"),shared=$("left-page").value===$("right-page").value;
+ const sx=shared?(side==="left"?0:source.width/2):0,sw=shared?source.width/2:source.width;
+ const crop=document.createElement("canvas");crop.width=Math.round(sw);crop.height=Math.round(source.height*.24);
+ crop.getContext("2d").drawImage(source,sx,0,sw,source.height*.24,0,0,crop.width,crop.height);
+ try{
+  const result=await Tesseract.recognize(crop,"eng",{});
+  const numbers=(result.data.text.match(/\b\d{1,4}\b/g)||[]).map(Number).filter(n=>n>0);
+  if(numbers.length===1){input.value=String(numbers[0]);input.dataset.source="ocr"}
+ }catch(e){console.warn("Siddur number OCR failed",e)}
 }
 async function recognizeScannedPages(){
  if(!window.Tesseract){status("OCR library unavailable. Check detected titles and languages manually.");return}
@@ -161,6 +190,7 @@ async function recognizeScannedPages(){
    }
   }catch(e){console.warn("OCR unavailable for "+side,e)}
  }
+ await Promise.all(["left","right"].map(recognizePrintedNumber));
  await assignLayoutByLanguage();
  await refreshLayout();
  if(["left","right"].some(side=>$(side+"-lang").value==="Uncertain"))
@@ -192,6 +222,7 @@ async function loadSource(){
  else{state.crops.left={x:4,y:8,w:42,h:84};state.crops.right={x:54,y:8,w:42,h:84}}
  await Promise.all(["left","right"].map(renderSide));
  await Promise.all(["left","right"].map(detectTitle));
+ await detectOriginalNumbers();
  await detectLanguages();
  for(const side of ["left","right"]){state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side)}
  await assignLayoutByLanguage();
@@ -229,7 +260,8 @@ async function generate(){
  if(!state.raw)throw Error("Upload a source PDF.");
  const src=await PDFLib.PDFDocument.load(state.raw.slice());
  const review=$("guides").value==="review",out=await PDFLib.PDFDocument.create();
- const start=Number($("start-number").value);if(!Number.isInteger(start)||start<1||start>998)throw Error("Starting page number must be 1–998.");
+ const numbers=["left","right"].map(side=>Number($(side+"-number").value));
+ if(numbers.some(n=>!Number.isInteger(n)||n<1||n>9999))throw Error("Confirm the original Siddur page number for both pages before generating.");
  const font=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
  if(review){const master=await loadReviewMaster();const pages=await out.copyPages(master,[0,1]);pages.forEach(p=>out.addPage(p))}
  else{for(const side of ["left","right"]){const p=out.addPage([W,H]);drawCleanTemplate(p,side)}}
@@ -245,7 +277,7 @@ async function generate(){
    // Clear the development label in review mode without changing bounding box geometry.
    if(review)target.drawRectangle({x:r.x+1,y:r.y+1,width:r.w-2,height:r.h-2,color:PDFLib.rgb(1,1,1)});
    target.drawPage(embedded,{x,y,width:dw,height:dh});
-   const number=String(start+i),pageNoX=side==="left"?20.16:544.96;
+   const number=String(numbers[i]),pageNoX=side==="left"?20.16:544.96;
    if(review)target.drawRectangle({x:pageNoX+1,y:747,width:46,height:22,color:PDFLib.rgb(1,1,1)});
    const numberWidth=font.widthOfTextAtSize(number,18);
    target.drawText(number,{x:pageNoX+24-numberWidth/2,y:751,size:18,font,color:PDFLib.rgb(.75,.12,.16)});
@@ -302,5 +334,5 @@ $("download").addEventListener("click",()=>{
 
 $("adjust-crop").addEventListener("click",()=>{const open=$("crop-editor").hidden;$("crop-editor").hidden=!open;$("adjust-crop").setAttribute("aria-expanded",String(open));$("adjust-crop").textContent=open?"Hide source crops":"Adjust source crops";for(const side of ["left","right"])sync(side)});
 $("refresh-layout").addEventListener("click",refreshLayout);
-for(const id of ["left-title","right-title","start-number","align","guides"])$(id).addEventListener("change",refreshLayout);
+for(const id of ["left-title","right-title","left-number","right-number","align","guides"])$(id).addEventListener("change",refreshLayout);
 for(const side of ["left","right"])for(const input of $(side+"-fields").querySelectorAll("input"))input.addEventListener("change",refreshLayout);
