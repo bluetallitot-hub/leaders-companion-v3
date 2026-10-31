@@ -1,7 +1,7 @@
 "use strict";
 const $=id=>document.getElementById(id);
 const W=612,H=792,REGIONS=[{x:171.36,y:98,w:380.88,h:540},{x:59.76,y:98,w:380.88,h:540}];
-let output=null,filename="siddur",pageMetadata=[];
+let output=null,filename="siddur",pageMetadata=[],roleConfig=null,highlightDraft=null;
 function status(s){$("status").textContent=s}
 const workerURL="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
 function drawTemplate(page,side){
@@ -222,6 +222,48 @@ function makeIntakeRecord(meta,sourceIndex){
    headingDetected:Boolean(meta.heading),reviewed:false}
  };
 }
+function storeMasterRoles(doc){
+ const catalog=JSON.stringify({schema:"leaders-companion-v3-role-catalog",schemaVersion:1,roles:roleConfig?[roleConfig]:[]});
+ doc.catalog.set(PDFLib.PDFName.of("LCRoleCatalog"),PDFLib.PDFHexString.fromText(catalog));
+}
+function drawHighlights(){
+ for(let i=0;i<2;i++){
+  const overlay=$("highlight-"+i),base=$(i===0?"output-left":"output-right");
+  if(!overlay||!base)return;
+  overlay.width=base.width;overlay.height=base.height;
+  const ctx=overlay.getContext("2d");ctx.clearRect(0,0,overlay.width,overlay.height);
+  for(const h of pageMetadata[i]?.leadership?.highlights||[]){
+   ctx.fillStyle="rgba(245,208,60,0.28)";
+   ctx.strokeStyle="rgba(163,123,0,0.8)";ctx.lineWidth=2;
+   const x=h.x*overlay.width,y=h.y*overlay.height,w=h.width*overlay.width,ht=h.height*overlay.height;
+   ctx.fillRect(x,y,w,ht);ctx.strokeRect(x,y,w,ht);
+  }
+ }
+}
+function installHighlightSelection(){
+ for(let i=0;i<2;i++){
+  const layer=$("highlight-"+i);
+  let start=null;
+  const point=e=>{const b=layer.getBoundingClientRect();return {x:Math.max(0,Math.min(1,(e.clientX-b.left)/b.width)),y:Math.max(0,Math.min(1,(e.clientY-b.top)/b.height))}};
+  layer.addEventListener("pointerdown",e=>{if(!pageMetadata[i])return;start=point(e);layer.setPointerCapture(e.pointerId)});
+  layer.addEventListener("pointerup",e=>{
+   if(!start||!pageMetadata[i])return;
+   const end=point(e),x=Math.min(start.x,end.x),y=Math.min(start.y,end.y),width=Math.abs(start.x-end.x),height=Math.abs(start.y-end.y);
+   start=null;if(width<.005||height<.005)return;
+   const highlights=pageMetadata[i].leadership.highlights;
+   highlights.push({highlightId:"HL-"+String(Date.now()),roleId:roleConfig.id,x,y,width,height,coordinateSystem:"normalized-top-left",visibleInPdf:false});
+   drawHighlights();status("Highlight saved in preview. Download to embed it as hidden PDF metadata.");
+  });
+  layer.addEventListener("pointercancel",()=>{start=null});
+ }
+}
+async function syncHighlightMetadata(){
+ if(!output)return;
+ const doc=await PDFLib.PDFDocument.load(output);
+ storeMasterRoles(doc);
+ doc.getPages().forEach((page,i)=>storePageMetadata(page,pageMetadata[i]));
+ output=new Uint8Array(await doc.save());
+}
 function storePageMetadata(page,record){
  // Single self-contained page-associated record. No external JSON or sidecar.
  const d=page.node,fields={
@@ -259,6 +301,8 @@ async function createPdf(bytes){
  // English is the left facing page; Hebrew is the right facing page.
  if(records.length===2&&records[0].meta.language==="Hebrew"&&records[1].meta.language==="English")records.reverse();
  pageMetadata=records.map(r=>makeIntakeRecord(r.meta,r.sourceIndex));
+ pageMetadata.forEach(r=>{r.leadership.highlights=[];r.leadership.role=roleConfig.id});
+ storeMasterRoles(out);
  for(let i=0;i<records.length;i++){
   const {meta,png}=records[i],page=out.addPage([W,H]);
   drawTemplate(page,i);storePageMetadata(page,pageMetadata[i]);
@@ -310,13 +354,14 @@ async function preview(bytes){
   canvas.width=Math.ceil(v.width);canvas.height=Math.ceil(v.height);
   await page.render({canvasContext:canvas.getContext("2d"),viewport:v}).promise;
  }
- displayMetadata();$("spread-preview").hidden=false;$("empty-preview").hidden=true;
+ displayMetadata();$("spread-preview").hidden=false;$("empty-preview").hidden=true;drawHighlights();
 }
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 $("source").addEventListener("change",async()=>{
  const file=$("source").files[0];if(!file)return;
  $("download").disabled=true;output=null;pageMetadata=[];$("spread-preview").hidden=true;
  filename=file.name.replace(/\.pdf$/i,"")||"siddur";
+ roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  try{
   if(!window.PDFLib||!window.pdfjsLib)throw Error("PDF libraries unavailable.");
   output=await createPdf(new Uint8Array(await file.arrayBuffer()));
@@ -324,8 +369,10 @@ $("source").addEventListener("change",async()=>{
   status("PDF ready. Trimmed and cleaned, with detected page numbers and embedded page metadata.");
  }catch(e){console.error(e);status("Import failed: "+e.message)}
 });
-$("download").addEventListener("click",()=>{
+installHighlightSelection();
+$("download").addEventListener("click",async()=>{
  if(!output)return;
+ try{await syncHighlightMetadata()}catch(e){status("Could not save highlight metadata: "+e.message);return}
  const url=URL.createObjectURL(new Blob([output],{type:"application/pdf"}));
  const a=document.createElement("a");a.href=url;a.download=filename+"-v3.pdf";
  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
