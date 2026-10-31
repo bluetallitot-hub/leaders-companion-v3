@@ -7,7 +7,17 @@ function testStore(){return new Promise((resolve,reject)=>{const request=indexed
 async function testFile(mode,value){const db=await testStore();try{return await new Promise((resolve,reject)=>{const tx=db.transaction("files",mode==="get"?"readonly":"readwrite");const request=mode==="get"?tx.objectStore("files").get(TEST_KEY):tx.objectStore("files").put(value,TEST_KEY);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})}finally{db.close()}}
 async function loadSource(bytes,name){if(!window.PDFLib)throw Error("PDF library unavailable");const stableBytes=new Uint8Array(bytes).slice();const pdf=await PDFLib.PDFDocument.load(stableBytes.slice());pageCount=pdf.getPageCount();sourceBytes=stableBytes;$("source-info").textContent=name+" · "+pageCount+" physical pages";$("page").max=pageCount;$("page").value=1;$("download").disabled=true;$("viewer").hidden=true;$("status").textContent="Ready."}
 async function refreshTest(){try{const record=await testFile("get");$("use-test").disabled=false;$("test-info").textContent=record?"Saved test.pdf available in this browser.":"Upload test.pdf once to save it in this browser."}catch(e){$("use-test").disabled=false;$("test-info").textContent="Local storage unavailable; select test.pdf manually."}}
-$("use-test").addEventListener("change",async()=>{if(!$("use-test").checked){$("source-info").textContent="Choose a PDF to continue";sourceBytes=null;return}try{const record=await testFile("get");if(!record){$("use-test").checked=false;$("test-info").textContent="No saved test.pdf yet. Choose test.pdf above once, then this checkbox will reuse it.";return;}await loadSource(record.bytes,"Saved test.pdf")}catch(e){$("use-test").checked=false;$("status").textContent="Could not load saved test.pdf: "+e.message}});
+$("use-test").addEventListener("change",async()=>{
+ if(!$("use-test").checked){sourceBytes=null;outputBytes=null;$("download").disabled=true;$("source-info").textContent="Choose a PDF or preview the blank template";return}
+ $("test-info").textContent="Loading reference test page…";
+ try{
+  const response=await fetch("fixtures/SinglePGText.pdf",{cache:"no-store"});
+  if(response.ok){await loadSource(await response.arrayBuffer(),"Reference: SinglePGText.pdf");$("test-info").textContent="Reference page loaded from the website.";return}
+  const saved=await testFile("get");
+  if(saved){await loadSource(saved.bytes,"Locally saved test.pdf");$("test-info").textContent="Reference not yet on website; using your locally saved test.pdf.";return}
+  throw Error("Reference PDF is not installed in the repository yet. Upload fixtures/SinglePGText.pdf once.");
+ }catch(e){$("use-test").checked=false;$("test-info").textContent=e.message;$("status").textContent=e.message}
+});
 refreshTest();
 $("source").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;sourceBytes=null;outputBytes=null;$("use-test").checked=false;try{const bytes=await file.arrayBuffer();await loadSource(bytes,file.name);if(file.name.toLowerCase()==="test.pdf"){try{await testFile("put",{bytes:bytes.slice(0),updatedAt:Date.now()});await refreshTest();$("use-test").checked=true;$("status").textContent="Ready. test.pdf saved locally for future use."}catch(e){$("status").textContent="PDF loaded, but browser could not save test.pdf: "+e.message}}}catch(err){$("source-info").textContent="Unable to load PDF: "+err.message}});
 async function previewBlankTemplate(){
