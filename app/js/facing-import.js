@@ -62,6 +62,32 @@ async function renderSide(side){
  await page.render({canvasContext:canvas.getContext("2d"),viewport:v}).promise;
  sync(side);
 }
+async function detectLanguages(){
+ const results={};
+ for(const side of ["left","right"]){
+   const page=await state.view.getPage(Number($(side+"-page").value));
+   const viewport=page.getViewport({scale:1});
+   const shared=$("left-page").value===$("right-page").value;
+   const items=(await page.getTextContent()).items.filter(i=>typeof i.str==="string"&&i.transform);
+   let hebrew=0,latin=0;
+   for(const item of items){
+     const x=item.transform[4];
+     if(shared&&(side==="left"?x>=viewport.width/2:x<viewport.width/2))continue;
+     hebrew+=(item.str.match(/[\u0590-\u05ff]/g)||[]).length;
+     latin+=(item.str.match(/[A-Za-z]/g)||[]).length;
+   }
+   results[side]=hebrew>=8&&hebrew>latin*1.4?"Hebrew":latin>=12&&latin>hebrew*1.4?"English":"Uncertain";
+ }
+ // When a selectable-text spread provides clear evidence, report it automatically.
+ for(const side of ["left","right"]){
+   const indicator=$(side+"-lang");
+   indicator.value=results[side];
+   indicator.dataset.detected=results[side];
+ }
+ if(Object.values(results).includes("Uncertain"))
+   status("Language could not be established from selectable PDF text. Scanned images require OCR; please verify both sides before export.");
+ else status("Detected languages: left "+results.left+", right "+results.right+".");
+}
 async function detectTitle(side){
  const num=Number($(side+"-page").value),page=await state.view.getPage(num);
  const items=(await page.getTextContent()).items;
@@ -87,9 +113,10 @@ async function loadSource(){
  else{state.crops.left={x:4,y:8,w:42,h:84};state.crops.right={x:54,y:8,w:42,h:84}}
  await Promise.all(["left","right"].map(renderSide));
  await Promise.all(["left","right"].map(detectTitle));
+ await detectLanguages();
  for(const side of ["left","right"]){state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side)}
  state.output=null;$("download").disabled=true;
- status("Source loaded ("+state.count+" PDF page(s)). Adjust both crop rectangles to include only printed prayer text.");
+ if($("left-lang").value!=="Uncertain"&&$("right-lang").value!=="Uncertain")status("Source loaded; languages detected. Inspect automatic crops before export.");
 }
 function cropToPdf(page,c){
  if(!validCrop(c))throw Error("Invalid crop dimensions.");
@@ -153,7 +180,7 @@ async function generate(){
 }
 for(const side of ["left","right"]){
  attachCrop(side);
- $(side+"-page").addEventListener("change",async()=>{try{await renderSide(side);state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side);await detectTitle(side)}catch(e){status(e.message)}});
+ $(side+"-page").addEventListener("change",async()=>{try{await renderSide(side);state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side);await detectTitle(side);await detectLanguages()}catch(e){status(e.message)}});
 }
 $("source").addEventListener("change",()=>loadSource().catch(e=>status("Source error: "+e.message)));
 $("generate").addEventListener("click",async()=>{
