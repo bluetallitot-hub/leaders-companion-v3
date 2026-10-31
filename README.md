@@ -1,25 +1,23 @@
 # Leader's Companion V3
 
-Browser-based, modular workbench for preparing synagogue service PDFs. V2 remains untouched.
+A modular, browser-based workbench for producing standardized synagogue service pages. V2 remains untouched.
 
-## Stage 1 — service extraction (prototype)
+## Stage 1 — one siddur page
 
-Open `index.html` in a browser. Choose a siddur PDF, enter the service name and code, then enter physical PDF page numbers (for example `4-9, 13, 12`). Generate an extracted service PDF and download its JSON page manifest.
+The first goal is **one source PDF page → one standardized PDF page with a new bold red page number**.
 
-All processing occurs locally in the browser; the PDF is not uploaded. The app loads pdf-lib from a CDN, so an internet connection is required. This is an untested prototype: review exported pages before relying on it.
+Open `index.html` in a browser. Choose a source siddur PDF, enter the **physical PDF page** (starting at 1), and specify the new printed page number. Adjust the top, bottom, left and right crop percentages. Generate a preview, inspect it, then download the one-page PDF and its settings JSON.
 
-The page manifest assigns a stable working ID to each output page and records its original physical PDF page. Printed siddur page numbers are not mapped yet.
+- Output is US Letter by default, with an A4 option.
+- The cropped original page is scaled proportionally and centered inside fixed margins.
+- The new printed page number appears in the top-right header area.
+- Cropping removes original content **only when the selected crop boundary excludes it**; manually verify that prayer text is preserved and the old printed number is excluded.
+- Processing happens locally in the browser. The source PDF is not uploaded. pdf-lib is loaded from a CDN.
 
-## Architecture
+This is a prototype, **not yet browser-tested against the actual siddur**. The next improvement is a visual crop editor and a confirmed canonical output size based on a real source page.
 
-1. Extract pages into a service PDF.
-2. Standardize page geometry, add a removable registration margin and visible working identifiers.
-3. Edit and save role highlights.
-4. Place reusable blocks: status, Rabbi/Lay instructions, melody QR codes.
-5. Assemble a finished book with a fixed header (service name and original siddur page number), removing production marks.
+## Later stages
 
-Each stage will retain its editable configuration and export a testable PDF. Publication variants are saved presets, not separate engines. Avoid cumulative flattening and keep all coordinates in a standardized page reference system.
+Add a removable registration margin with working page IDs; role highlighting; configurable status, instruction and melody QR blocks; then book assembly with a locked service header. Each stage should save editable settings and export a testable PDF.
 
-## Limitations
-
-Stage 1 does not yet add a visible page identifier or registration marks. Physical PDF page numbering starts at 1. Encrypted or very large PDFs may fail in the browser. No original PDFs or recordings are stored in this repository.
+Publication variants will be presets of components rather than separate production engines.
