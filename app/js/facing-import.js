@@ -76,7 +76,7 @@ async function detectLanguages(){
      hebrew+=(item.str.match(/[\u0590-\u05ff]/g)||[]).length;
      latin+=(item.str.match(/[A-Za-z]/g)||[]).length;
    }
-   results[side]=hebrew>=8&&hebrew>latin*1.4?"Hebrew":latin>=12&&latin>hebrew*1.4?"English":"Uncertain";
+   results[side]=hebrew>=8&&hebrew>latin*1.4?"Hebrew":latin>=20&&latin>hebrew*2?"English":"Uncertain";
  }
  // When a selectable-text spread provides clear evidence, report it automatically.
  for(const side of ["left","right"]){
@@ -140,7 +140,6 @@ async function loadSource(){
  for(const side of ["left","right"]){state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side)}
  await assignLayoutByLanguage();
  await refreshLayout();
- state.output=null;$("download").disabled=true;
 
 }
 function cropToPdf(page,c){
