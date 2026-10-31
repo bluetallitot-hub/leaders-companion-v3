@@ -21,16 +21,22 @@ $("use-test").addEventListener("change",async()=>{
 refreshTest();
 $("source").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;sourceBytes=null;outputBytes=null;$("use-test").checked=false;try{const bytes=await file.arrayBuffer();await loadSource(bytes,file.name);if(file.name.toLowerCase()==="test.pdf"){try{await testFile("put",{bytes:bytes.slice(0),updatedAt:Date.now()});await refreshTest();$("use-test").checked=true;$("status").textContent="Ready. test.pdf saved locally for future use."}catch(e){$("status").textContent="PDF loaded, but browser could not save test.pdf: "+e.message}}}catch(err){$("source-info").textContent="Unable to load PDF: "+err.message}});
 function templateRegions(W,H,textX,companionX,textW,sideW,bottom,headerHeight,outerX){
- const top=H-12, metadataTop=H-46, serviceTop=H-71, titleTop=H-105, instructionsBottom=H-headerHeight;
+ const gutter=4.32, contentLeft=Math.min(textX,companionX), contentRight=Math.max(textX+textW,companionX+sideW);
+ const numberW=48, rowY=H-46, rowH=24;
+ const numberOnLeft=companionX<textX;
+ const numberX=numberOnLeft?contentLeft:contentRight-numberW;
+ const serviceX=numberOnLeft?numberX+numberW+gutter:contentLeft;
+ const serviceW=contentRight-contentLeft-numberW-gutter;
+ const titleY=H-86, titleH=34, instructionY=H-headerHeight, instructionTop=titleY-gutter;
  return [
- ["Page number",outerX,top-30,sideW,30],
- ["Service name",textX,serviceTop,textW,25],
- ["Page title",textX,titleTop,textW,34],
- ["Instructions",textX,instructionsBottom,textW,headerHeight-105],
- ["Corner block",companionX,instructionsBottom,sideW,headerHeight-46],
+ ["Page number",numberX,rowY,numberW,rowH],
+ ["Service name",serviceX,rowY,serviceW,rowH],
+ ["Page title",textX,titleY,textW,titleH],
+ ["Instructions",textX,instructionY,textW,instructionTop-instructionY],
+ ["Corner block",companionX,instructionY,sideW,titleY+titleH-instructionY],
  ["Siddur text",textX,bottom,textW,H-headerHeight-bottom],
  ["Companion column",companionX,bottom,sideW,H-headerHeight-bottom],
- ["Bottom status bar",Math.min(textX,companionX),28,textW+4.32+sideW,26]
+ ["Bottom status bar",contentLeft,28,contentRight-contentLeft,26]
  ];
 }
 // Each template rectangle is an allocation; the inset is the safe content area.
@@ -91,8 +97,8 @@ $("preview").addEventListener("click",async()=>{if(!sourceBytes){$("status").tex
  if(isV2){
   const metaFont=await out.embedFont(PDFLib.StandardFonts.Helvetica);
   const drawMeta=(value,x,y,maxWidth,size)=>{if(!value)return;const v=value.replace(/[^\\x20-\\x7e]/g,"").trim();if(!v)return;let fontSize=size;while(fontSize>7&&metaFont.widthOfTextAtSize(v,fontSize)>maxWidth)fontSize-=.5;page.drawText(v,{x,y,size:fontSize,font:metaFont,color:PDFLib.rgb(.18,.24,.28)});};
-  drawMeta($("service-name").value,textLeft,H-67,availW,12);
-  drawMeta($("page-title").value,textLeft,H-98,availW,16);
+  const headerRegions=templateRegions(W,H,textLeft,companionX,availW,sideWidth,bottomReserve,headerHeight,0);const serviceBox=headerRegions[1];drawMeta($("service-name").value,serviceBox[1]+5.76,serviceBox[2]+7,serviceBox[3]-11.52,12);
+  drawMeta($("page-title").value,textLeft+5.76,H-78,availW-11.52,16);
  }
  const font=await out.embedFont(PDFLib.StandardFonts.HelveticaBold),fontSize=19,textWidth=font.widthOfTextAtSize(printed,fontSize);
  const finalSide=$("finalside").value;page.drawText(printed,{x:finalSide==="left"?(isV2?outerMargin:margin):W-(isV2?outerMargin:margin)-textWidth,y:H-(isV2?38:margin+21),size:fontSize,font,color:PDFLib.rgb(.78,.1,.12)});
