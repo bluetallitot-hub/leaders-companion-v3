@@ -524,11 +524,10 @@ function installHighlightSelection(){
       coordinateSystem:"normalized-top-left",visibleInPdf:false});
     }else{
      // Line click replaces any partial-word edits for this line.
-     const selectedWordCount=highlights.filter(h=>h.wordId&&h.lineId===item.id).length;
      const old=highlights.findIndex(h=>!h.wordId&&h.lineId===item.id);
      for(let j=highlights.length-1;j>=0;j--)if(highlights[j].wordId&&highlights[j].lineId===item.id)highlights.splice(j,1);
      if(old>=0){const idx=highlights.findIndex(h=>!h.wordId&&h.lineId===item.id);if(idx>=0)highlights.splice(idx,1)}
-     else if(!selectedWordCount)highlights.push({highlightId:"HL-"+item.id,lineId:item.id,roleId:role,
+     else highlights.push({highlightId:"HL-"+item.id,lineId:item.id,roleId:role,
       x:item.x,y:item.y,width:item.width,height:item.height,
       coordinateSystem:"normalized-top-left",visibleInPdf:false});
     }
