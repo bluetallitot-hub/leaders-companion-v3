@@ -97,18 +97,32 @@ async function readMetadata(source,pageIndex,canvas,bands){
    language=heb>eng*.55?"Hebrew":eng>heb*.55?"English":"unknown";
   }catch(e){console.warn("Body OCR unavailable",e)}
  }
- // Scan the original folio margins independently; they are often outside the heading.
+ // Printed folios usually sit in the upper outside corners.
+ // Search these small regions first, before any cropping or cleanup.
  if(!number&&window.Tesseract){
-  const found=[];
-  for(const [a,b] of [[0,.19],[.81,1]]){
+  const w=canvas.width,h=canvas.height,found=[];
+  for(const [left,right] of [[0,.22],[.78,1]]){
    try{
-    const strip=canvasCrop(canvas,{left:0,top:Math.floor(canvas.height*a),right:canvas.width,bottom:Math.ceil(canvas.height*b)});
+    const strip=canvasCrop(canvas,{left:Math.floor(w*left),right:Math.ceil(w*right),
+      top:0,bottom:Math.ceil(h*.20)});
     const result=await Tesseract.recognize(strip,"eng");
-    const lines=(result.data.text||"").split(/\n/).map(x=>x.trim()).filter(x=>/^\d{1,4}$/.test(x));
-    found.push(...lines);
-   }catch(e){console.warn("Folio OCR unavailable",e)}
+    const candidates=(result.data.text||"").split(/\n/)
+      .map(t=>t.trim().replace(/^[^0-9]+|[^0-9]+$/g,""))
+      .filter(t=>/^\d{1,4}$/.test(t));
+    found.push(...candidates);
+   }catch(e){console.warn("Corner folio OCR unavailable",e)}
   }
   if(new Set(found).size===1)number=found[0];
+  // Wider upper margin only if the corners did not yield one unambiguous number.
+  if(!number){
+   try{
+    const strip=canvasCrop(canvas,{left:0,right:w,top:0,bottom:Math.ceil(h*.23)});
+    const result=await Tesseract.recognize(strip,"eng");
+    const candidates=(result.data.text||"").split(/\n/).map(t=>t.trim())
+      .filter(t=>/^\d{1,4}$/.test(t));
+    if(new Set(candidates).size===1)number=candidates[0];
+   }catch(e){console.warn("Upper margin folio OCR unavailable",e)}
+  }
  }
  return {number,heading,language,ocrLines};
 }
