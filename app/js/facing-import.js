@@ -156,18 +156,27 @@ async function detectOriginalNumbers(){
  }
 }
 async function recognizePrintedNumber(side){
- const input=$(side+"-number");if(input.value)return;
- if(!window.Tesseract)return;
+ const input=$(side+"-number");if(input.value||!window.Tesseract)return;
  const source=$(side+"-canvas"),shared=$("left-page").value===$("right-page").value;
  const sx=shared?(side==="left"?0:source.width/2):0,sw=shared?source.width/2:source.width;
- const crop=document.createElement("canvas");crop.width=Math.round(sw);crop.height=Math.round(source.height*.24);
- crop.getContext("2d").drawImage(source,sx,0,sw,source.height*.24,0,0,crop.width,crop.height);
- try{
-  const result=await Tesseract.recognize(crop,"eng",{});
-  const numbers=(result.data.text.match(/\b\d{1,4}\b/g)||[]).map(Number).filter(n=>n>0);
-  if(numbers.length===1){input.value=String(numbers[0]);input.dataset.source="ocr"}
- }catch(e){console.warn("Siddur number OCR failed",e)}
+ // Printed folio numbers may be at either the top or the bottom.
+ // OCR only the margins, never the prayer body or instructions.
+ const found=[];
+ for(const position of ["top","bottom"]){
+  const crop=document.createElement("canvas"),height=Math.round(source.height*.17);
+  crop.width=Math.round(sw);crop.height=height;
+  const sy=position==="top"?0:source.height-height;
+  crop.getContext("2d").drawImage(source,sx,sy,sw,height,0,0,crop.width,crop.height);
+  try{
+   const result=await Tesseract.recognize(crop,"eng",{});
+   const lines=(result.data.lines||[]).filter(line=>/^\\s*\\d{1,4}\\s*$/.test(line.text||""));
+   for(const line of lines)if((line.confidence??0)>=55)found.push(Number(line.text.trim()));
+  }catch(e){console.warn("Printed page number OCR failed",e)}
+ }
+ const unique=[...new Set(found.filter(n=>n>0&&n<=9999))];
+ if(unique.length===1){input.value=String(unique[0]);input.dataset.source="ocr"}
 }
+
 async function recognizeScannedPages(){
  if(!window.Tesseract){status("OCR unavailable; unidentified printed page numbers will be left blank, never guessed.");return}
  const needs=["left","right"].filter(side=>$(side+"-lang").value==="Uncertain"||!$(side+"-title").value.trim()||!$(side+"-number").value);
