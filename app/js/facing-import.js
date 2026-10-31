@@ -23,26 +23,49 @@ function inkBands(rows,threshold,gap){
 }
 function cleanPixels(canvas){
  const ctx=canvas.getContext("2d",{willReadFrequently:true}),w=canvas.width,h=canvas.height;
- const image=ctx.getImageData(0,0,w,h),p=image.data,lum=new Uint8Array(w*h);
- // Paper normalization: flatten light scan backgrounds and raise text contrast.
- for(let i=0;i<lum.length;i++){
-  const j=i*4,gray=Math.round(.299*p[j]+.587*p[j+1]+.114*p[j+2]);
-  lum[i]=gray;
+ const image=ctx.getImageData(0,0,w,h),p=image.data;
+ const gray=new Uint8Array(w*h);
+ for(let i=0;i<gray.length;i++){
+  const j=i*4;gray[i]=Math.round(.299*p[j]+.587*p[j+1]+.114*p[j+2]);
+ }
+ // Estimate the paper tone locally using a coarse, high-percentile grid.
+ // High percentiles exclude most ink, allowing yellowed and uneven scans to flatten.
+ const cell=48,gw=Math.ceil(w/cell),gh=Math.ceil(h/cell),paper=new Float32Array(gw*gh);
+ for(let gy=0;gy<gh;gy++)for(let gx=0;gx<gw;gx++){
+  const histogram=new Uint32Array(256);
+  let n=0;
+  for(let y=gy*cell;y<Math.min(h,(gy+1)*cell);y+=3)
+   for(let x=gx*cell;x<Math.min(w,(gx+1)*cell);x+=3){histogram[gray[y*w+x]]++;n++}
+  let seen=0,level=255;
+  for(let v=255;v>=0;v--){seen+=histogram[v];if(seen>=n*.18){level=v;break}}
+  paper[gy*gw+gx]=Math.max(170,level);
+ }
+ const normalized=new Uint8Array(w*h);
+ for(let y=0;y<h;y++){
+  const gy=Math.min(gh-1,Math.floor(y/cell)),gy2=Math.min(gh-1,gy+1),fy=(y%cell)/cell;
+  for(let x=0;x<w;x++){
+   const gx=Math.min(gw-1,Math.floor(x/cell)),gx2=Math.min(gw-1,gx+1),fx=(x%cell)/cell;
+   const a=paper[gy*gw+gx],b=paper[gy*gw+gx2],c=paper[gy2*gw+gx],d=paper[gy2*gw+gx2];
+   const background=a*(1-fx)*(1-fy)+b*fx*(1-fy)+c*(1-fx)*fy+d*fx*fy;
+   const value=gray[y*w+x]*255/background;
+   // Stronger background whitening with a soft transition for thin strokes.
+   normalized[y*w+x]=Math.max(0,Math.min(255,Math.round(value)));
+  }
  }
  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-  const i=y*w+x,j=i*4,g=lum[i];
-  // Gentle unsharp mask; suppress tiny isolated scanner specks.
-  let avg=g;
-  if(x>0&&y>0&&x<w-1&&y<h-1){
-   avg=(lum[i-1]+lum[i+1]+lum[i-w]+lum[i+w]+4*g)/8;
-  }
-  let value=g>215?255:g<65?Math.max(0,g*.55):Math.min(255,Math.max(0,(g-65)*1.48+35));
-  if(g<=215)value=Math.max(0,Math.min(255,value+(g-avg)*.55));
-  if(g<140&&x>0&&y>0&&x<w-1&&y<h-1){
-   const neighbors=[lum[i-1],lum[i+1],lum[i-w],lum[i+w]].filter(v=>v<175).length;
-   if(neighbors===0&&g>85)value=255;
-  }
-  p[j]=p[j+1]=p[j+2]=Math.round(value);p[j+3]=255;
+  const i=y*w+x,j=i*4,g=normalized[i];
+  let mean=g;
+  if(x>0&&x<w-1&&y>0&&y<h-1)
+   mean=(normalized[i-1]+normalized[i+1]+normalized[i-w]+normalized[i+w]+4*g)/8;
+  // Contrast stretch with edge-aware unsharp mask. Do not delete isolated
+  // dark marks: a small dot may be a Hebrew vowel or cantillation mark.
+  const sharpen=g+(g-mean)*1.15;
+  let value;
+  if(sharpen>=225)value=255;
+  else if(sharpen<=85)value=Math.max(0,sharpen*.54);
+  else value=46+(sharpen-85)*209/140;
+  const v=Math.max(0,Math.min(255,Math.round(value)));
+  p[j]=p[j+1]=p[j+2]=v;p[j+3]=255;
  }
  ctx.putImageData(image,0,0);
 }
