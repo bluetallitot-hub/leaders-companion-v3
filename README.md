@@ -45,3 +45,9 @@ Publication variants will be presets of components rather than separate producti
 - For books with page numbers on outer margins, a left-edge number suggests a left-hand page (binding at right); a right-edge number suggests a right-hand page (binding at left).
 - Treat this as a configurable inference, not a universal rule. Cross-check page geometry and neighboring pages; allow human correction in the side-by-side viewer.
 - Use the inferred binding edge to choose gutter shadow removal and dewarping orientation.
+
+## Invisible layout regions
+
+- All siddur, instruction, companion, and status-bar region rectangles are internal positioning guides only. Never draw their borders in generated PDFs.
+- Maintain coordinates and dimensions in page metadata for consistent placement; only actual text, page numbers, instructions, QR codes, and intentionally designed status-bar content are visible.
+- Optional visual guides belong exclusively in the editing interface, never in exported production PDFs.
