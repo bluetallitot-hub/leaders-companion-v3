@@ -146,10 +146,40 @@ function detectCrop(canvas,meta){
  return {left:Math.max(0,left-padX),right:Math.min(w,right+padX),
   top:Math.max(0,top-padY),bottom:Math.min(h,bottom+Math.max(15,Math.round(h*.02)))};
 }
-function storePageMetadata(page,meta){
- const d=page.node,ctx=page.doc.context;
- const fields={LCOriginalPageNumber:meta.number,LCLanguage:meta.language,LCOriginalHeadingOCR:meta.heading};
- for(const [name,value] of Object.entries(fields))d.set(PDFLib.PDFName.of(name),PDFLib.PDFHexString.fromText(value||""));
+function makeIntakeRecord(meta,sourceIndex){
+ const code=meta.language==="Hebrew"?"H":meta.language==="English"?"E":meta.language==="Mixed"?"H+E":null;
+ const pageNumber=meta.number||null;
+ return {
+  schema:"leaders-companion-v3-page-intake",schemaVersion:1,
+  source:{sourceId:null,sourceFilename:filename+".pdf",sourcePdfPage:sourceIndex+1,
+   originalPageNumber:pageNumber,sourcePage:pageNumber&&code?pageNumber+code:null,
+   languageCode:code,language:meta.language||"unknown",
+   originalHeadingOCR:meta.heading||null},
+  identification:{prayerName:null,unitType:null,serviceCode:null,cueId:null,binderOrder:null},
+  leadership:{role:null,roleReviewNeeded:true,highlight:null},
+  production:{paperClass:null,color:null,melodyId:null,sourceTextRegion:"V3 Siddur Text",
+   background:"white",imageCleanup:"grayscale contrast, white normalization, gentle sharpening",
+   headerRemoved:"automatic detection",originalPageNumberDisplayed:Boolean(pageNumber)},
+  intake:{status:pageNumber&&code&&meta.heading?"processed-unreviewed":"needs-metadata-review",
+   pageNumberDetected:Boolean(pageNumber),languageDetected:Boolean(code),
+   headingDetected:Boolean(meta.heading),reviewed:false}
+ };
+}
+function storePageMetadata(page,record){
+ // Single self-contained page-associated record. No external JSON or sidecar.
+ const d=page.node,fields={
+  LCIntakeRecord:JSON.stringify(record),
+  LCOriginalPageNumber:record.source.originalPageNumber||"",
+  LCSourcePage:record.source.sourcePage||"",
+  LCLanguage:record.source.language,
+  LCLanguageCode:record.source.languageCode||"",
+  LCOriginalHeadingOCR:record.source.originalHeadingOCR||"",
+  LCSourceFilename:record.source.sourceFilename,
+  LCSourcePdfPage:String(record.source.sourcePdfPage),
+  LCIntakeStatus:record.intake.status
+ };
+ for(const [name,value] of Object.entries(fields))
+  d.set(PDFLib.PDFName.of(name),PDFLib.PDFHexString.fromText(value));
 }
 async function createPdf(bytes){
  const source=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
@@ -170,10 +200,10 @@ async function createPdf(bytes){
  }
  // English is the left facing page; Hebrew is the right facing page.
  if(records.length===2&&records[0].meta.language==="Hebrew"&&records[1].meta.language==="English")records.reverse();
- pageMetadata=records.map(r=>({...r.meta,sourcePage:r.sourceIndex+1}));
+ pageMetadata=records.map(r=>makeIntakeRecord(r.meta,r.sourceIndex));
  for(let i=0;i<records.length;i++){
   const {meta,png}=records[i],page=out.addPage([W,H]);
-  drawTemplate(page,i);storePageMetadata(page,meta);
+  drawTemplate(page,i);storePageMetadata(page,pageMetadata[i]);
   const r=REGIONS[i],pad=6,scale=Math.min((r.w-2*pad)/png.width,(r.h-2*pad)/png.height);
   const dw=png.width*scale,dh=png.height*scale;
   page.drawImage(png,{x:r.x+(r.w-dw)/2,y:r.y+(r.h-dh)/2,width:dw,height:dh});
@@ -186,12 +216,29 @@ async function createPdf(bytes){
 }
 function displayMetadata(){
  for(let i=0;i<2;i++){
-  const panel=$(i===0?"metadata-left":"metadata-right");
-  const m=pageMetadata[i];
-  panel.hidden=!m;
-  if(!m)continue;
-  for(const [field,value] of [["number",m.number||"Not detected"],["language",m.language||"Unknown"],["heading",m.heading||"Not detected"],["source",String(m.sourcePage)]])
-   panel.querySelector('[data-field="'+field+'"]').textContent=value;
+  const panel=$(i===0?"metadata-left":"metadata-right"),record=pageMetadata[i];
+  panel.hidden=!record;if(!record)continue;
+  const source=record.source,ident=record.identification,intake=record.intake;
+  const fields=[
+   ["Original page number",source.originalPageNumber||"Not detected"],
+   ["Language",source.language],["Page convention",source.sourcePage||"Not detected"],
+   ["Original heading (OCR)",source.originalHeadingOCR||"Not detected"],
+   ["Source PDF",source.sourceFilename],["Source PDF page",String(source.sourcePdfPage)],
+   ["Source ID",source.sourceId||"Unassigned"],
+   ["Prayer / unit",ident.prayerName||"Unassigned"],
+   ["Service code",ident.serviceCode||"Unassigned"],
+   ["Cue ID",ident.cueId||"Unassigned"],
+   ["Binder order",ident.binderOrder||"Unassigned"],
+   ["Role",record.leadership.role||"Unassigned"],
+   ["Melody ID",record.production.melodyId||"Unassigned"],
+   ["Paper class",record.production.paperClass||"Unassigned"],
+   ["Intake status",intake.status]
+  ];
+  const dl=panel.querySelector("dl");dl.replaceChildren();
+  for(const [label,value] of fields){
+   const dt=document.createElement("dt"),dd=document.createElement("dd");
+   dt.textContent=label;dd.textContent=String(value);dl.append(dt,dd);
+  }
  }
 }
 async function preview(bytes){
