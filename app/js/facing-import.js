@@ -330,7 +330,8 @@ async function createPdf(bytes){
  // English is the left facing page; Hebrew is the right facing page.
  if(records.length===2&&records[0].meta.language==="Hebrew"&&records[1].meta.language==="English")records.reverse();
  pageMetadata=records.map(r=>makeIntakeRecord(r.meta,r.sourceIndex));
- pageMetadata.forEach(r=>{r.leadership.highlights=[];r.leadership.role=roleConfig.id});\n applyImportedCues();
+ pageMetadata.forEach(r=>{r.leadership.highlights=[];r.leadership.role=roleConfig.id});
+ applyImportedCues();
  storeMasterRoles(out);
  for(let i=0;i<records.length;i++){
   const {meta,png}=records[i],page=out.addPage([W,H]);
@@ -361,7 +362,8 @@ function displayMetadata(){
    ["Service code",ident.serviceCode||"Unassigned"],
    ["Cue ID",ident.cueId||"Unassigned"],
    ["Binder order",ident.binderOrder||"Unassigned"],
-   ["Role",record.leadership.role||"Unassigned"],\n   ["Imported cues",(record.leadership.cues||[]).map(c=>[c.cueId,c.role,"Style: "+c.style,"Start: "+c.startCue,"End: "+c.endCue,c.matchStatus].join(" | ")).join(" ; ")||"None"],
+   ["Role",record.leadership.role||"Unassigned"],
+   ["Imported cues",(record.leadership.cues||[]).map(c=>[c.cueId,c.role,"Style: "+c.style,"Start: "+c.startCue,"End: "+c.endCue,c.matchStatus].join(" | ")).join(" ; ")||"None"],
    ["Melody ID",record.production.melodyId||"Unassigned"],
    ["Paper class",record.production.paperClass||"Unassigned"],
    ["Intake status",intake.status]
