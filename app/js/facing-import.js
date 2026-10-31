@@ -310,8 +310,8 @@ function drawHighlights(){
   const selected=new Set((pageMetadata[i]?.leadership?.highlights||[]).map(h=>h.lineId));
   for(const line of detectedLines[i]){
    const active=selected.has(line.id);
-   ctx.fillStyle=active?roleColor(pageMetadata[i]?.leadership?.cues?.[0]?.role||pageMetadata[i]?.leadership?.role)+"65":"rgba(24,105,160,.07)";
-   ctx.strokeStyle=active?"rgba(25,80,45,.65)":"rgba(25,105,160,.16)";
+   ctx.fillStyle=active?roleColor(pageMetadata[i]?.leadership?.cues?.[0]?.role||pageMetadata[i]?.leadership?.role)+"A6":"rgba(24,105,160,.19)";
+   ctx.strokeStyle=active?"rgba(25,80,45,.65)":"rgba(25,105,160,.32)";
    ctx.lineWidth=active?1.1:.55;
    const x=line.x*overlay.width,y=line.y*overlay.height,ww=line.width*overlay.width,hh=line.height*overlay.height;
    ctx.fillRect(x,y,ww,hh);ctx.strokeRect(x,y,ww,hh);
