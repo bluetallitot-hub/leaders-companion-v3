@@ -10,17 +10,29 @@ function validCrop(c){return Object.values(c).every(Number.isFinite)&&c.x>=0&&c.
 
 const RATIO=380.88/540;
 function lockCrop(side,c){const canvas=$(side+"-canvas"),ratio=RATIO*canvas.height/canvas.width;let w=Math.max(c.w,c.h*ratio),h=w/ratio;const k=Math.min(1,100/w,100/h);w*=k;h*=k;return {x:clamp(c.x+c.w/2-w/2,0,100-w),y:clamp(c.y+c.h/2-h/2,0,100-h),w,h}}
+function sourceZone(side,w,h){
+ const shared=$("left-page").value===$("right-page").value;
+ return {x0:shared?(side==="left"?0:w/2):0,x1:shared?(side==="left"?w/2:w):w,y0:h*.29,y1:h*.89};
+}
 function suggestCrop(side){
  const canvas=$(side+"-canvas"),w=canvas.width,h=canvas.height;
- const p=canvas.getContext("2d").getImageData(0,0,w,h).data;
- const shared=$("left-page").value===$("right-page").value;
- const a=shared?(side==="left"?0:Math.floor(w/2)):0,b=shared?(side==="left"?Math.floor(w/2):w):w;
- let minX=w,maxX=0,minY=h,maxY=0,count=0;
- for(let y=Math.floor(h*.10);y<h*.93;y+=3)for(let x=a+Math.floor((b-a)*.06);x<b-Math.floor((b-a)*.06);x+=3){
- const i=4*(y*w+x);if(p[i]+p[i+1]+p[i+2]<450){minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);count++}
+ const data=canvas.getContext("2d",{willReadFrequently:true}).getImageData(0,0,w,h).data;
+ const z=sourceZone(side,w,h),step=2;
+ // Restrict detection to the prayer-text region: omit source header, titles,
+ // instructions, original page numbers and lower cue/status regions.
+ const row=new Uint32Array(h),col=new Uint32Array(w);
+ for(let y=Math.ceil(z.y0);y<z.y1;y+=step)for(let x=Math.ceil(z.x0+12);x<z.x1-12;x+=step){
+  const i=(y*w+x)*4,r=data[i],g=data[i+1],b=data[i+2];
+  // Ignore the blue/gray master-template lines and count only near-neutral ink.
+  if(Math.max(r,g,b)-Math.min(r,g,b)<42&&r+g+b<420){row[y]++;col[x]++}
  }
- if(count<30)return null;
- return lockCrop(side,{x:Math.max(0,minX-10)/w*100,y:Math.max(0,minY-10)/h*100,w:(maxX-minX+20)/w*100,h:(maxY-minY+20)/h*100});
+ const rowMin=Math.max(2,Math.floor((z.x1-z.x0)/170)),colMin=Math.max(2,Math.floor((z.y1-z.y0)/210));
+ let top=h,bottom=0,left=w,right=0;
+ for(let y=Math.ceil(z.y0);y<z.y1;y+=step)if(row[y]>=rowMin){top=Math.min(top,y);bottom=Math.max(bottom,y+step)}
+ for(let x=Math.ceil(z.x0+12);x<z.x1-12;x+=step)if(col[x]>=colMin){left=Math.min(left,x);right=Math.max(right,x+step)}
+ if(right<=left||bottom<=top)return null;
+ const pad=12;
+ return lockCrop(side,{x:Math.max(z.x0,left-pad)/w*100,y:Math.max(z.y0,top-pad)/h*100,w:(Math.min(z.x1,right+pad)-Math.max(z.x0,left-pad))/w*100,h:(Math.min(z.y1,bottom+pad)-Math.max(z.y0,top-pad))/h*100});
 }
 function sync(side){
  const c=state.crops[side],box=$(side+"-crop");
