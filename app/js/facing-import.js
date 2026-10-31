@@ -24,7 +24,7 @@ function suggestCrop(side){
 }
 function sync(side){
  const c=state.crops[side],box=$(side+"-crop");
- Object.assign(box.style,{left:c.x+"%",top:c.y+"%",width:c.w+"%",height:c.h+"%",display:"block"});
+ Object.assign(box.style,{left:c.x+"%",top:c.y+"%",width:c.w+"%",height:c.h+"%",display:$("crop-editor").hidden?"none":"block"});
  for(const input of $(side+"-fields").querySelectorAll("input"))input.value=Number(c[input.dataset.key].toFixed(2));
 }
 function attachCrop(side){
@@ -45,7 +45,7 @@ function attachCrop(side){
    if(!drag)return;
    const r=wrap.getBoundingClientRect(),dx=(e.clientX-drag.startX)/r.width*100,dy=(e.clientY-drag.startY)/r.height*100;
    const c={...drag.orig};
-   if(drag.resize){c.w=clamp(c.w+dx,1,100-c.x);c.h=clamp(c.h+dy,1,100-c.y)}
+   if(drag.resize){const ratio=RATIO*$(side+"-canvas").height/$(side+"-canvas").width;c.w=clamp(c.w+Math.max(dx,dy*ratio),ratio,Math.min(100-c.x,(100-c.y)*ratio));c.h=c.w/ratio}
    else{c.x=clamp(c.x+dx,0,100-c.w);c.y=clamp(c.y+dy,0,100-c.h)}
    state.crops[side]=c;sync(side);
  });
@@ -139,6 +139,7 @@ async function loadSource(){
  await detectLanguages();
  for(const side of ["left","right"]){state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side)}
  await assignLayoutByLanguage();
+ await refreshLayout();
  state.output=null;$("download").disabled=true;
 
 }
@@ -202,6 +203,16 @@ async function generate(){
  }
  return new Uint8Array(await out.save());
 }
+async function refreshLayout(){
+ if(!state.raw)return;
+ try{
+   const bytes=await generate();
+   await renderOutputSpread(bytes);
+   state.output=bytes;
+   $("download").disabled=false;
+   status("Facing-page layout updated. Review both pages. Use Adjust source crops only if necessary.");
+ }catch(e){status("Layout preview unavailable: "+e.message)}
+}
 async function renderOutputSpread(bytes){
  const doc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
  if(doc.numPages!==2)throw Error("Expected exactly two output pages.");
@@ -215,7 +226,7 @@ async function renderOutputSpread(bytes){
 }
 for(const side of ["left","right"]){
  attachCrop(side);
- $(side+"-page").addEventListener("change",async()=>{try{await renderSide(side);state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side);await detectTitle(side);await detectLanguages();await assignLayoutByLanguage()}catch(e){status(e.message)}});
+ $(side+"-page").addEventListener("change",async()=>{try{await renderSide(side);state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side);await detectTitle(side);await detectLanguages();await assignLayoutByLanguage();await refreshLayout()}catch(e){status(e.message)}});
 }
 $("source").addEventListener("change",()=>loadSource().catch(e=>status("Source error: "+e.message)));
 $("generate").addEventListener("click",async()=>{
@@ -232,3 +243,8 @@ $("download").addEventListener("click",()=>{
  const url=URL.createObjectURL(new Blob([state.output],{type:"application/pdf"}));
  const a=document.createElement("a");a.href=url;a.download="leaders-companion-v3-facing-siddur.pdf";document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
 });
+
+$("adjust-crop").addEventListener("click",()=>{const open=$("crop-editor").hidden;$("crop-editor").hidden=!open;$("adjust-crop").setAttribute("aria-expanded",String(open));$("adjust-crop").textContent=open?"Hide source crops":"Adjust source crops";for(const side of ["left","right"])sync(side)});
+$("refresh-layout").addEventListener("click",refreshLayout);
+for(const id of ["left-title","right-title","start-number","align","guides"])$(id).addEventListener("change",refreshLayout);
+for(const side of ["left","right"])for(const input of $(side+"-fields").querySelectorAll("input"))input.addEventListener("change",refreshLayout);
