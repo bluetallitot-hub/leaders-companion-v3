@@ -88,6 +88,28 @@ async function detectLanguages(){
    status("Language could not be established from selectable PDF text. Scanned images require OCR; please verify both sides before export.");
  else status("Detected languages: left "+results.left+", right "+results.right+".");
 }
+async function assignLayoutByLanguage(){
+ const left=$("left-lang").value,right=$("right-lang").value;
+ if(left==="Hebrew"&&right==="English"){
+   if($("left-page").value!==$("right-page").value){
+     const a=$("left-page").value;
+     $("left-page").value=$("right-page").value;$("right-page").value=a;
+     await Promise.all(["left","right"].map(renderSide));
+     await Promise.all(["left","right"].map(detectTitle));
+     await detectLanguages();
+     status("Automatically placed English on the left layout and Hebrew on the right layout.");
+   }else{
+     const a=state.crops.left;
+     state.crops.left=state.crops.right;state.crops.right=a;
+     sync("left");sync("right");
+     // Both source halves remain on the same PDF page; their crop regions are swapped.
+     $("left-lang").value="English";$("right-lang").value="Hebrew";
+     status("Automatically assigned the English source half to the left layout and Hebrew to the right layout.");
+   }
+ }else if(left==="Uncertain"||right==="Uncertain"){
+   status("Cannot confidently determine English/Hebrew placement from this source. Verify both previews before exporting.");
+ }
+}
 async function detectTitle(side){
  const num=Number($(side+"-page").value),page=await state.view.getPage(num);
  const items=(await page.getTextContent()).items;
@@ -115,6 +137,7 @@ async function loadSource(){
  await Promise.all(["left","right"].map(detectTitle));
  await detectLanguages();
  for(const side of ["left","right"]){state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side)}
+ await assignLayoutByLanguage();
  state.output=null;$("download").disabled=true;
  if($("left-lang").value!=="Uncertain"&&$("right-lang").value!=="Uncertain")status("Source loaded; languages detected. Inspect automatic crops before export.");
 }
@@ -180,7 +203,7 @@ async function generate(){
 }
 for(const side of ["left","right"]){
  attachCrop(side);
- $(side+"-page").addEventListener("change",async()=>{try{await renderSide(side);state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side);await detectTitle(side);await detectLanguages()}catch(e){status(e.message)}});
+ $(side+"-page").addEventListener("change",async()=>{try{await renderSide(side);state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side);await detectTitle(side);await detectLanguages();await assignLayoutByLanguage()}catch(e){status(e.message)}});
 }
 $("source").addEventListener("change",()=>loadSource().catch(e=>status("Source error: "+e.message)));
 $("generate").addEventListener("click",async()=>{
