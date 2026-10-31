@@ -255,33 +255,94 @@ function applyImportedCues(){
  const count=pageMetadata.reduce((n,p)=>n+(p.leadership.cues||[]).length,0);
  status(count+" cues attached to pages; start/end positions require manual review. No automatic text matching has occurred.");
 }
+// Lightweight in-memory line geometry: no SIP/SGM/CIP sidecars.
+let detectedLines=[[],[]];
+function detectPrintedLines(canvas,side){
+ const ctx=canvas.getContext("2d",{willReadFrequently:true}),w=canvas.width,h=canvas.height;
+ const pixels=ctx.getImageData(0,0,w,h).data,region=REGIONS[side],result=[];
+ const x0=Math.round(region.x),x1=Math.round(region.x+region.w),y0=Math.round(H-region.y-region.h),y1=Math.round(H-region.y);
+ // Each half is scanned independently to avoid bridging Hebrew columns.
+ const slices=pageMetadata[side]?.source?.languageCode==="H"?[[.02,.49],[.51,.98]]:[[.02,.98]];
+ for(let column=0;column<slices.length;column++){
+  const [from,to]=slices[column],left=Math.round(x0+region.w*from),right=Math.round(x0+region.w*to);
+  const rows=[];
+  for(let y=y0;y<y1;y++){
+   let n=0;
+   for(let x=left;x<right;x+=2){const j=(y*w+x)*4;if(pixels[j]<145)n++}
+   rows.push(n);
+  }
+  const threshold=Math.max(3,Math.floor((right-left)/95));
+  let start=-1,last=-1;
+  const emit=()=>{
+   if(start<0)return;
+   if(last-start<2||last-start>37){start=-1;return}
+   let minX=right,maxX=left;
+   for(let y=y0+start;y<=y0+last;y++)for(let x=left;x<right;x++){
+    const j=(y*w+x)*4;if(pixels[j]<145){minX=Math.min(minX,x);maxX=Math.max(maxX,x)}
+   }
+   if(maxX-minX>18){
+    const pad=3;
+    result.push({id:"line-"+column+"-"+start,column,
+      x:Math.max(0,minX-pad)/w,y:Math.max(0,y0+start-2)/h,
+      width:Math.min(w,maxX+pad)-Math.max(0,minX-pad),height:Math.min(h,y0+last+3)-Math.max(0,y0+start-2)});
+    const item=result[result.length-1];item.width/=w;item.height/=h;
+   }
+   start=-1;
+  };
+  for(let j=0;j<rows.length;j++){
+   if(rows[j]>=threshold){if(start<0)start=j;last=j}
+   else if(start>=0&&j-last>3)emit();
+  }
+  emit();
+ }
+ return result;
+}
+function roleColor(role){
+ const r=String(role||"").toUpperCase();
+ return r.includes("RABBI")?"#F5D03C":r.includes("PRESIDENT")?"#5C9CE8":r.includes("READER")?"#66C78B":r.includes("SOLO")?"#F0A2CA":"#F5D03C";
+}
 function drawHighlights(){
  for(let i=0;i<2;i++){
   const overlay=$("highlight-"+i),base=$(i===0?"output-left":"output-right");
   if(!overlay||!base)return;
   overlay.width=base.width;overlay.height=base.height;
   const ctx=overlay.getContext("2d");ctx.clearRect(0,0,overlay.width,overlay.height);
-  for(const h of pageMetadata[i]?.leadership?.highlights||[]){
-   ctx.fillStyle="rgba(245,208,60,0.28)";
-   ctx.strokeStyle="rgba(163,123,0,0.8)";ctx.lineWidth=2;
-   const x=h.x*overlay.width,y=h.y*overlay.height,w=h.width*overlay.width,ht=h.height*overlay.height;
-   ctx.fillRect(x,y,w,ht);ctx.strokeRect(x,y,w,ht);
+  const selected=new Set((pageMetadata[i]?.leadership?.highlights||[]).map(h=>h.lineId));
+  for(const line of detectedLines[i]){
+   const active=selected.has(line.id);
+   ctx.fillStyle=active?roleColor(pageMetadata[i]?.leadership?.cues?.[0]?.role||pageMetadata[i]?.leadership?.role)+"65":"rgba(24,105,160,.07)";
+   ctx.strokeStyle=active?"rgba(25,80,45,.65)":"rgba(25,105,160,.16)";
+   ctx.lineWidth=active?1.1:.55;
+   const x=line.x*overlay.width,y=line.y*overlay.height,ww=line.width*overlay.width,hh=line.height*overlay.height;
+   ctx.fillRect(x,y,ww,hh);ctx.strokeRect(x,y,ww,hh);
   }
  }
 }
 function installHighlightSelection(){
  for(let i=0;i<2;i++){
-  const layer=$("highlight-"+i);
-  let start=null;
-  const point=e=>{const b=layer.getBoundingClientRect();return {x:Math.max(0,Math.min(1,(e.clientX-b.left)/b.width)),y:Math.max(0,Math.min(1,(e.clientY-b.top)/b.height))}};
-  layer.addEventListener("pointerdown",e=>{if(!pageMetadata[i])return;start=point(e);layer.setPointerCapture(e.pointerId)});
+  const layer=$("highlight-"+i);let start=null;
+  const point=e=>{const b=layer.getBoundingClientRect();return {x:(e.clientX-b.left)/b.width,y:(e.clientY-b.top)/b.height}};
+  const nearest=p=>{
+   const lines=detectedLines[i]||[];
+   const inside=lines.filter(l=>p.x>=l.x-.01&&p.x<=l.x+l.width+.01&&p.y>=l.y-.007&&p.y<=l.y+l.height+.007);
+   if(inside.length)return inside[0];
+   return lines.filter(l=>p.x>=l.x-.02&&p.x<=l.x+l.width+.02)
+    .sort((a,b)=>Math.abs(p.y-a.y-a.height/2)-Math.abs(p.y-b.y-b.height/2))[0]||null;
+  };
+  layer.addEventListener("pointerdown",e=>{if(!pageMetadata[i])return;start=nearest(point(e));if(start)layer.setPointerCapture(e.pointerId)});
   layer.addEventListener("pointerup",e=>{
    if(!start||!pageMetadata[i])return;
-   const end=point(e),x=Math.min(start.x,end.x),y=Math.min(start.y,end.y),width=Math.abs(start.x-end.x),height=Math.abs(start.y-end.y);
-   start=null;if(width<.005||height<.005)return;
+   const end=nearest(point(e))||start,lines=detectedLines[i];
+   const a=lines.indexOf(start),b=lines.indexOf(end),chosen=a===b?[start]:lines.slice(Math.min(a,b),Math.max(a,b)+1).filter(l=>l.column===start.column);
    const highlights=pageMetadata[i].leadership.highlights;
-   highlights.push({highlightId:"HL-"+String(Date.now()),roleId:roleConfig.id,x,y,width,height,coordinateSystem:"normalized-top-left",visibleInPdf:false});
-   drawHighlights();status("Highlight saved in preview. Download to embed it as hidden PDF metadata.");
+   for(const line of chosen){
+    const old=highlights.findIndex(h=>h.lineId===line.id);
+    if(old>=0)highlights.splice(old,1);
+    else highlights.push({highlightId:"HL-"+line.id,lineId:line.id,roleId:pageMetadata[i].leadership.cues[0]?.role||roleConfig.id,
+     x:line.x,y:line.y,width:line.width,height:line.height,coordinateSystem:"normalized-top-left",visibleInPdf:false});
+   }
+   start=null;drawHighlights();
+   status(highlights.length+" snapped lines selected on "+(i===0?"English/left":"Hebrew/right")+" page. Download to embed selections in PDF metadata.");
   });
   layer.addEventListener("pointercancel",()=>{start=null});
  }
@@ -385,7 +446,7 @@ async function preview(bytes){
   canvas.width=Math.ceil(v.width);canvas.height=Math.ceil(v.height);
   await page.render({canvasContext:canvas.getContext("2d"),viewport:v}).promise;
  }
- displayMetadata();$("spread-preview").hidden=false;$("empty-preview").hidden=true;drawHighlights();
+ displayMetadata();$("spread-preview").hidden=false;$("empty-preview").hidden=true;detectedLines=[0,1].map(i=>i<doc.numPages?detectPrintedLines($(i===0?"output-left":"output-right"),i):[]);drawHighlights();status("Detected "+detectedLines.map(a=>a.length).join(" / ")+" candidate printed lines. Click a line to toggle its highlight, or drag within one column to select a range.");
 }
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 $("source").addEventListener("change",async()=>{
