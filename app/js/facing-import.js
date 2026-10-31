@@ -275,25 +275,40 @@ function detectPrintedLines(canvas,side){
   }
   const threshold=Math.max(3,Math.floor((right-left)/95));
   let start=-1,last=-1;
-  const emit=()=>{
-   if(start<0)return;
-   if(last-start<2||last-start>37){start=-1;return}
+  const emitBand=(fromRow,toRow)=>{
+   if(toRow-fromRow<2||toRow-fromRow>30)return;
    let minX=right,maxX=left;
-   for(let y=y0+start;y<=y0+last;y++)for(let x=left;x<right;x++){
+   for(let y=y0+fromRow;y<=y0+toRow;y++)for(let x=left;x<right;x++){
     const j=(y*w+x)*4;if(pixels[j]<145){minX=Math.min(minX,x);maxX=Math.max(maxX,x)}
    }
-   if(maxX-minX>18){
-    const pad=3;
-    result.push({id:"line-"+column+"-"+start,column,
-      x:Math.max(0,minX-pad)/w,y:Math.max(0,y0+start-2)/h,
-      width:Math.min(w,maxX+pad)-Math.max(0,minX-pad),height:Math.min(h,y0+last+3)-Math.max(0,y0+start-2)});
-    const item=result[result.length-1];item.width/=w;item.height/=h;
+   if(maxX-minX<=18)return;
+   const pad=2;
+   const top=Math.max(0,y0+fromRow-1),bottom=Math.min(h,y0+toRow+2);
+   result.push({id:"line-"+column+"-"+fromRow,column,
+    x:Math.max(0,minX-pad)/w,y:top/h,
+    width:(Math.min(w,maxX+pad)-Math.max(0,minX-pad))/w,height:(bottom-top)/h});
+  };
+  const emit=()=>{
+   if(start<0)return;
+   const from=start,to=last;start=-1;
+   if(to-from<2)return;
+   // A tall ink band can contain two touching printed lines. Split only
+   // at a pronounced interior horizontal valley, never at arbitrary halves.
+   if(to-from>17){
+    const values=rows.slice(from,to+1),peak=Math.max(...values);
+    const valleys=[];
+    for(let j=5;j<values.length-5;j++){
+     if(values[j]<=peak*.36&&values[j]<=values[j-1]&&values[j]<=values[j+1])valleys.push(j);
+    }
+    valleys.sort((a,b)=>values[a]-values[b]);
+    const cut=valleys.find(j=>j>=7&&values.length-j>=8);
+    if(cut!==undefined){emitBand(from,from+cut-1);emitBand(from+cut+1,to);return}
    }
-   start=-1;
+   emitBand(from,to);
   };
   for(let j=0;j<rows.length;j++){
    if(rows[j]>=threshold){if(start<0)start=j;last=j}
-   else if(start>=0&&j-last>3)emit();
+   else if(start>=0&&j-last>1)emit();
   }
   emit();
  }
