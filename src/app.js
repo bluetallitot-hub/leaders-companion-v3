@@ -1,48 +1,25 @@
 "use strict";
-const $=id=>document.getElementById(id);
-let sourceBytes=null,sourceName="",pageCount=0,lastManifest=null;
-function parsePages(spec,max){
- const result=[];
- for(const raw of spec.split(",")){
-  const token=raw.trim();if(!token)continue;
-  const match=token.match(/^(\d+)\s*-\s*(\d+)$/);
-  if(match){const a=Number(match[1]),b=Number(match[2]);if(a>b)throw Error("Descending ranges are not supported: "+token);if(b-a>10000)throw Error("Range too large");for(let p=a;p<=b;p++)result.push(p);}
-  else if(/^\d+$/.test(token))result.push(Number(token));
-  else throw Error("Invalid page selection: "+token);
- }
- if(!result.length)throw Error("Enter at least one page.");
- if(result.some(p=>p<1||p>max))throw Error("Page numbers must be between 1 and "+max+".");
- return result;
-}
-function download(bytes,name,type){
- const blob=new Blob([bytes],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");
- a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-}
-function slug(s){return s.trim().replace(/[^a-z0-9_-]+/gi,"-").replace(/^-|-$/g,"")||"service"}
-$("source").addEventListener("change",async e=>{
- sourceBytes=null;lastManifest=null;pageCount=0;$("extract").disabled=true;$("manifest").disabled=true;$("results").replaceChildren();
- const file=e.target.files[0];if(!file)return;
- try{
-  if(!window.PDFLib)throw Error("PDF library failed to load. Check your connection.");
-  const bytes=await file.arrayBuffer();const pdf=await PDFLib.PDFDocument.load(bytes,{ignoreEncryption:false});
-  pageCount=pdf.getPageCount();sourceBytes=bytes;sourceName=file.name;
-  $("source-info").textContent=file.name+" · "+pageCount+" PDF pages";$("extract").disabled=false;$("status").textContent="";
- }catch(err){$("source-info").textContent="Unable to read PDF: "+err.message;$("status").textContent="";}
-});
-$("extract").addEventListener("click",async()=>{
- $("extract").disabled=true;$("status").textContent="Generating…";$("results").replaceChildren();
- try{
-  const pages=parsePages($("pages").value,pageCount);
-  const code=slug($("code").value).toUpperCase(),service=$("service").value.trim();
-  if(!service)throw Error("Enter a service name.");
-  const source=await PDFLib.PDFDocument.load(sourceBytes),out=await PDFLib.PDFDocument.create();
-  const copied=await out.copyPages(source,pages.map(p=>p-1));copied.forEach(p=>out.addPage(p));
-  const outputName=code+"-extracted.pdf",manifestName=code+"-page-manifest.json";
-  lastManifest={schemaVersion:1,serviceCode:code,serviceName:service,sourceFile:sourceName,outputFile:outputName,pages:pages.map((p,i)=>({workingId:code+"-"+String(i+1).padStart(4,"0"),outputPage:i+1,sourcePdfPage:p,printedSiddurPage:null}))};
-  const bytes=await out.save();download(bytes,outputName,"application/pdf");
-  $("manifest").disabled=false;$("status").textContent="Created "+pages.length+"-page service PDF. Download the manifest too, to preserve page mapping.";
-  const note=document.createElement("p");note.textContent=outputName+" · "+pages.length+" pages";$("results").append(note);
- }catch(err){$("status").textContent="Could not generate PDF: "+err.message;}
- finally{$("extract").disabled=false;}
-});
-$("manifest").addEventListener("click",()=>{if(lastManifest)download(JSON.stringify(lastManifest,null,2),slug(lastManifest.serviceCode)+"-page-manifest.json","application/json")});
+const $=id=>document.getElementById(id);let sourceBytes=null,pageCount=0,outputBytes=null,previewUrl=null,config=null;
+const numeric=id=>Number($(id).value);
+function save(bytes,name,type){const url=URL.createObjectURL(new Blob([bytes],{type})),a=document.createElement("a");a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000)}
+$("source").addEventListener("change",async e=>{sourceBytes=null;outputBytes=null;$("preview").disabled=true;$("download").disabled=true;$("settings").disabled=true;const file=e.target.files[0];if(!file)return;try{if(!window.PDFLib)throw Error("PDF library unavailable");const bytes=await file.arrayBuffer(),pdf=await PDFLib.PDFDocument.load(bytes);pageCount=pdf.getPageCount();sourceBytes=bytes;$("source-info").textContent=file.name+" · "+pageCount+" physical pages";$("page").max=pageCount;$("preview").disabled=false;$("status").textContent="Ready."}catch(err){$("source-info").textContent="Unable to load PDF: "+err.message}});
+$("preview").addEventListener("click",async()=>{outputBytes=null;$("download").disabled=true;$("settings").disabled=true;$("preview").disabled=true;$("status").textContent="Rendering…";try{
+ const pageNo=numeric("page");if(!Number.isInteger(pageNo)||pageNo<1||pageNo>pageCount)throw Error("Select a valid physical PDF page.");
+ const printed=$("printed").value.trim();if(!printed||!/^[\x20-\x7E]+$/.test(printed))throw Error("Enter a printable page number using standard characters.");
+ const crop={left:numeric("left"),right:numeric("right"),top:numeric("top"),bottom:numeric("bottom")};
+ if(Object.values(crop).some(v=>!Number.isFinite(v)||v<0||v>95)||crop.left+crop.right>=95||crop.top+crop.bottom>=95)throw Error("Crop settings leave too little page area.");
+ const margin=numeric("margin");if(!Number.isFinite(margin)||margin<0||margin>150)throw Error("Invalid margin.");
+ const [W,H]=$("size").value.split(",").map(Number),src=await PDFLib.PDFDocument.load(sourceBytes),original=src.getPage(pageNo-1);
+ const sw=original.getWidth(),sh=original.getHeight(),left=sw*crop.left/100,right=sw*(1-crop.right/100),bottom=sh*crop.bottom/100,top=sh*(1-crop.top/100);
+ const out=await PDFLib.PDFDocument.create(),embedded=await out.embedPage(original,{left,bottom,right,top}),page=out.addPage([W,H]);
+ const headerHeight=42,availW=W-2*margin,availH=H-2*margin-headerHeight;
+ if(availW<=0||availH<=0)throw Error("Margins leave no room for content.");
+ const scale=Math.min(availW/(right-left),availH/(top-bottom)),drawW=(right-left)*scale,drawH=(top-bottom)*scale;
+ page.drawPage(embedded,{x:(W-drawW)/2,y:margin+(availH-drawH)/2,width:drawW,height:drawH});
+ const font=await out.embedFont(PDFLib.StandardFonts.HelveticaBold),fontSize=19,textWidth=font.widthOfTextAtSize(printed,fontSize);
+ page.drawText(printed,{x:W-margin-textWidth,y:H-margin-21,size:fontSize,font,color:PDFLib.rgb(.78,.1,.12)});
+ outputBytes=await out.save();config={schemaVersion:1,sourcePdfPage:pageNo,printedPageNumber:printed,cropPercent:crop,outputSizePoints:[W,H],marginPoints:margin};
+ if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=URL.createObjectURL(new Blob([outputBytes],{type:"application/pdf"}));$("viewer").src=previewUrl;$("viewer").hidden=false;$("download").disabled=false;$("settings").disabled=false;$("status").textContent="Preview ready. Verify crop boundaries and printed page number.";
+ }catch(err){$("status").textContent="Could not generate preview: "+err.message}finally{$("preview").disabled=false}});
+$("download").addEventListener("click",()=>{if(outputBytes)save(outputBytes,"standardized-page-"+config.sourcePdfPage+".pdf","application/pdf")});
+$("settings").addEventListener("click",()=>{if(config)save(JSON.stringify(config,null,2),"standardized-page-"+config.sourcePdfPage+"-settings.json","application/json")});
