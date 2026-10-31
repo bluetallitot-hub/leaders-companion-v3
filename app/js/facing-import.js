@@ -101,6 +101,7 @@ async function assignLayoutByLanguage(){
    }else{
      const a=state.crops.left;
      state.crops.left=state.crops.right;state.crops.right=a;
+     const title=$("left-title").value;$("left-title").value=$("right-title").value;$("right-title").value=title;
      sync("left");sync("right");
      // Both source halves remain on the same PDF page; their crop regions are swapped.
      $("left-lang").value="English";$("right-lang").value="Hebrew";
@@ -139,7 +140,7 @@ async function loadSource(){
  for(const side of ["left","right"]){state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side)}
  await assignLayoutByLanguage();
  state.output=null;$("download").disabled=true;
- if($("left-lang").value!=="Uncertain"&&$("right-lang").value!=="Uncertain")status("Source loaded; languages detected. Inspect automatic crops before export.");
+
 }
 function cropToPdf(page,c){
  if(!validCrop(c))throw Error("Invalid crop dimensions.");
