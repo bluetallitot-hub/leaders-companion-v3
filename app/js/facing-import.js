@@ -83,11 +83,14 @@ async function detectLanguages(){
    let hebrew=0,latin=0;
    for(const item of items){
      const x=item.transform[4];
+     const y=viewport.height-item.transform[5];
+     if(y<viewport.height*.28||y>viewport.height*.91)continue;
      if(shared&&(side==="left"?x>=viewport.width/2:x<viewport.width/2))continue;
+     if(/PAGE NO|SERVICE NAME|CONTENT BLOCK|PAGE TITLE|INSTRUCTIONS|STATUS BAR|CUES/i.test(item.str))continue;
      hebrew+=(item.str.match(/[\u0590-\u05ff]/g)||[]).length;
      latin+=(item.str.match(/[A-Za-z]/g)||[]).length;
    }
-   results[side]=hebrew>=8&&hebrew>latin*1.4?"Hebrew":latin>=20&&latin>hebrew*2?"English":"Uncertain";
+   results[side]=hebrew>=8&&hebrew>latin*.8?"Hebrew":latin>=20&&latin>hebrew*2?"English":"Uncertain";
  }
  // When a selectable-text spread provides clear evidence, report it automatically.
  for(const side of ["left","right"]){
