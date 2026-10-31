@@ -10,7 +10,29 @@ async function refreshTest(){try{const record=await testFile("get");$("use-test"
 $("use-test").addEventListener("change",async()=>{if(!$("use-test").checked){$("source-info").textContent="Choose a PDF to continue";sourceBytes=null;return}try{const record=await testFile("get");if(!record){$("use-test").checked=false;$("test-info").textContent="No saved test.pdf yet. Choose test.pdf above once, then this checkbox will reuse it.";return;}await loadSource(record.bytes,"Saved test.pdf")}catch(e){$("use-test").checked=false;$("status").textContent="Could not load saved test.pdf: "+e.message}});
 refreshTest();
 $("source").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;sourceBytes=null;outputBytes=null;$("use-test").checked=false;try{const bytes=await file.arrayBuffer();await loadSource(bytes,file.name);if(file.name.toLowerCase()==="test.pdf"){try{await testFile("put",{bytes:bytes.slice(0),updatedAt:Date.now()});await refreshTest();$("use-test").checked=true;$("status").textContent="Ready. test.pdf saved locally for future use."}catch(e){$("status").textContent="PDF loaded, but browser could not save test.pdf: "+e.message}}}catch(err){$("source-info").textContent="Unable to load PDF: "+err.message}});
-$("preview").addEventListener("click",async()=>{if(!sourceBytes){$("status").textContent="Upload a PDF first, then preview the layout.";return;}outputBytes=null;$("download").disabled=true;$("settings").disabled=true;$("preview").disabled=true;$("status").textContent="Rendering…";try{
+async function previewBlankTemplate(){
+ const W=612,H=792,inner=59.76,outer=20.16,textW=380.88,gap=4.32,sideW=146.88,header=122.4,bottom=84.24;
+ const leftSide=$("finalside").value==="left",textX=leftSide?outer:inner,companionX=leftSide?outer:textX+textW+gap;
+ const regions=[
+ ["Top instructions",textX,H-header,textW,header-30],
+ ["Corner block",companionX,H-header,sideW,header-30],
+ ["Siddur text",textX,bottom,textW,H-header-bottom],
+ ["Companion column",companionX,bottom,sideW,H-header-bottom],
+ ["Bottom status bar",textX,28,textW,26]
+ ];
+ const pdf=await PDFLib.PDFDocument.create(),page=pdf.addPage([W,H]),font=await pdf.embedFont(PDFLib.StandardFonts.Helvetica);
+ for(const [name,x,y,w,h] of regions){
+ page.drawRectangle({x,y,width:w,height:h,borderColor:PDFLib.rgb(.17,.39,.58),borderWidth:1.3});
+ page.drawText(name,{x:x+5,y:y+h-14,size:10,font,color:PDFLib.rgb(.15,.32,.47)});
+ }
+ const bytes=await pdf.save();
+ if(previewUrl)URL.revokeObjectURL(previewUrl);
+ previewUrl=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));
+ $("viewer").src=previewUrl;$("viewer").hidden=false;
+ $("download").disabled=true;
+ $("status").textContent="Blank master template preview: five bounding boxes. Upload a PDF to preview content.";
+}
+$("preview").addEventListener("click",async()=>{if(!sourceBytes){$("status").textContent="Rendering blank master template…";try{if(!window.PDFLib)throw Error("PDF library unavailable");await previewBlankTemplate()}catch(err){$("status").textContent="Could not preview blank template: "+err.message}return;}outputBytes=null;$("download").disabled=true;$("settings").disabled=true;$("preview").disabled=true;$("status").textContent="Rendering…";try{
  const pageNo=numeric("page");if(!Number.isInteger(pageNo)||pageNo<1||pageNo>pageCount)throw Error("Select a valid physical PDF page.");
  const printed=$("printed").value.trim();if(!printed||!/^[\x20-\x7E]+$/.test(printed))throw Error("Enter a printable page number using standard characters.");
  const crop={left:numeric("left"),right:numeric("right"),top:numeric("top"),bottom:numeric("bottom")};
