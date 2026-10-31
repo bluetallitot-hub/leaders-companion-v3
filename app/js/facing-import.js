@@ -18,6 +18,18 @@ function suggestCrop(side){
  const canvas=$(side+"-canvas"),w=canvas.width,h=canvas.height;
  const data=canvas.getContext("2d",{willReadFrequently:true}).getImageData(0,0,w,h).data;
  const z=sourceZone(side,w,h),step=2;
+ // Detect the long blue horizontal divider of a V3 source page. If present,
+ // begin below it, keeping original header, page number and instructions out.
+ const midX=Math.floor((z.x0+z.x1)/2);
+ for(let y=Math.floor(h*.27);y<Math.floor(h*.47);y+=2){
+   let blue=0,samples=0;
+   for(let x=Math.floor(z.x0+20);x<z.x1-20;x+=6){
+     const i=(y*w+x)*4,r=data[i],g=data[i+1],b=data[i+2];
+     if(b>r*1.15&&b>g*1.05&&r<200)blue++;
+     samples++;
+   }
+   if(samples>0&&blue/samples>.48){z.y0=Math.min(h*.52,y+9);break}
+ }
  // Restrict detection to the source body; neutral-ink filtering rejects blue template guides.
  const row=new Uint32Array(h),col=new Uint32Array(w);
  for(let y=Math.ceil(z.y0);y<z.y1;y+=step)for(let x=Math.ceil(z.x0+12);x<z.x1-12;x+=step){
