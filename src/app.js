@@ -12,13 +12,13 @@ $("preview").addEventListener("click",async()=>{outputBytes=null;$("download").d
  const [W,H]=$("size").value.split(",").map(Number),src=await PDFLib.PDFDocument.load(sourceBytes),original=src.getPage(pageNo-1);
  const sw=original.getWidth(),sh=original.getHeight(),left=sw*crop.left/100,right=sw*(1-crop.right/100),bottom=sh*crop.bottom/100,top=sh*(1-crop.top/100);
  const out=await PDFLib.PDFDocument.create(),embedded=await out.embedPage(original,{left,bottom,right,top}),page=out.addPage([W,H]);
- const headerHeight=42,availW=W-2*margin,availH=H-2*margin-headerHeight;
+ const layout=$("layout").value,sideWidth=layout==="full"?0:numeric("sidewidth");if(!Number.isFinite(sideWidth)||sideWidth<0||sideWidth>220)throw Error("Invalid companion column width.");const gap=sideWidth?10:0,headerHeight=42,availW=W-2*margin-sideWidth-gap,availH=H-2*margin-headerHeight;
  if(availW<=0||availH<=0)throw Error("Margins leave no room for content.");
  const scale=Math.min(availW/(right-left),availH/(top-bottom)),drawW=(right-left)*scale,drawH=(top-bottom)*scale;
- page.drawPage(embedded,{x:(W-drawW)/2,y:margin+(availH-drawH)/2,width:drawW,height:drawH});
+ const textLeft=margin+(layout==="leader"?sideWidth+gap:0);page.drawPage(embedded,{x:textLeft+(availW-drawW)/2,y:margin+(availH-drawH)/2,width:drawW,height:drawH});
  const font=await out.embedFont(PDFLib.StandardFonts.HelveticaBold),fontSize=19,textWidth=font.widthOfTextAtSize(printed,fontSize);
  page.drawText(printed,{x:W-margin-textWidth,y:H-margin-21,size:fontSize,font,color:PDFLib.rgb(.78,.1,.12)});
- outputBytes=await out.save();config={schemaVersion:1,sourcePdfPage:pageNo,printedPageNumber:printed,cropPercent:crop,outputSizePoints:[W,H],marginPoints:margin};
+ outputBytes=await out.save();config={schemaVersion:1,sourcePdfPage:pageNo,printedPageNumber:printed,cropPercent:crop,outputSizePoints:[W,H],marginPoints:margin,layoutPreset:layout,companionColumnWidthPoints:sideWidth,companionGapPoints:gap,protectedTextRegionPoints:{x:textLeft,y:margin,width:availW,height:availH}};
  if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=URL.createObjectURL(new Blob([outputBytes],{type:"application/pdf"}));$("viewer").src=previewUrl;$("viewer").hidden=false;$("download").disabled=false;$("settings").disabled=false;$("status").textContent="Preview ready. Verify crop boundaries and printed page number.";
  }catch(err){$("status").textContent="Could not generate preview: "+err.message}finally{$("preview").disabled=false}});
 $("download").addEventListener("click",()=>{if(outputBytes)save(outputBytes,"standardized-page-"+config.sourcePdfPage+".pdf","application/pdf")});
