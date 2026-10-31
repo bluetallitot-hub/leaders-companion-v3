@@ -55,17 +55,24 @@ function drawRegionGuides(page,regions,font){
  }
 }
 async function previewBlankTemplate(){
- const W=612,H=792,inner=59.76,outer=20.16,textW=380.88,gap=4.32,sideW=146.88,header=176,bottom=84.24;
- const leftSide=$("finalside").value==="left",textX=leftSide?outer+sideW+gap:inner,companionX=leftSide?outer:textX+textW+gap,statusX=leftSide?outer:inner,statusW=textW+gap+sideW;
- const regions=templateRegions(W,H,textX,companionX,textW,sideW,bottom,header,leftSide?outer:W-outer-sideW);
- const pdf=await PDFLib.PDFDocument.create(),page=pdf.addPage([W,H]),font=await pdf.embedFont(PDFLib.StandardFonts.Helvetica);
- drawRegionGuides(page,regions,font);
+ const W=612,H=792,inner=59.76,outer=20.16,textW=380.88,gap=4.32,sideW=146.88,header=176;
+ // Spread order is physical: left-hand page first, right-hand page second.
+ const pdf=await PDFLib.PDFDocument.create(),page=pdf.addPage([W*2,H]),font=await pdf.embedFont(PDFLib.StandardFonts.Helvetica);
+ for(const [side,offset] of [["left",0],["right",W]]){
+  const isLeft=side==="left";
+  const textX=isLeft?outer+sideW+gap:inner,companionX=isLeft?outer:textX+textW+gap;
+  const regions=templateRegions(W,H,textX,companionX,textW,sideW,84.24,header,0);
+  // Offset every region into the spread without changing its local geometry.
+  drawRegionGuides(page,regions.map(([name,x,y,w,h])=>[name,x+offset,y,w,h]),font);
+  page.drawLine({start:{x:offset,y:0},end:{x:offset,y:H},thickness:.5,color:PDFLib.rgb(.8,.8,.8)});
+  page.drawText(isLeft?"LEFT PAGE (binding at right)":"RIGHT PAGE (binding at left)",{x:offset+outer,y:H-13,size:9,font,color:PDFLib.rgb(.28,.35,.36)});
+ }
  const bytes=await pdf.save();
  if(previewUrl)URL.revokeObjectURL(previewUrl);
  previewUrl=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));
  $("viewer").src=previewUrl;$("viewer").hidden=false;
  $("download").disabled=true;
- $("status").textContent="Blank master template preview: five bounding boxes. Upload a PDF to preview content.";
+ $("status").textContent="Facing-page master preview: left and right layouts rendered together. Dashed lines show inner safe areas.";
 }
 $("preview").addEventListener("click",async()=>{if(!sourceBytes){$("status").textContent="Rendering blank master template…";try{if(!window.PDFLib)throw Error("PDF library unavailable");await previewBlankTemplate()}catch(err){$("status").textContent="Could not preview blank template: "+err.message}return;}outputBytes=null;$("download").disabled=true;$("settings").disabled=true;$("preview").disabled=true;$("status").textContent="Rendering…";try{
  const pageNo=numeric("page");if(!Number.isInteger(pageNo)||pageNo<1||pageNo>pageCount)throw Error("Select a valid physical PDF page.");
