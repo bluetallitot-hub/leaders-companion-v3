@@ -202,6 +202,17 @@ async function generate(){
  }
  return new Uint8Array(await out.save());
 }
+async function renderOutputSpread(bytes){
+ const doc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
+ if(doc.numPages!==2)throw Error("Expected exactly two output pages.");
+ for(let i=0;i<2;i++){
+  const page=await doc.getPage(i+1),canvas=$(i===0?"output-left":"output-right");
+  const view=page.getViewport({scale:1});
+  canvas.width=Math.ceil(view.width);canvas.height=Math.ceil(view.height);
+  await page.render({canvasContext:canvas.getContext("2d"),viewport:view}).promise;
+ }
+ $("spread-preview").hidden=false;
+}
 for(const side of ["left","right"]){
  attachCrop(side);
  $(side+"-page").addEventListener("change",async()=>{try{await renderSide(side);state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side);await detectTitle(side);await detectLanguages();await assignLayoutByLanguage()}catch(e){status(e.message)}});
@@ -211,7 +222,7 @@ $("generate").addEventListener("click",async()=>{
  $("generate").disabled=true;$("download").disabled=true;status("Generating...");
  try{state.output=await generate();if(state.url)URL.revokeObjectURL(state.url);
  state.url=URL.createObjectURL(new Blob([state.output],{type:"application/pdf"}));
- $("preview").src=state.url;$("preview").hidden=false;$("download").disabled=false;
+ await renderOutputSpread(state.output);$("download").disabled=false;
  status("PDF ready. Inspect both pages. If text or page numbers are clipped incorrectly, adjust each blue crop and regenerate.");
  }catch(e){console.error(e);status("Generation failed: "+e.message)}
  finally{$("generate").disabled=false}
