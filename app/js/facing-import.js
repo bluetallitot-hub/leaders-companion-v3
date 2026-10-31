@@ -168,7 +168,7 @@ async function recognizePrintedNumber(side){
 }
 async function recognizeScannedPages(){
  if(!window.Tesseract){status("OCR library unavailable. Check detected titles and languages manually.");return}
- const needs=["left","right"].filter(side=>$(side+"-lang").value==="Uncertain"||!$(side+"-title").value.trim());
+ const needs=["left","right"].filter(side=>$(side+"-lang").value==="Uncertain"||!$(side+"-title").value.trim()||!$(side+"-number").value);
  if(!needs.length)return;
  status("Analyzing scanned prayer text for language and headings...");
  for(const side of needs){
@@ -314,7 +314,7 @@ async function renderOutputSpread(bytes){
 }
 for(const side of ["left","right"]){
  attachCrop(side);
- $(side+"-page").addEventListener("change",async()=>{try{await renderSide(side);state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side);await detectTitle(side);await detectLanguages();await assignLayoutByLanguage();await refreshLayout()}catch(e){status(e.message)}});
+ $(side+"-page").addEventListener("change",async()=>{try{await renderSide(side);state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side);await detectTitle(side);await detectOriginalNumbers();await detectLanguages();await assignLayoutByLanguage();await refreshLayout()}catch(e){status(e.message)}});
 }
 $("source").addEventListener("change",()=>loadSource().catch(e=>status("Source error: "+e.message)));
 $("generate").addEventListener("click",async()=>{
