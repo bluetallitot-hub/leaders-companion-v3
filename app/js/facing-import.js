@@ -1,7 +1,7 @@
 "use strict";
 const $=id=>document.getElementById(id);
 const W=612,H=792,REGIONS=[{x:171.36,y:98,w:380.88,h:540},{x:59.76,y:98,w:380.88,h:540}];
-let output=null,filename="siddur",pageMetadata=[],roleConfig=null,highlightDraft=null;
+let output=null,filename="siddur",pageMetadata=[],roleConfig=null,highlightDraft=null,importedCues=[];
 function status(s){$("status").textContent=s}
 const workerURL="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
 function drawTemplate(page,side){
@@ -213,7 +213,7 @@ function makeIntakeRecord(meta,sourceIndex){
    languageCode:code,language:meta.language||"unknown",
    originalHeadingOCR:meta.heading||null,runningHeaderOCR:meta.runningHeader||null},
   identification:{prayerName:null,unitType:null,serviceCode:null,cueId:null,binderOrder:null},
-  leadership:{role:null,roleReviewNeeded:true,highlight:null},
+  leadership:{role:null,roleReviewNeeded:true,highlight:null,cues:[],highlights:[]},
   production:{paperClass:null,color:null,melodyId:null,sourceTextRegion:"V3 Siddur Text",
    background:"white",imageCleanup:"local paper whitening, enhanced ink contrast, edge-preserving sharpening",
    headerRemoved:"automatic detection",originalPageNumberDisplayed:Boolean(pageNumber)},
@@ -225,6 +225,35 @@ function makeIntakeRecord(meta,sourceIndex){
 function storeMasterRoles(doc){
  const catalog=JSON.stringify({schema:"leaders-companion-v3-role-catalog",schemaVersion:1,roles:roleConfig?[roleConfig]:[]});
  doc.catalog.set(PDFLib.PDFName.of("LCRoleCatalog"),PDFLib.PDFHexString.fromText(catalog));
+}
+function parseCsv(text){
+ const rows=[];let row=[],cell="",quoted=false;
+ for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(quoted&&text[i+1]==='"'){cell+='"';i++}else quoted=!quoted}
+ else if(c===','&&!quoted){row.push(cell);cell=""}
+ else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(v=>v.trim()))rows.push(row);row=[];cell=""}
+ else cell+=c}
+ row.push(cell);if(row.some(v=>v.trim()))rows.push(row);
+ const headers=(rows.shift()||[]).map(v=>v.replace(/^\uFEFF/,"").trim().toLowerCase());
+ return rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()])));
+}
+function applyImportedCues(){
+ if(!pageMetadata.length)return;
+ for(const record of pageMetadata){
+  const code=record.source.languageCode,number=record.source.originalPageNumber;
+  const matches=importedCues.filter(c=>String(c.printed_page)===String(number)&&c.language?.toUpperCase()===code);
+  record.leadership.cues=matches.map((c,i)=>({
+   cueId:c.cue_id||c.test_id||"import-"+i,service:c.service||null,role:c.role||null,
+   style:c.style||null,styleSlot:null,startCue:c.begin_cue||"",endCue:c.end_cue||"",
+   prayer:c.prayer||null,sourceRow:c.leader_map_source_row||null,
+   highlights:[],matchStatus:"unmatched-review-required"
+  }));
+  if(matches.length){record.identification.serviceCode=matches[0].service||null;
+   record.identification.prayerName=matches[0].prayer||null;
+   record.identification.cueId=matches[0].cue_id||matches[0].test_id||null;}
+ }
+ displayMetadata();
+ const count=pageMetadata.reduce((n,p)=>n+(p.leadership.cues||[]).length,0);
+ status(count+" cues attached to pages; start/end positions require manual review. No automatic text matching has occurred.");
 }
 function drawHighlights(){
  for(let i=0;i<2;i++){
@@ -301,7 +330,7 @@ async function createPdf(bytes){
  // English is the left facing page; Hebrew is the right facing page.
  if(records.length===2&&records[0].meta.language==="Hebrew"&&records[1].meta.language==="English")records.reverse();
  pageMetadata=records.map(r=>makeIntakeRecord(r.meta,r.sourceIndex));
- pageMetadata.forEach(r=>{r.leadership.highlights=[];r.leadership.role=roleConfig.id});
+ pageMetadata.forEach(r=>{r.leadership.highlights=[];r.leadership.role=roleConfig.id});\n applyImportedCues();
  storeMasterRoles(out);
  for(let i=0;i<records.length;i++){
   const {meta,png}=records[i],page=out.addPage([W,H]);
@@ -332,7 +361,7 @@ function displayMetadata(){
    ["Service code",ident.serviceCode||"Unassigned"],
    ["Cue ID",ident.cueId||"Unassigned"],
    ["Binder order",ident.binderOrder||"Unassigned"],
-   ["Role",record.leadership.role||"Unassigned"],
+   ["Role",record.leadership.role||"Unassigned"],\n   ["Imported cues",(record.leadership.cues||[]).map(c=>[c.cueId,c.role,"Style: "+c.style,"Start: "+c.startCue,"End: "+c.endCue,c.matchStatus].join(" | ")).join(" ; ")||"None"],
    ["Melody ID",record.production.melodyId||"Unassigned"],
    ["Paper class",record.production.paperClass||"Unassigned"],
    ["Intake status",intake.status]
@@ -368,6 +397,16 @@ $("source").addEventListener("change",async()=>{
   await preview(output);$("download").disabled=false;
   status("PDF ready. Trimmed and cleaned, with detected page numbers and embedded page metadata.");
  }catch(e){console.error(e);status("Import failed: "+e.message)}
+});
+$("cue-file").addEventListener("change",async()=>{
+ const file=$("cue-file").files[0];if(!file)return;
+ try{
+  const rows=parseCsv(await file.text());
+  if(!rows.length||!rows.every(c=>c.printed_page&&c.language&&c.begin_cue&&c.end_cue))throw Error("CSV needs printed_page, language, begin_cue, end_cue columns.");
+  importedCues=rows;
+  applyImportedCues();
+  status("Loaded "+rows.length+" cue rows. "+(pageMetadata.length?"Matched to preview page metadata.":"Now upload the test PDF."));
+ }catch(e){status("Cue import failed: "+e.message)}
 });
 installHighlightSelection();
 $("download").addEventListener("click",async()=>{
