@@ -1,69 +1,130 @@
 "use strict";
-const el=id=>document.getElementById(id);
-let built=null,previewUrl=null;
+const $=id=>document.getElementById(id);
 const MASTER="../../docs/master-template/Leaders_Companion_V3_Master_Template_v1.3_Blank.pdf";
-const regions={
- left:{x:171.36,y:98,w:380.88,h:540},
- right:{x:59.76,y:98,w:380.88,h:540}
-};
-function status(message){el("status").textContent=message}
-function bytes(buffer){return new Uint8Array(buffer)}
-async function readMaster(){
- const f=el("master").files[0];
- if(f)return bytes(await f.arrayBuffer());
- const response=await fetch(MASTER,{cache:"no-store"});
- if(!response.ok)throw Error("Approved master PDF not found in GitHub (HTTP "+response.status+"). Upload it to docs/master-template/ or select a local copy.");
- const b=bytes(await response.arrayBuffer());
- if(b[0]!==37||b[1]!==80||b[2]!==68||b[3]!==70)throw Error("Master path did not return a PDF.");
- return b;
+const W=612,H=792;
+const REGIONS={left:{x:171.36,y:98,w:380.88,h:540},right:{x:59.76,y:98,w:380.88,h:540}};
+const state={raw:null,view:null,count:0,crops:{left:{x:4,y:8,w:42,h:84},right:{x:54,y:8,w:42,h:84}},output:null,url:null};
+function status(t){$("status").textContent=t}
+const clamp=(v,lo,hi)=>Math.min(hi,Math.max(lo,v));
+function validCrop(c){return Object.values(c).every(Number.isFinite)&&c.x>=0&&c.y>=0&&c.w>=1&&c.h>=1&&c.x+c.w<=100.001&&c.y+c.h<=100.001}
+function sync(side){
+ const c=state.crops[side],box=$(side+"-crop");
+ Object.assign(box.style,{left:c.x+"%",top:c.y+"%",width:c.w+"%",height:c.h+"%",display:"block"});
+ for(const input of $(side+"-fields").querySelectorAll("input"))input.value=Number(c[input.dataset.key].toFixed(2));
 }
-function splitCrop(page,which,englishSide,split){
- const W=page.getWidth(),H=page.getHeight(),cut=W*split/100;
- const half=which==="english"?englishSide:(englishSide==="left"?"right":"left");
- const x0=half==="left"?0:cut,x1=half==="left"?cut:W;
- return {left:x0,bottom:0,right:x1,top:H};
+function attachCrop(side){
+ const box=$(side+"-crop"),wrap=$(side+"-wrap");
+ for(const input of $(side+"-fields").querySelectorAll("input"))input.addEventListener("change",()=>{
+   const key=input.dataset.key,v=Number(input.value),c={...state.crops[side],[key]:v};
+   if(!validCrop(c)){status("Invalid "+side+" crop. Keep the rectangle entirely within the source page.");sync(side);return}
+   state.crops[side]=c;sync(side);
+ });
+ let drag=null;
+ box.addEventListener("pointerdown",e=>{
+   if(!state.raw)return;
+   const resize=e.target.classList.contains("handle");
+   drag={resize,startX:e.clientX,startY:e.clientY,orig:{...state.crops[side]}};
+   box.setPointerCapture(e.pointerId);e.preventDefault();
+ });
+ box.addEventListener("pointermove",e=>{
+   if(!drag)return;
+   const r=wrap.getBoundingClientRect(),dx=(e.clientX-drag.startX)/r.width*100,dy=(e.clientY-drag.startY)/r.height*100;
+   const c={...drag.orig};
+   if(drag.resize){c.w=clamp(c.w+dx,1,100-c.x);c.h=clamp(c.h+dy,1,100-c.y)}
+   else{c.x=clamp(c.x+dx,0,100-c.w);c.y=clamp(c.y+dy,0,100-c.h)}
+   state.crops[side]=c;sync(side);
+ });
+ for(const event of ["pointerup","pointercancel","lostpointercapture"])box.addEventListener(event,()=>{drag=null});
 }
-async function build(){
- if(!window.PDFLib)throw Error("PDF library failed to load.");
- const file=el("source").files[0];if(!file)throw Error("Choose a source PDF first.");
- const n=Number(el("source-page").value),split=Number(el("split").value);
- if(!Number.isInteger(n)||n<1)throw Error("Invalid source page.");
- if(!Number.isFinite(split)||split<20||split>80)throw Error("Split must be between 20% and 80%.");
- const source=await PDFLib.PDFDocument.load(bytes(await file.arrayBuffer()));
- if(n>source.getPageCount())throw Error("Source PDF contains only "+source.getPageCount()+" pages.");
- const master=await PDFLib.PDFDocument.load(await readMaster());
- if(master.getPageCount()!==2)throw Error("Approved master must contain exactly two pages.");
- const sourcePage=source.getPage(n-1),W=sourcePage.getWidth(),H=sourcePage.getHeight();
- if(W<=0||H<=0)throw Error("Source page has invalid dimensions.");
- const englishSide=el("english").value;
- const order=el("page-order").value==="english-left"?["english","hebrew"]:["hebrew","english"];
- const out=await PDFLib.PDFDocument.create();
- const [leftMaster,rightMaster]=await out.copyPages(master,[0,1]);
- out.addPage(leftMaster);out.addPage(rightMaster);
+async function renderSide(side){
+ if(!state.view)return;
+ const num=Number($(side+"-page").value);
+ if(!Number.isInteger(num)||num<1||num>state.count)throw Error(side+" source page must be between 1 and "+state.count);
+ const page=await state.view.getPage(num),viewport=page.getViewport({scale:1});
+ const canvas=$(side+"-canvas"),maxWidth=650,scale=Math.min(1.5,maxWidth/viewport.width);
+ const v=page.getViewport({scale});
+ canvas.width=Math.ceil(v.width);canvas.height=Math.ceil(v.height);
+ await page.render({canvasContext:canvas.getContext("2d"),viewport:v}).promise;
+ sync(side);
+}
+async function loadSource(){
+ const file=$("source").files[0];if(!file)return;
+ state.raw=new Uint8Array(await file.arrayBuffer());
+ const pdfjs=window.pdfjsLib;if(!pdfjs)throw Error("PDF.js failed to load. Check network or content blocker.");
+ pdfjs.GlobalWorkerOptions.workerSrc="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+ state.view=await pdfjs.getDocument({data:state.raw.slice()}).promise;
+ state.count=state.view.numPages;
+ for(const side of ["left","right"]){$(side+"-page").max=state.count;$(side+"-page").value=1}
+ // For separate PDF pages, begin with near-full-page crops on both.
+ if(state.count>1){state.crops.left={x:5,y:6,w:90,h:88};state.crops.right={x:5,y:6,w:90,h:88}}
+ else{state.crops.left={x:4,y:8,w:42,h:84};state.crops.right={x:54,y:8,w:42,h:84}}
+ await Promise.all(["left","right"].map(renderSide));
+ state.output=null;$("download").disabled=true;
+ status("Source loaded ("+state.count+" PDF page(s)). Adjust both crop rectangles to include only printed prayer text.");
+}
+function cropToPdf(page,c){
+ if(!validCrop(c))throw Error("Invalid crop dimensions.");
+ const width=page.getWidth(),height=page.getHeight();
+ // Percentages are top-left-origin in the canvas; pdf-lib uses bottom-left origin.
+ return {left:width*c.x/100,right:width*(c.x+c.w)/100,top:height*(1-c.y/100),bottom:height*(1-(c.y+c.h)/100)};
+}
+function drawCleanTemplate(page,side){
+ // Approved v1.3 geometry. This deliberately omits all development labels.
+ const text=side==="left"?171.36:59.76,content=side==="left"?20.16:444.96;
+ const min=Math.min(text,content),max=Math.max(text+380.88,content+146.88);
+ const boxes=[[text,710,380.88,30],[text,642,380.88,64],[text,98,380.88,540],[text,46,380.88,48],[content,46,146.88,694],[min,24,max-min,18]];
+ const pageNo=side==="left"?min:max-48,colorX=side==="left"?pageNo+48:pageNo-18;
+ const serviceX=side==="left"?colorX+18:min;
+ boxes.push([pageNo,746,48,24],[colorX,746,18,24],[serviceX,746,max-min-66,24]);
+ const line=PDFLib.rgb(.26,.44,.54);
+ for(const [x,y,w,h] of boxes)page.drawRectangle({x,y,width:w,height:h,borderColor:line,borderWidth:.75});
+}
+async function loadReviewMaster(){
+ const local=$("master").files[0];let b;
+ if(local)b=new Uint8Array(await local.arrayBuffer());
+ else{const r=await fetch(MASTER,{cache:"no-store"});if(!r.ok)throw Error("Approved master not found on GitHub. Select a local master PDF.");b=new Uint8Array(await r.arrayBuffer())}
+ if(String.fromCharCode(...b.slice(0,4))!=="%PDF")throw Error("Master file is not a PDF.");
+ const doc=await PDFLib.PDFDocument.load(b);
+ if(doc.getPageCount()!==2)throw Error("Master must have two pages.");
+ return doc;
+}
+async function generate(){
+ if(!state.raw)throw Error("Upload a source PDF.");
+ const src=await PDFLib.PDFDocument.load(state.raw.slice());
+ const review=$("guides").value==="review",out=await PDFLib.PDFDocument.create();
+ if(review){const master=await loadReviewMaster();const pages=await out.copyPages(master,[0,1]);pages.forEach(p=>out.addPage(p))}
+ else{for(const side of ["left","right"]){const p=out.addPage([W,H]);drawCleanTemplate(p,side)}}
  for(let i=0;i<2;i++){
-   const target=out.getPage(i),r=i===0?regions.left:regions.right;
-   if(Math.abs(target.getWidth()-612)>1||Math.abs(target.getHeight()-792)>1)throw Error("Master pages must be US Letter.");
-   const crop=splitCrop(sourcePage,order[i],englishSide,split);
-   const embedded=await out.embedPage(sourcePage,crop);
-   const cw=crop.right-crop.left,ch=crop.top-crop.bottom;
-   const inset=8,availW=r.w-2*inset,availH=r.h-2*inset;
-   const scale=Math.min(availW/cw,availH/ch);
-   const dw=cw*scale,dh=ch*scale;
-   // Opaque white background hides the blank template's box label inside the image region.
-   // The approved box boundary is retained; no other master regions are changed.
-   target.drawRectangle({x:r.x+1,y:r.y+1,width:r.w-2,height:r.h-2,color:PDFLib.rgb(1,1,1)});
-   target.drawPage(embedded,{x:r.x+(r.w-dw)/2,y:r.y+(r.h-dh)/2,width:dw,height:dh});
+   const side=i===0?"left":"right",target=out.getPage(i),n=Number($(side+"-page").value);
+   if(!Number.isInteger(n)||n<1||n>src.getPageCount())throw Error("Invalid "+side+" source page.");
+   if(Math.abs(target.getWidth()-W)>1||Math.abs(target.getHeight()-H)>1)throw Error("Template must be US Letter.");
+   const original=src.getPage(n-1),clip=cropToPdf(original,state.crops[side]),embedded=await out.embedPage(original,clip);
+   const r=REGIONS[side],pad=8,cw=clip.right-clip.left,ch=clip.top-clip.bottom;
+   const scale=Math.min((r.w-2*pad)/cw,(r.h-2*pad)/ch),dw=cw*scale,dh=ch*scale;
+   const x=side==="left"?r.x+r.w-pad-dw:r.x+pad;
+   const y=$("align").value==="center"?r.y+(r.h-dh)/2:r.y+r.h-pad-dh;
+   // Clear the development label in review mode without changing bounding box geometry.
+   if(review)target.drawRectangle({x:r.x+1,y:r.y+1,width:r.w-2,height:r.h-2,color:PDFLib.rgb(1,1,1)});
+   target.drawPage(embedded,{x,y,width:dw,height:dh});
  }
- return bytes(await out.save());
+ return new Uint8Array(await out.save());
 }
-el("source").addEventListener("change",async()=>{const f=el("source").files[0];if(!f)return;try{const d=await PDFLib.PDFDocument.load(bytes(await f.arrayBuffer()));el("source-page").max=d.getPageCount();el("info").textContent=f.name+" — "+d.getPageCount()+" PDF page(s). Choose the physical page containing both facing Siddur pages."}catch(e){status("Cannot read source: "+e.message)}});
-el("generate").addEventListener("click",async()=>{
- el("generate").disabled=true;el("download").disabled=true;built=null;status("Generating PDF…");
- try{built=await build();if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=URL.createObjectURL(new Blob([built],{type:"application/pdf"}));el("preview").src=previewUrl;el("preview").hidden=false;el("download").disabled=false;status("Two-page PDF ready. Inspect both pages and download when satisfied.");}
- catch(e){console.error(e);status("Unable to generate: "+e.message)}
- finally{el("generate").disabled=false}
+for(const side of ["left","right"]){
+ attachCrop(side);
+ $(side+"-page").addEventListener("change",()=>renderSide(side).catch(e=>status(e.message)));
+}
+$("source").addEventListener("change",()=>loadSource().catch(e=>status("Source error: "+e.message)));
+$("generate").addEventListener("click",async()=>{
+ $("generate").disabled=true;$("download").disabled=true;status("Generating...");
+ try{state.output=await generate();if(state.url)URL.revokeObjectURL(state.url);
+ state.url=URL.createObjectURL(new Blob([state.output],{type:"application/pdf"}));
+ $("preview").src=state.url;$("preview").hidden=false;$("download").disabled=false;
+ status("PDF ready. Inspect both pages. If text or page numbers are clipped incorrectly, adjust each blue crop and regenerate.");
+ }catch(e){console.error(e);status("Generation failed: "+e.message)}
+ finally{$("generate").disabled=false}
 });
-el("download").addEventListener("click",()=>{
- if(!built)return;const url=URL.createObjectURL(new Blob([built],{type:"application/pdf"}));
- const a=document.createElement("a");a.href=url;a.download="leaders-companion-v3-facing-siddur.pdf";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+$("download").addEventListener("click",()=>{
+ if(!state.output)return;
+ const url=URL.createObjectURL(new Blob([state.output],{type:"application/pdf"}));
+ const a=document.createElement("a");a.href=url;a.download="leaders-companion-v3-facing-siddur.pdf";document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
 });
