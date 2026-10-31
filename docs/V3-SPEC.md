@@ -24,3 +24,9 @@
 - This language-side convention is independent of **physical facing-page mirroring** for binding. Mirroring must not swap English and Hebrew.
 - Investigate reinstating **Begin / End** reading cues in the space between the siddur-content region and the bottom status bar. Proposed geometry: one full-width cue band with internally separated English-left and Hebrew-right zones on both facing pages; dimensions and exact content remain to be approved.
 - Preserve source Hebrew as scanned; do not infer that arbitrary source PDF columns can be rearranged without an explicit extraction/composition step.
+
+### Begin/End placement (approved)
+- **Begin cue always faces the outside margin; End cue always faces the binding/gutter.** This is a physical-page rule and takes precedence over any fixed left/right cue positioning.
+- On the **left-hand page**: Begin at left (outside), End at right (binding).
+- On the **right-hand page**: End at left (binding), Begin at right (outside).
+- The English-left / Hebrew-right convention applies to language presentation, **not** to a fixed Begin/End cue location. The two rules must not be conflated.
