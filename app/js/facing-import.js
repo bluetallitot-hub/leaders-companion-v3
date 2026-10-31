@@ -18,18 +18,8 @@ function suggestCrop(side){
  const canvas=$(side+"-canvas"),w=canvas.width,h=canvas.height;
  const data=canvas.getContext("2d",{willReadFrequently:true}).getImageData(0,0,w,h).data;
  const z=sourceZone(side,w,h),step=2;
- // Detect the long blue horizontal divider of a V3 source page. If present,
- // begin below it, keeping original header, page number and instructions out.
- const midX=Math.floor((z.x0+z.x1)/2);
- for(let y=Math.floor(h*.27);y<Math.floor(h*.47);y+=2){
-   let blue=0,samples=0;
-   for(let x=Math.floor(z.x0+20);x<z.x1-20;x+=6){
-     const i=(y*w+x)*4,r=data[i],g=data[i+1],b=data[i+2];
-     if(b>r*1.15&&b>g*1.05&&r<200)blue++;
-     samples++;
-   }
-   if(samples>0&&blue/samples>.48){z.y0=Math.min(h*.52,y+9);break}
- }
+ // Never infer a prayer start from a blue horizontal rule: it may occur
+ // below the first printed line. The ink detector scans the whole body.
  // Restrict detection to the source body; neutral-ink filtering rejects blue template guides.
  const row=new Uint32Array(h),col=new Uint32Array(w);
  for(let y=Math.ceil(z.y0);y<z.y1;y+=step)for(let x=Math.ceil(z.x0+12);x<z.x1-12;x+=step){
@@ -42,8 +32,20 @@ function suggestCrop(side){
  for(let y=Math.ceil(z.y0);y<z.y1;y+=step)if(row[y]>=rowMin){top=Math.min(top,y);bottom=Math.max(bottom,y+step)}
  for(let x=Math.ceil(z.x0+12);x<z.x1-12;x+=step)if(col[x]>=colMin){left=Math.min(left,x);right=Math.max(right,x+step)}
  if(right<=left||bottom<=top)return null;
- const pad=12;
- return lockCrop(side,{x:Math.max(z.x0,left-pad)/w*100,y:Math.max(z.y0,top-pad)/h*100,w:(Math.min(z.x1,right+pad)-Math.max(z.x0,left-pad))/w*100,h:(Math.min(z.y1,bottom+pad)-Math.max(z.y0,top-pad))/h*100});
+ const horizontalPad=Math.max(12,Math.round(w*.012));
+ const topPad=Math.max(28,Math.round(h*.04));
+ const bottomPad=Math.max(18,Math.round(h*.025));
+ const cropLeft=Math.max(z.x0,left-horizontalPad),cropRight=Math.min(z.x1,right+horizontalPad);
+ const cropTop=Math.max(0,top-topPad),cropBottom=Math.min(h,bottom+bottomPad);
+ // Expand to the target aspect ratio, preferentially DOWNWARD so the
+ // protected first line never gets lost when the ratio is enforced.
+ const ratio=RATIO*h/w;
+ let cw=(cropRight-cropLeft)/w*100,ch=(cropBottom-cropTop)/h*100;
+ cw=Math.max(cw,ch*ratio);ch=cw/ratio;
+ const k=Math.min(1,100/cw,100/ch);cw*=k;ch*=k;
+ const x=clamp((cropLeft+cropRight)/2/w*100-cw/2,0,100-cw);
+ const y=clamp(cropTop/h*100,0,100-ch);
+ return {x,y,w:cw,h:ch};
 }
 function sync(side){
  const c=state.crops[side],box=$(side+"-crop");
