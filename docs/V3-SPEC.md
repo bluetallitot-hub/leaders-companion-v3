@@ -30,3 +30,11 @@
 - On the **left-hand page**: Begin at left (outside), End at right (binding).
 - On the **right-hand page**: End at left (binding), Begin at right (outside).
 - The English-left / Hebrew-right convention applies to language presentation, **not** to a fixed Begin/End cue location. The two rules must not be conflated.
+
+### Per-page Begin/End cue metadata (approved requirement; deferred to metadata phase)
+- Support **up to three cue pairs per page**, each with one Begin cue and one End cue (up to three Begins and three Ends). Zero to three pairs are valid.
+- Cue pairs belong to page metadata, not the source prayer PDF; preserve stable cue-pair IDs and their order on the page.
+- For a manually highlighted passage, use **targeted OCR only on the selected start and end regions** to propose the **first two words** for Begin and **last two words** for End. Do not OCR the whole scanned siddur page or require OCR for highlighting geometry.
+- The user must be able to inspect/correct the proposed words, particularly Hebrew and nikkud, before saving them as the cue text. Allow manual entry if OCR fails.
+- Place Begin toward the **outside margin** and End toward the **binding** on both facing pages; cue pairs stack consistently when more than one exists.
+- This is a metadata/editor requirement. Do not implement OCR or cue population until after the facing-page layout and siddur placement are approved.
