@@ -414,16 +414,25 @@ function drawHighlights(){
   overlay.width=base.width;overlay.height=base.height;
   const ctx=overlay.getContext("2d");ctx.clearRect(0,0,overlay.width,overlay.height);
   const selected=pageMetadata[i]?.leadership?.highlights||[];
-  const words=selectionMode==="word"?getWordGeometry(i):[];
-  const shapes=[...detectedLines[i],...words];
-  for(const shape of shapes){
-   const h=selected.find(v=>v.wordId===shape.id||(!v.wordId&&v.lineId===shape.id));
-   if(!h&&highlightView!=="detection")continue;
-   // Word-mode diagnostics show word boundaries, not the line behind them.
-   if(selectionMode==="word"&&!shape.lineId&&highlightView==="detection")continue;
-   const x=shape.x*overlay.width,y=shape.y*overlay.height,w=shape.width*overlay.width,ht=shape.height*overlay.height;
-   ctx.fillStyle=h?roleColor(h.roleId)+"40":"rgba(24,105,160,.19)";
-   ctx.fillRect(x,y,w,ht);
+  for(const line of detectedLines[i]){
+   const lineHighlight=selected.find(h=>!h.wordId&&h.lineId===line.id);
+   const wordOverrides=selected.filter(h=>h.wordId&&h.lineId===line.id);
+   // A line without word edits is rendered once. After the first word edit,
+   // individual word selections replace the full-line rectangle.
+   if(!wordOverrides.length){
+    if(lineHighlight||highlightView==="detection"){
+     ctx.fillStyle=lineHighlight?roleColor(lineHighlight.roleId)+"40":"rgba(24,105,160,.19)";
+     ctx.fillRect(line.x*overlay.width,line.y*overlay.height,line.width*overlay.width,line.height*overlay.height);
+    }
+   }else{
+    const words=wordCandidates(i,line);
+    for(const word of words){
+     const h=wordOverrides.find(v=>v.wordId===word.id);
+     if(!h&&highlightView!=="detection")continue;
+     ctx.fillStyle=h?roleColor(h.roleId)+"40":"rgba(24,105,160,.19)";
+     ctx.fillRect(word.x*overlay.width,word.y*overlay.height,word.width*overlay.width,word.height*overlay.height);
+    }
+   }
   }
  }
 }
@@ -492,13 +501,37 @@ function installHighlightSelection(){
    const chosen=a===b?[start]:items.slice(Math.min(a,b),Math.max(a,b)+1).filter(l=>l.column===start.column);
    const highlights=pageMetadata[i].leadership.highlights;
    for(const item of chosen){
-    const old=highlights.findIndex(h=>selectionMode==="word"?h.wordId===item.id:!h.wordId&&h.lineId===item.id);
-    if(old>=0)highlights.splice(old,1);
-    else highlights.push({highlightId:"HL-"+item.id,lineId:item.lineId||item.id,
-     ...(selectionMode==="word"?{wordId:item.id}:{}),
-     roleId:pageMetadata[i].leadership.cues[0]?.role||roleConfig.id,
-     x:item.x,y:item.y,width:item.width,height:item.height,
-     coordinateSystem:"normalized-top-left",visibleInPdf:false});
+    const role=pageMetadata[i].leadership.cues[0]?.role||roleConfig.id;
+    if(selectionMode==="word"){
+     const lineId=item.lineId;
+     const lineIndex=highlights.findIndex(h=>!h.wordId&&h.lineId===lineId);
+     const wordHighlights=highlights.filter(h=>h.wordId&&h.lineId===lineId);
+     if(lineIndex>=0){
+      // Convert the entire line into word selections before toggling one word.
+      const original=highlights.splice(lineIndex,1)[0];
+      for(const word of wordCandidates(i,detectedLines[i].find(l=>l.id===lineId))){
+       if(!highlights.some(h=>h.wordId===word.id)){
+        highlights.push({highlightId:"HL-"+word.id,lineId,wordId:word.id,
+         roleId:original.roleId||role,x:word.x,y:word.y,width:word.width,height:word.height,
+         coordinateSystem:"normalized-top-left",visibleInPdf:false});
+       }
+      }
+     }
+     const old=highlights.findIndex(h=>h.wordId===item.id);
+     if(old>=0)highlights.splice(old,1);
+     else highlights.push({highlightId:"HL-"+item.id,lineId,wordId:item.id,roleId:role,
+      x:item.x,y:item.y,width:item.width,height:item.height,
+      coordinateSystem:"normalized-top-left",visibleInPdf:false});
+    }else{
+     // Line click replaces any partial-word edits for this line.
+     const selectedWordCount=highlights.filter(h=>h.wordId&&h.lineId===item.id).length;
+     const old=highlights.findIndex(h=>!h.wordId&&h.lineId===item.id);
+     for(let j=highlights.length-1;j>=0;j--)if(highlights[j].wordId&&highlights[j].lineId===item.id)highlights.splice(j,1);
+     if(old>=0){const idx=highlights.findIndex(h=>!h.wordId&&h.lineId===item.id);if(idx>=0)highlights.splice(idx,1)}
+     else if(!selectedWordCount)highlights.push({highlightId:"HL-"+item.id,lineId:item.id,roleId:role,
+      x:item.x,y:item.y,width:item.width,height:item.height,
+      coordinateSystem:"normalized-top-left",visibleInPdf:false});
+    }
    }
    start=null;drawHighlights();
    status(highlights.length+" selections on "+(i===0?"left":"right")+" page ("+selectionMode+" mode). Download to save metadata.");
