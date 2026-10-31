@@ -18,3 +18,9 @@
 - Template region dimensions and padding are proposals until validated in actual rendered PDF.
 - The reference scanned page crop is calibrated manually; arbitrary-page ink segmentation and enlargement verification are not yet established.
 - No claim of successful visual or live deployment testing without actual verification.
+
+## Language orientation and bottom cues (approved design direction)
+- Across **all scanned siddurim**, enforce a consistent **English-left / Hebrew-right** orientation for bilingual reading and navigation cues, regardless of the original scan's arrangement.
+- This language-side convention is independent of **physical facing-page mirroring** for binding. Mirroring must not swap English and Hebrew.
+- Investigate reinstating **Begin / End** reading cues in the space between the siddur-content region and the bottom status bar. Proposed geometry: one full-width cue band with internally separated English-left and Hebrew-right zones on both facing pages; dimensions and exact content remain to be approved.
+- Preserve source Hebrew as scanned; do not infer that arbitrary source PDF columns can be rearranged without an explicit extraction/composition step.
