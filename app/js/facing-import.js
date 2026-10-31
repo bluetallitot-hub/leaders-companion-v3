@@ -317,6 +317,7 @@ function detectPrintedLines(canvas,side){
 // Cue anchors are matched against the source PDF's text layer when present.
 // Scanned-only pages need OCR; never claim a match from geometry alone.
 let sourceTextLines=[[],[]];
+let rawOcrDiagnostics=["",""];
 let cueMatchReport="Automatic cue matching has not run.";
 function normalizeCueText(s){return String(s||"").normalize("NFKD").replace(/[\u0591-\u05c7]/g,"").replace(/[‘’“”"'.,:;!?—–-]/g," ").replace(/\s+/g," ").trim().toLowerCase()}
 function cueSimilarity(a,b){
@@ -564,6 +565,7 @@ async function recognizeCueLines(side){
  // Tesseract builds differ in whether they expose lines or words.
  const candidates=raw.length?raw:(Array.isArray(data.words)?data.words:[]);
  const geometry=detectedLines[side]||[],mapped=[];
+ rawOcrDiagnostics[side]="OCR engine: "+lang+"; raw lines: "+raw.length+"; raw words: "+(Array.isArray(data.words)?data.words.length:0)+"; candidates: "+candidates.length+"\n"+candidates.map(c=>String(c.text||"").trim()).filter(Boolean).join("\n");
  for(const line of candidates){
   const value=String(line.text||"").trim(),box=line.bbox;
   if(!value||!box)continue;
@@ -581,6 +583,7 @@ async function recognizeCueLines(side){
   groups.get(item.id).text.push(item.text);
  }
  const lines=[...groups.values()].map(l=>({...l,text:l.text.join(" ")}));
+ rawOcrDiagnostics[side]+="\nMapped candidates: "+mapped.length+"; mapped printed lines: "+lines.length;
  lines.sort((a,b)=>a.y-b.y||a.column-b.column);
  return lines;
 }
@@ -592,9 +595,9 @@ async function autoMatchCues(){
   if(!pageMetadata[side].leadership.cues.length)continue;
   status("Reading "+(side===0?"left":"right")+" page for cue anchors...");
   try{sourceTextLines[side]=await recognizeCueLines(side);total+=assignCueHighlights(side)}
-  catch(e){console.warn("Cue OCR unavailable",e);for(const cue of pageMetadata[side].leadership.cues)cue.matchStatus="ocr-error: "+e.message}
+  catch(e){rawOcrDiagnostics[side]="OCR error: "+e.message;console.warn("Cue OCR unavailable",e);for(const cue of pageMetadata[side].leadership.cues)cue.matchStatus="ocr-error: "+e.message}
  }
- $("ocr-diagnostics").textContent=pageMetadata.map((r,i)=>"Page "+(r.source.sourcePage||i+1)+" OCR ("+(sourceTextLines[i]||[]).length+" mapped lines):\\n"+(sourceTextLines[i]||[]).map(l=>l.text).join("\\n")).join("\\n\\n");
+ $("ocr-diagnostics").textContent=pageMetadata.map((r,i)=>"Page "+(r.source.sourcePage||i+1)+" OCR ("+(sourceTextLines[i]||[]).length+" mapped lines):\\n"+(sourceTextLines[i]||[]).map(l=>l.text).join("\\n")+"\\n\\nRAW OCR DIAGNOSTICS:\\n"+(rawOcrDiagnostics[i]||"Not run")).join("\\n\\n");
  cueMatchReport=total+" of "+pageMetadata.reduce((n,r)=>n+r.leadership.cues.length,0)+" cues automatically matched. "+pageMetadata.flatMap(r=>r.leadership.cues.map(c=>c.cueId+": "+c.matchStatus)).join("; ");
  drawHighlights();displayMetadata();status(cueMatchReport);
 }
