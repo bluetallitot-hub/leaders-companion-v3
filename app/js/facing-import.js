@@ -169,7 +169,7 @@ async function recognizePrintedNumber(side){
  }catch(e){console.warn("Siddur number OCR failed",e)}
 }
 async function recognizeScannedPages(){
- if(!window.Tesseract){status("OCR library unavailable. Check detected titles and languages manually.");return}
+ if(!window.Tesseract){status("OCR unavailable; unidentified printed page numbers will be left blank, never guessed.");return}
  const needs=["left","right"].filter(side=>$(side+"-lang").value==="Uncertain"||!$(side+"-title").value.trim()||!$(side+"-number").value);
  if(!needs.length)return;
  status("Analyzing scanned prayer text for language and headings...");
@@ -228,8 +228,8 @@ async function loadSource(){
  await detectLanguages();
  for(const side of ["left","right"]){state.crops[side]=suggestCrop(side)||lockCrop(side,state.crops[side]);sync(side)}
  await assignLayoutByLanguage();
- await refreshLayout();
  await recognizeScannedPages();
+ await refreshLayout();
 
 }
 function cropToPdf(page,c){
@@ -262,8 +262,7 @@ async function generate(){
  if(!state.raw)throw Error("Upload a source PDF.");
  const src=await PDFLib.PDFDocument.load(state.raw.slice());
  const review=$("guides").value==="review",out=await PDFLib.PDFDocument.create();
- const numbers=["left","right"].map(side=>Number($(side+"-number").value));
- if(numbers.some(n=>!Number.isInteger(n)||n<1||n>9999))throw Error("Confirm the original Siddur page number for both pages before generating.");
+ const numbers=["left","right"].map(side=>{const value=$(side+"-number").value.trim();return value?Number(value):null});
  const font=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
  if(review){const master=await loadReviewMaster();const pages=await out.copyPages(master,[0,1]);pages.forEach(p=>out.addPage(p))}
  else{for(const side of ["left","right"]){const p=out.addPage([W,H]);drawCleanTemplate(p,side)}}
@@ -279,7 +278,7 @@ async function generate(){
    // Clear the development label in review mode without changing bounding box geometry.
    if(review)target.drawRectangle({x:r.x+1,y:r.y+1,width:r.w-2,height:r.h-2,color:PDFLib.rgb(1,1,1)});
    target.drawPage(embedded,{x,y,width:dw,height:dh});
-   const number=String(numbers[i]),pageNoX=side==="left"?20.16:544.96;
+   const number=numbers[i]===null?"":String(numbers[i]),pageNoX=side==="left"?20.16:544.96;
    if(review)target.drawRectangle({x:pageNoX+1,y:747,width:46,height:22,color:PDFLib.rgb(1,1,1)});
    const numberWidth=font.widthOfTextAtSize(number,18);
    target.drawText(number,{x:pageNoX+24-numberWidth/2,y:751,size:18,font,color:PDFLib.rgb(.75,.12,.16)});
