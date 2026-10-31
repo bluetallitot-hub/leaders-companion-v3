@@ -30,3 +30,11 @@ Publication variants will be presets of components rather than separate producti
 - Keep heading extraction, language detection, and heading removal independently reviewable in the side-by-side original/processed viewer. The reviewer can correct text, adjust removal bounds, or disable removal.
 - Do not destroy source content: retain original source reference, editable settings, and confidence/review status. The heading may later be rendered as a reusable header/section block.
 - Distinguish proposed metadata from verified metadata; scanned pages may require OCR and manual correction. Never treat OCR as infallible.
+
+## Original book side (design requirement)
+
+- Record per-page `bookSide`: `left`, `right`, or `unknown`, plus `bindingEdge` and detection/review status.
+- Use side information for gutter shadow removal, inner-margin cropping, and curvature correction.
+- Do not infer side unconditionally from odd/even PDF page numbers: Hebrew/right-to-left pagination, covers, and missing pages can break parity assumptions.
+- Include a simple Left / Right / Unknown override in the side-by-side reviewer.
+- Distinguish original-book side from final publication placement, which may differ after assembly.
