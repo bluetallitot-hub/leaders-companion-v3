@@ -47,23 +47,28 @@ function cleanPixels(canvas){
    const gx=Math.min(gw-1,Math.floor(x/cell)),gx2=Math.min(gw-1,gx+1),fx=(x%cell)/cell;
    const a=paper[gy*gw+gx],b=paper[gy*gw+gx2],c=paper[gy2*gw+gx],d=paper[gy2*gw+gx2];
    const background=a*(1-fx)*(1-fy)+b*fx*(1-fy)+c*(1-fx)*fy+d*fx*fy;
-   const value=gray[y*w+x]*255/background;
+   const value=gray[y*w+x]*255/Math.max(165,background);
    // Stronger background whitening with a soft transition for thin strokes.
    normalized[y*w+x]=Math.max(0,Math.min(255,Math.round(value)));
   }
  }
+ // Contrast curve tuned for aged letterpress scans: stronger blacks, white
+ // paper, but continuous gray antialiasing at thin letter and nikkud edges.
+ // No binary thresholding, connected-component removal, or morphology.
  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
   const i=y*w+x,j=i*4,g=normalized[i];
   let mean=g;
   if(x>0&&x<w-1&&y>0&&y<h-1)
    mean=(normalized[i-1]+normalized[i+1]+normalized[i-w]+normalized[i+w]+4*g)/8;
-  // Contrast stretch with edge-aware unsharp mask. Do not delete isolated
-  // dark marks: a small dot may be a Hebrew vowel or cantillation mark.
-  const sharpen=g+(g-mean)*1.15;
+  const sharpen=Math.max(0,Math.min(255,g+(g-mean)*1.35));
   let value;
-  if(sharpen>=225)value=255;
-  else if(sharpen<=85)value=Math.max(0,sharpen*.54);
-  else value=46+(sharpen-85)*209/140;
+  if(sharpen>=213)value=255;
+  else if(sharpen<=100)value=sharpen*.34;
+  else{
+   const t=(sharpen-100)/113;
+   // Continuous transition from deep ink to pure white.
+   value=34+221*(t*t*(3-2*t));
+  }
   const v=Math.max(0,Math.min(255,Math.round(value)));
   p[j]=p[j+1]=p[j+2]=v;p[j+3]=255;
  }
@@ -206,7 +211,7 @@ function makeIntakeRecord(meta,sourceIndex){
   identification:{prayerName:null,unitType:null,serviceCode:null,cueId:null,binderOrder:null},
   leadership:{role:null,roleReviewNeeded:true,highlight:null},
   production:{paperClass:null,color:null,melodyId:null,sourceTextRegion:"V3 Siddur Text",
-   background:"white",imageCleanup:"grayscale contrast, white normalization, gentle sharpening",
+   background:"white",imageCleanup:"local paper whitening, enhanced ink contrast, edge-preserving sharpening",
    headerRemoved:"automatic detection",originalPageNumberDisplayed:Boolean(pageNumber)},
   intake:{status:pageNumber&&code&&meta.heading?"processed-unreviewed":"needs-metadata-review",
    pageNumberDetected:Boolean(pageNumber),languageDetected:Boolean(code),
