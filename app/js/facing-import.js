@@ -1,7 +1,7 @@
 "use strict";
 const $=id=>document.getElementById(id);
 const W=612,H=792,REGIONS=[{x:171.36,y:98,w:380.88,h:540},{x:59.76,y:98,w:380.88,h:540}];
-let output=null,filename="siddur";
+let output=null,filename="siddur",pageMetadata=[];
 function status(s){$("status").textContent=s}
 const workerURL="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
 function drawTemplate(page,side){
@@ -84,6 +84,32 @@ async function readMetadata(source,pageIndex,canvas,bands){
   const sample=ocrLines.map(l=>l.text).join(" ");
   language=/[\u0590-\u05ff]/u.test(sample)?"Hebrew":/[a-z]{3}/i.test(sample)?"English":"unknown";
  }
+ // Use the main prayer body, not just the header, to determine language.
+ if(language==="unknown"&&window.Tesseract){
+  try{
+   const sampleCanvas=document.createElement("canvas");
+   sampleCanvas.width=600;sampleCanvas.height=Math.round(canvas.height*600/canvas.width);
+   sampleCanvas.getContext("2d").drawImage(canvas,0,0,600,sampleCanvas.height);
+   const result=await Tesseract.recognize(sampleCanvas,"heb+eng");
+   const sample=result.data.text||"";
+   const heb=(sample.match(/[\u0590-\u05ff]/g)||[]).length;
+   const eng=(sample.match(/[A-Za-z]/g)||[]).length;
+   language=heb>eng*.55?"Hebrew":eng>heb*.55?"English":"unknown";
+  }catch(e){console.warn("Body OCR unavailable",e)}
+ }
+ // Scan the original folio margins independently; they are often outside the heading.
+ if(!number&&window.Tesseract){
+  const found=[];
+  for(const [a,b] of [[0,.19],[.81,1]]){
+   try{
+    const strip=canvasCrop(canvas,{left:0,top:Math.floor(canvas.height*a),right:canvas.width,bottom:Math.ceil(canvas.height*b)});
+    const result=await Tesseract.recognize(strip,"eng");
+    const lines=(result.data.text||"").split(/\n/).map(x=>x.trim()).filter(x=>/^\d{1,4}$/.test(x));
+    found.push(...lines);
+   }catch(e){console.warn("Folio OCR unavailable",e)}
+  }
+  if(new Set(found).size===1)number=found[0];
+ }
  return {number,heading,language,ocrLines};
 }
 function detectCrop(canvas,meta){
@@ -129,9 +155,9 @@ async function createPdf(bytes){
  const source=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
  const out=await PDFLib.PDFDocument.create(),count=Math.min(2,source.numPages);
  if(!count)throw Error("No PDF pages found.");
- const font=await out.embedFont(PDFLib.StandardFonts.Helvetica);
+ const font=await out.embedFont(PDFLib.StandardFonts.Helvetica),records=[];
  for(let i=0;i<count;i++){
-  status("Processing page "+(i+1)+" of "+count+"...");
+  status("Processing source page "+(i+1)+" of "+count+"...");
   const src=await source.getPage(i+1),v=src.getViewport({scale:2});
   const canvas=document.createElement("canvas");canvas.width=Math.ceil(v.width);canvas.height=Math.ceil(v.height);
   const ctx=canvas.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -140,17 +166,33 @@ async function createPdf(bytes){
   const crop=detectCrop(canvas,meta),cleaned=canvasCrop(canvas,crop);
   cleanPixels(cleaned);
   const png=await out.embedPng(await (await fetch(cleaned.toDataURL("image/png"))).arrayBuffer());
-  const page=out.addPage([W,H]);drawTemplate(page,i);storePageMetadata(page,meta);
+  records.push({meta,png,sourceIndex:i});
+ }
+ // English is the left facing page; Hebrew is the right facing page.
+ if(records.length===2&&records[0].meta.language==="Hebrew"&&records[1].meta.language==="English")records.reverse();
+ pageMetadata=records.map(r=>({...r.meta,sourcePage:r.sourceIndex+1}));
+ for(let i=0;i<records.length;i++){
+  const {meta,png}=records[i],page=out.addPage([W,H]);
+  drawTemplate(page,i);storePageMetadata(page,meta);
   const r=REGIONS[i],pad=6,scale=Math.min((r.w-2*pad)/png.width,(r.h-2*pad)/png.height);
   const dw=png.width*scale,dh=png.height*scale;
   page.drawImage(png,{x:r.x+(r.w-dw)/2,y:r.y+(r.h-dh)/2,width:dw,height:dh});
   if(meta.number){
-   const x=i===0?20.16:544.96;
-   const tw=font.widthOfTextAtSize(meta.number,18);
+   const x=i===0?20.16:544.96,tw=font.widthOfTextAtSize(meta.number,18);
    page.drawText(meta.number,{x:x+24-tw/2,y:751,font,size:18,color:PDFLib.rgb(.75,.12,.16)});
   }
  }
  return new Uint8Array(await out.save());
+}
+function displayMetadata(){
+ for(let i=0;i<2;i++){
+  const panel=$(i===0?"metadata-left":"metadata-right");
+  const m=pageMetadata[i];
+  panel.hidden=!m;
+  if(!m)continue;
+  for(const [field,value] of [["number",m.number||"Not detected"],["language",m.language||"Unknown"],["heading",m.heading||"Not detected"],["source",String(m.sourcePage)]])
+   panel.querySelector('[data-field="'+field+'"]').textContent=value;
+ }
 }
 async function preview(bytes){
  const doc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
@@ -162,12 +204,12 @@ async function preview(bytes){
   canvas.width=Math.ceil(v.width);canvas.height=Math.ceil(v.height);
   await page.render({canvasContext:canvas.getContext("2d"),viewport:v}).promise;
  }
- $("spread-preview").hidden=false;$("empty-preview").hidden=true;
+ displayMetadata();$("spread-preview").hidden=false;$("empty-preview").hidden=true;
 }
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 $("source").addEventListener("change",async()=>{
  const file=$("source").files[0];if(!file)return;
- $("download").disabled=true;output=null;$("spread-preview").hidden=true;
+ $("download").disabled=true;output=null;pageMetadata=[];$("spread-preview").hidden=true;
  filename=file.name.replace(/\.pdf$/i,"")||"siddur";
  try{
   if(!window.PDFLib||!window.pdfjsLib)throw Error("PDF libraries unavailable.");
