@@ -1,0 +1,20 @@
+{
+  "id": "shabbat-evening-siddur-159",
+  "status": "source_identified_binary_upload_pending",
+  "service": "Shabbat Evening Service",
+  "printed_siddur_page": 159,
+  "source": {
+    "file": "SinglePGText.pdf",
+    "pdf_page": 1,
+    "clip_points": [
+      44,
+      45,
+      338,
+      470
+    ],
+    "extraction": "image-preserving; no searchable text layer"
+  },
+  "asset_path": "assets/siddur/shabbat-evening/page-159.pdf",
+  "master_template_path": "docs/master-template/Leaders_Companion_V3_Master_Template_v1.3_Blank.pdf",
+  "notes": "Page title and instructions unconfirmed. Do not treat sample page as an approved assembled page."
+}
