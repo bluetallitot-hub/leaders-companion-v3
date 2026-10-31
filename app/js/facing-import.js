@@ -308,7 +308,7 @@ async function refreshLayout(){
    await renderOutputSpread(bytes);
    state.output=bytes;
    $("download").disabled=false;
-   status("Facing-page layout updated. Review both pages. Use Adjust source crops only if necessary.");
+   status(["left","right"].some(side=>!$(side+"-number").value.trim())?"Facing pages ready. At least one original printed number could not be read; its Page No. box is blank rather than guessed.":"Facing-page layout updated with original Siddur page numbers.");
  }catch(e){status("Layout preview unavailable: "+e.message)}
 }
 async function renderOutputSpread(bytes){
@@ -332,7 +332,7 @@ $("generate").addEventListener("click",async()=>{
  try{state.output=await generate();if(state.url)URL.revokeObjectURL(state.url);
  state.url=URL.createObjectURL(new Blob([state.output],{type:"application/pdf"}));
  await renderOutputSpread(state.output);$("download").disabled=false;
- status("PDF ready. Inspect both pages. If text or page numbers are clipped incorrectly, adjust each blue crop and regenerate.");
+ status(["left","right"].some(side=>!$(side+"-number").value.trim())?"PDF ready. An unreadable original page number has been left blank, not replaced with a guessed number.":"PDF ready with detected original Siddur page numbers.");
  }catch(e){console.error(e);status("Generation failed: "+e.message)}
  finally{$("generate").disabled=false}
 });
