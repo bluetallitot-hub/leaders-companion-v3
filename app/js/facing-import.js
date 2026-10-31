@@ -109,28 +109,25 @@ async function readMetadata(source,pageIndex,canvas,bands){
    else if(eng>heb*1.2)language="English";
   }catch(e){console.warn("Body language OCR unavailable",e)}
  }
- // Read running header and section heading independently, in the detected script.
- // Mask the folio corners so digits cannot contaminate the heading text.
+ // The printed running header occupies the top band. Never infer a
+ // section heading from the following line: it may be the first prayer line.
+ // Retain the OCR running header only; a distinct section heading remains
+ // unassigned until layout-aware classification can verify it.
  if(window.Tesseract&&language!=="unknown"){
   const w=canvas.width,h=canvas.height,ocrLang=language==="Hebrew"?"heb":"eng";
-  const recognizeZone=async(top,bottom)=>{
+  try{
    const region=canvasCrop(canvas,{left:Math.floor(w*.09),right:Math.ceil(w*.91),
-    top:Math.floor(h*top),bottom:Math.ceil(h*bottom)});
+    top:0,bottom:Math.ceil(h*.075)});
    const ctx=region.getContext("2d");
    ctx.fillStyle="#fff";
    const maskW=Math.ceil(region.width*.24);
    ctx.fillRect(0,0,maskW,Math.ceil(h*.07));
    ctx.fillRect(region.width-maskW,0,maskW,Math.ceil(h*.07));
    const result=await Tesseract.recognize(region,ocrLang);
-   return (result.data.text||"").split(/\n/).map(t=>t.trim())
+   const lines=(result.data.text||"").split(/\n/).map(t=>t.trim())
     .filter(t=>language==="Hebrew"?/[\u0590-\u05ff]/.test(t):/[A-Za-z]/.test(t));
-  };
-  try{
-   const lines=await recognizeZone(0,.075);
    if(lines.length)runningHeader=lines[0];
-   const sections=await recognizeZone(.075,.19);
-   if(sections.length)heading=sections[0];
-  }catch(e){console.warn("Language-specific heading OCR unavailable",e)}
+  }catch(e){console.warn("Language-specific running header OCR unavailable",e)}
  }
  // Tight folio crops: verified against the scanned 159 Hebrew/English test pair.
  // Use digit-only single-line OCR; the heading must not share the OCR region.
