@@ -450,7 +450,7 @@ function matchingCueLine(lines,phrase){
    if(stream[i].word!==target[0])continue;
    let valid=true;
    for(let j=1;j<target.length;j++){
-    if(stream[i+j].word!==target[j]||stream[i+j].column!==stream[i].column){valid=false;break}
+    if(stream[i+j].word!==target[j]){valid=false;break}
    }
    if(valid)found.push(stream[i].line);
   }
@@ -955,7 +955,7 @@ async function recognizeCueLines(side){
  }
  const lines=[...groups.values()].map(l=>({...l,text:l.text.join(" ")}));
  rawOcrDiagnostics[side]+="\nMapped candidates: "+mapped.length+"; mapped printed lines: "+lines.length;
- lines.sort((a,b)=>(lang==="heb"?b.column-a.column:a.column-b.column)||a.y-b.y);
+ lines.sort((a,b)=>(lang==="heb"?((a.column===1?0:a.column===0?1:2)-(b.column===1?0:b.column===0?1:2)):a.column-b.column)||a.y-b.y);
  return lines;
 }
 
