@@ -1754,7 +1754,7 @@ async function createPdf(bytes){
   record.source.originalPageNumber=embedded.printedPage||record.source.originalPageNumber;
   record.source.serviceReference=embedded.sourceReference||record.source.serviceReference;
   record.source.languageCode=embedded.language||record.source.languageCode;
-  record.identification.prayerName=embedded.prayerTitle||record.identification.prayerName;
+  record.identification.prayerName=embedded.prayerTitle||null;record.identification.serviceCode=(embedded.identification?.serviceCodes||[])[0]||null;record.identification.binderOrder=embedded.outputPage;
   record.leadership.cues=(embedded.cues||[]).map((c,k)=>({
    cueId:c.cue_id||"cue-"+k,role:c.role_name||c.role_code||"",prayer:c.prayer_title||null,
    startCue:c.cue_left||"",endCue:c.cue_right||"",style:c.style||"",matchStatus:"embedded-page-record",
@@ -2064,7 +2064,7 @@ async function exportEntireService(){
    page.drawRectangle({x:8,y:4,width:width-16,height:maxLines*lineHeight+8,color:PDFLib.rgb(1,1,1),opacity:.96});
    cueText.slice(0,maxLines).forEach((line,k)=>page.drawText(line.slice(0,105),{x:12,y:8+(maxLines-1-k)*lineHeight,size:8,font,color:PDFLib.rgb(.15,.2,.22)}));
   }
-  const pageInfo={outputPage:i+1,printedPage:number,manifest:entry,cues,prayerTitle:cues.find(c=>c.prayer_action)?.prayer_action||null,highlights:edits};
+  const pageInfo={...(embeddedPageRecords[i]||{}),outputPage:i+1,printedPage:number,manifest:entry,cues,prayerTitle:embeddedPageRecords[i]?.prayerTitle||null,highlights:edits};
   metadata.pages.push(pageInfo);
   page.node.set(PDFLib.PDFName.of("LCIntakeRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(pageInfo)));
   // Yield to the UI so the progress bar can repaint during large exports.
