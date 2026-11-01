@@ -813,6 +813,32 @@ function reconcileHebrewLinesForReport(side,ocrLines){
 // V3.59 preview geometry: union fragments assigned to the same OCR line.
 // Unassigned fragments remain separate; never guess across vertical gaps.
 let hebrewReconstructionPreview=[[],[]];
+// V3.61 adaptive page layout: find a substantial vertical break after
+// upper two-column content, then join horizontal halves below that break.
+// Diagnostic only; the source detector and English selection are unchanged.
+let hebrewLayoutTransitions=[null,null];
+let currentHebrewPreviewSide=0;
+function inferHebrewLayoutTransition(fragments){
+ const rows=fragments.filter(f=>f.column===0||f.column===1);
+ const ordered=rows.map(f=>({top:f.y,bottom:f.y+f.height}))
+  .sort((a,b)=>a.top-b.top);
+ if(ordered.length<12)return null;
+ const bands=[];
+ for(const r of ordered){
+  const last=bands[bands.length-1];
+  if(last&&r.top<=last.bottom+.004)last.bottom=Math.max(last.bottom,r.bottom);
+  else bands.push({...r});
+ }
+ const gaps=[];
+ for(let i=1;i<bands.length;i++){
+  const gap=bands[i].top-bands[i-1].bottom;
+  const fraction=i/bands.length;
+  if(fraction>.25&&fraction<.82&&gap>.009)
+   gaps.push({gap,y:(bands[i].top+bands[i-1].bottom)/2});
+ }
+ gaps.sort((a,b)=>b.gap-a.gap);
+ return gaps.length?gaps[0].y:null;
+}
 // V3.60: group horizontal pieces by image geometry, not OCR membership.
 // Keep each detector column independent and avoid merging adjacent baselines.
 function reconstructedHebrewPreview(fragments,ocrLines){
@@ -823,7 +849,10 @@ function reconstructedHebrewPreview(fragments,ocrLines){
   return {x,y,width:right-x,height:bottom-y,column:items[0].column};
  };
  const groups=[];
- const ordered=fragments.slice().sort((a,b)=>a.column-b.column||a.y-b.y||a.x-b.x);
+ const transition=inferHebrewLayoutTransition(fragments);
+ hebrewLayoutTransitions[currentHebrewPreviewSide]=transition;
+ const ordered=fragments.slice().map(f=>({...f,column:transition!==null&&f.y>=transition?2:f.column}))
+  .sort((a,b)=>a.column-b.column||a.y-b.y||a.x-b.x);
  for(const fragment of ordered){
   const mid=fragment.y+fragment.height/2;
   const candidates=groups.filter(g=>{
@@ -843,7 +872,7 @@ function reconstructedHebrewPreview(fragments,ocrLines){
  }
  for(const group of groups){
   const mid=group.y+group.height/2;
-  const anchor=ocrLines.find(a=>a.column===group.column&&a.bbox&&
+  const anchor=ocrLines.find(a=>(group.column===2||a.column===group.column)&&a.bbox&&
    Math.abs(mid-(a.bbox.y0+a.bbox.y1)/2)<Math.max(.012,group.height*.55));
   group.kind=anchor?"ocr":"unassigned";
   group.count=group.fragments.length;
@@ -863,6 +892,7 @@ async function diagnoseHebrewWordCounts(){
    const byId=new Map(ocr.map(l=>[l.id,l.text]));
    const geometry=detectedLines[side]||[];
    const reconciliation=reconcileHebrewLinesForReport(side,ocr);
+   currentHebrewPreviewSide=side;
    hebrewReconstructionPreview[side]=reconstructedHebrewPreview(geometry,ocr);
    const rows=reconciliation.groups.map((group,i)=>{
     const line=group.anchor;
@@ -875,6 +905,7 @@ async function diagnoseHebrewWordCounts(){
      " | "+text;
    });
    rows.push("Unassigned image fragments: "+reconciliation.unassigned.length);
+   rows.push("Adaptive layout transition: "+(hebrewLayoutTransitions[side]===null?"not confidently detected":(hebrewLayoutTransitions[side]*100).toFixed(1)+"% of canvas height"));
    rows.push("Image-first reconstructed lines: "+hebrewReconstructionPreview[side].length+"; merged groups: "+hebrewReconstructionPreview[side].filter(g=>g.count>1).length+" (green=OCR nearby, orange=no OCR nearby)");
    rows.push("NOTE: image-first horizontal grouping is preview-only; selection rectangles remain unchanged.");
    reports.push("Hebrew page "+(pageMetadata[side].source.sourcePage||side+1)+
