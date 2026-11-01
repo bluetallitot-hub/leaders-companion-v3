@@ -1050,6 +1050,8 @@ function installRivokSelectionGeometry(side,result){
  detectedLines[side]=lines;
 }
 let rivokOverlay=null;
+function highlightAlpha(h){const cue=importedCues.find(c=>String(c.cue_id||"")===String(h.cueId||""));const color=String(cue?.highlight_color||"").trim().toLowerCase();const raw=serviceRoleOpacity.get(color);const opacity=raw==null?40:Number(raw);return Math.max(.1,Math.min(1,opacity/100));}
+function highlightFill(h){const hex=roleColor(h.roleId);const v=hex.replace("#","");const n=parseInt(v,16);return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+highlightAlpha(h)+")";}
 function drawHighlights(){
  for(let i=0;i<2;i++){
   const overlay=$("highlight-"+i),base=$(i===0?"output-left":"output-right");
@@ -1074,7 +1076,7 @@ function drawHighlights(){
    // individual word selections replace the full-line rectangle.
    if(!wordOverrides.length){
     if(lineHighlight||highlightView==="detection"){
-     ctx.fillStyle=lineHighlight?roleColor(lineHighlight.roleId)+"40":"rgba(24,105,160,.19)";
+     ctx.fillStyle=lineHighlight?highlightFill(lineHighlight):"rgba(24,105,160,.19)";
      ctx.fillRect(line.x*overlay.width,line.y*overlay.height,line.width*overlay.width,line.height*overlay.height);
     }
    }else{
@@ -1082,7 +1084,7 @@ function drawHighlights(){
     for(const word of words){
      const h=wordOverrides.find(v=>v.wordId===word.id);
      if(!h&&highlightView!=="detection")continue;
-     ctx.fillStyle=h?roleColor(h.roleId)+"40":"rgba(24,105,160,.19)";
+     ctx.fillStyle=h?highlightFill(h):"rgba(24,105,160,.19)";
      ctx.fillRect(word.x*overlay.width,word.y*overlay.height,word.width*overlay.width,word.height*overlay.height);
     }
    }
@@ -1094,7 +1096,7 @@ function drawHighlights(){
    for(const h of selected){
     if(!Number.isFinite(h.x)||!Number.isFinite(h.y)||!Number.isFinite(h.width)||!Number.isFinite(h.height))continue;
     if(h.width<=0||h.height<=0)continue;
-    ctx.fillStyle=roleColor(h.roleId)+"80";
+    ctx.fillStyle=highlightFill(h);
     ctx.fillRect(h.x*overlay.width,h.y*overlay.height,h.width*overlay.width,h.height*overlay.height);
    }
   }
@@ -1799,7 +1801,7 @@ async function preview(bytes){
  await autoMatchCues();
 }
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
-let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null;
+let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null,serviceRoleOpacity=new Map();
 const spreadEdits=new Map();
 function saveCurrentSpreadEdits(){if(pageMetadata.length)spreadEdits.set(selectedSpreadFirst,pageMetadata.map(r=>r?JSON.parse(JSON.stringify(r.leadership.highlights||[])):[]));}
 function updateSpreadNavigation(){const total=Math.ceil(sourcePdfPages/2),current=Math.ceil(selectedSpreadFirst/2);$("spread-position").textContent="Spread "+current+" of "+(total||"—")+" · PDF pages "+selectedSpreadFirst+(selectedSpreadFirst+1<=sourcePdfPages?"–"+(selectedSpreadFirst+1):"");$("previous-spread").disabled=!sourcePdfBytes||current<=1;$("next-spread").disabled=!sourcePdfBytes||current>=total;}
@@ -1956,7 +1958,7 @@ async function restoreSiddurIntake(){
  importedCues=rows.filter(c=>c.source_page||c.printed_page);
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  filename=(data.pdfName||"siddur.pdf").replace(/\.pdf$/i,"");
- serviceManifest=data.manifest||null;servicePageMapping=data.pageMapping||null;
+ serviceManifest=data.manifest||null;servicePageMapping=data.pageMapping||null;serviceRoleOpacity=new Map(data.roleOpacity||serviceManifest?.opacity||[]);
  sourcePdfBytes=new Uint8Array(data.pdf);
  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
  sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();
