@@ -1142,6 +1142,41 @@ async function diagnoseHebrewWordCounts(){
  }catch(e){out.textContent="Diagnostic error: "+e.message}
  finally{button.disabled=false}
 }
+// Recognition-only preprocessing: suppress isolated small marks (typically nikkud).
+// Never alter the original canvas, printed geometry, or exported siddur image.
+function consonantOnlyOcrCanvas(source){
+ const out=document.createElement("canvas");out.width=source.width;out.height=source.height;
+ const ctx=out.getContext("2d",{willReadFrequently:true});ctx.drawImage(source,0,0);
+ const img=ctx.getImageData(0,0,out.width,out.height),d=img.data,w=out.width,h=out.height;
+ const seen=new Uint8Array(w*h),stack=[];
+ const dark=p=>d[p*4]<125;
+ const maxTiny=Math.max(4,Math.round(w*h*.000018));
+ for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+  const root=y*w+x;if(seen[root]||!dark(root))continue;
+  let minY=y,maxY=y,minX=x,maxX=x;const pixels=[];
+  seen[root]=1;stack.push(root);
+  while(stack.length){
+   const p=stack.pop(),px=p%w,py=(p/w)|0;pixels.push(p);
+   minX=Math.min(minX,px);maxX=Math.max(maxX,px);minY=Math.min(minY,py);maxY=Math.max(maxY,py);
+   for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+    if(!dx&&!dy)continue;const xx=px+dx,yy=py+dy;if(xx<0||yy<0||xx>=w||yy>=h)continue;
+    const q=yy*w+xx;if(!seen[q]&&dark(q)){seen[q]=1;stack.push(q)}
+   }
+  }
+  // Conservative: small, detached dots only; attached marks cannot safely be erased.
+  if(pixels.length<=maxTiny&&maxX-minX<=Math.max(3,h*.12)&&maxY-minY<=Math.max(3,h*.12)){
+   for(const p of pixels){const i=p*4;d[i]=d[i+1]=d[i+2]=255;}
+  }
+ }
+ ctx.putImageData(img,0,0);return out;
+}
+const LITURGICAL_WORDS=new Set(("יתגדל ויתקדש שמה רבא בעלמא די ברא כרעותה וימליך מלכותה ויצמח פורקנה ויקרב משיחה בחייכון וביומיכון ובחיי דכל בית ישראל בעגלא ובזמן קריב ואמרו אמן יהא מברך לעלם ולעלמי עלמיא יתברך וישתבח ויתפאר ויתרומם ויתנשא ויתהדר ויתעלה ויתהלל בריך הוא שלום על ישראל יהי בחילך שלוה בארמנותיך למען אחי ורעי אדברה נא בך למען בית אלהינו אבקשה טוב לך וראה בנים לבניך רב לאהבי תורתך ואין למו מכשול עז לעמו יתן יברך את עמו בשלום אמר רבי אלעזר חנינא תלמידי חכמים מרבים בעולם שנאמר וכל בניך למודי ורב אל תקרי אלא בוניך קדיש דרבנן").split(/\s+/));
+function hebrewWordQuality(text){
+ const words=normalizeCueText(text).replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
+ if(!words.length)return 0;
+ const valid=words.filter(w=>LITURGICAL_WORDS.has(w)).length;
+ return valid/words.length;
+}
 // Hebrew second recognition pass: read every detected printed line independently.
 // This is deliberately cue-agnostic: recognition completes before any anchor matching.
 // Rivok/ink geometry remains authoritative; this pass supplies text, not coordinates.
@@ -1150,7 +1185,7 @@ async function secondPassHebrewLines(side,firstPass){
  const geometry=detectedLines[side]||[];
  if(!window.Tesseract||!geometry.length)return firstPass;
  const worker=await Tesseract.createWorker("heb");
- const recovered=new Map(firstPass.map(l=>[l.id,l]));
+ const recovered=new Map(firstPass.map(l=>[l.id,{...l,recognitionPass:1}]));
  let read=0,improved=0,failed=0;
  try{
   await worker.setParameters({tessedit_pageseg_mode:"7",preserve_interword_spaces:"1"});
@@ -1166,13 +1201,14 @@ async function secondPassHebrewLines(side,firstPass){
    const bottom=Math.min(analysis.height,Math.ceil(((line.y+line.height)*canvas.height+padY)*scale));
    if(right-left<12||bottom-top<8)continue;
    try{
-    const crop=canvasCrop(analysis,{left,top,right,bottom});
+    const crop=consonantOnlyOcrCanvas(canvasCrop(analysis,{left,top,right,bottom}));
     const result=await worker.recognize(crop);
     const recognized=String(result.data?.text||"").replace(/\s+/g," ").trim();
     read++;
     // A line must contain Hebrew letters. Never replace good OCR with empty output.
     if(!/[\u05d0-\u05ea]/u.test(recognized))continue;
     const previous=recovered.get(line.id);
+    if(previous&&hebrewWordQuality(previous.text)>hebrewWordQuality(recognized)+.12)continue;
     recovered.set(line.id,{id:line.id,text:recognized,y:line.y,column:line.column,
      bbox:{y0:line.y,y1:line.y+line.height},recognitionPass:2});
     if(!previous||previous.text!==recognized)improved++;
