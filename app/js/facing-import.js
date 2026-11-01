@@ -1110,6 +1110,7 @@ async function preview(bytes){
   await page.render({canvasContext:canvas.getContext("2d"),viewport:v}).promise;
  }
  displayMetadata();$("spread-preview").hidden=false;$("empty-preview").hidden=true;detectedLines=[0,1].map(i=>i<doc.numPages?detectPrintedLines($(i===0?"output-left":"output-right"),i):[]);drawHighlights();status("Detected "+detectedLines.map(a=>a.length).join(" / ")+" candidate printed lines.");await autoMatchCues();
+ await runRivokAutomatically();
 }
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 $("source").addEventListener("change",async()=>{
@@ -1140,6 +1141,22 @@ $("cue-file").addEventListener("change",async()=>{
 $("highlight-view").addEventListener("change",()=>{highlightView=$("highlight-view").value;drawHighlights()});
 $("selection-mode").addEventListener("change",()=>{selectionMode=$("selection-mode").value;drawHighlights()});
 installHighlightSelection();
+async function runRivokAutomatically(){
+ const report=$("rivok-status");
+ const side=pageMetadata.findIndex(p=>p?.source?.languageCode==="H");
+ if(side<0)return;
+ if(!window.RivokBrowser){report.textContent="Rivok module unavailable; Hebrew automatic detection could not start.";return;}
+ const canvas=$(side===0?"output-left":"output-right");
+ try{
+  const result=await RivokBrowser.detect(canvas,msg=>{report.textContent=msg;});
+  rivokOverlay={side,width:result.imageWidth,height:result.imageHeight,words:result.words};
+  drawHighlights();
+  report.textContent="Automatic Rivok detection: "+result.words.length+" Hebrew word candidates. Purple outlines show results; no extra click required.";
+ }catch(error){
+  console.error("Automatic Rivok detection",error);
+  report.textContent="Automatic Rivok detection failed: "+error.message;
+ }
+}
 $("rivok-run").addEventListener("click",async()=>{
  const button=$("rivok-run"),report=$("rivok-status");
  const side=pageMetadata.findIndex(p=>p?.source?.languageCode==="H");
