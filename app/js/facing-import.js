@@ -469,6 +469,59 @@ function wordCandidates(side,line){
   let ink=0;for(let y=0;y<image.height;y++)if(image.data[(y*image.width+x)*4]<150)ink++;
   columns.push(ink);
  }
+ // Hebrew-only: find inter-word spaces from the letter-body projection.
+ // Ignoring the upper/lower nikkud bands avoids treating vowel marks as letters.
+ // Determine the split from the observed gap distribution in this line.
+ if(hebrew){
+  const bodyTop=Math.floor(image.height*.24),bodyBottom=Math.ceil(image.height*.78);
+  const core=[];
+  for(let x=0;x<image.width;x++){
+   let n=0;
+   for(let y=bodyTop;y<bodyBottom;y++)if(image.data[(y*image.width+x)*4]<155)n++;
+   core.push(n);
+  }
+  const runs=[];let start=-1;
+  for(let x=0;x<=core.length;x++){
+   if(x<core.length&&core[x]>0){if(start<0)start=x}
+   else if(start>=0){runs.push([start,x-1]);start=-1}
+  }
+  if(!runs.length)return [];
+  const gapValues=runs.slice(1).map((v,i)=>v[0]-runs[i][1]-1);
+  const sorted=gapValues.filter(v=>v>0).sort((a,b)=>a-b);
+  // Two-population clustering: small letter gaps and larger word spaces.
+  // If separation is not clear, keep a conservative threshold.
+  let splitAt=Math.max(8,Math.round(image.height*.24));
+  if(sorted.length>=3){
+   let low=sorted[Math.floor(sorted.length*.25)],high=sorted[Math.floor(sorted.length*.85)];
+   for(let iter=0;iter<8;iter++){
+    const midpoint=(low+high)/2;
+    const a=sorted.filter(g=>g<=midpoint),b=sorted.filter(g=>g>midpoint);
+    if(!a.length||!b.length)break;
+    low=a.reduce((v,g)=>v+g,0)/a.length;
+    high=b.reduce((v,g)=>v+g,0)/b.length;
+   }
+   if(high>=low*1.65&&high-low>=3)splitAt=Math.max(splitAt,Math.round((low+high)/2));
+  }
+  const groups=[];let from=runs[0][0],to=runs[0][1];
+  for(let k=1;k<runs.length;k++){
+   const gap=runs[k][0]-to-1;
+   if(gap>=splitAt){groups.push([from,to]);from=runs[k][0]}
+   to=runs[k][1];
+  }
+  groups.push([from,to]);
+  // Expand to include vowel marks and punctuation, stopping halfway through
+  // whitespace between adjacent word bodies to prevent overlapping selections.
+  return groups.map((g,i)=>{
+   const leftLimit=i?Math.floor((groups[i-1][1]+g[0])/2):0;
+   const rightLimit=i+1<groups.length?Math.ceil((g[1]+groups[i+1][0])/2):image.width-1;
+   let left=Math.max(leftLimit,g[0]-5),right=Math.min(rightLimit,g[1]+5);
+   for(let x=leftLimit;x<g[0];x++)if(columns[x]>0)left=Math.min(left,x);
+   for(let x=g[1]+1;x<=rightLimit;x++)if(columns[x]>0)right=Math.max(right,x);
+   const xx=x0+left,rx=x0+right+1;
+   return {id:line.id+"-word-"+i,lineId:line.id,column:line.column,
+    x:xx/w,y:line.y,width:(rx-xx)/w,height:line.height};
+  });
+ }
  const bands=[];let first=-1,last=-1;
  for(let x=0;x<columns.length;x++){
   if(columns[x]>0){if(first<0)first=x;last=x}
