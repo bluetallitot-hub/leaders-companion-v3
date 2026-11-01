@@ -949,6 +949,17 @@ function drawHighlights(){
     }
    }
   }
+  // Draw matched cue coordinates DIRECTLY, independent of detectedLines IDs.
+  // Previously the renderer only painted highlights whose line/word IDs
+  // still matched the current detector output. That could hide valid matches.
+  if(highlightView!=="detection"){
+   for(const h of selected){
+    if(!Number.isFinite(h.x)||!Number.isFinite(h.y)||!Number.isFinite(h.width)||!Number.isFinite(h.height))continue;
+    if(h.width<=0||h.height<=0)continue;
+    ctx.fillStyle=roleColor(h.roleId)+"80";
+    ctx.fillRect(h.x*overlay.width,h.y*overlay.height,h.width*overlay.width,h.height*overlay.height);
+   }
+  }
   // V3.59 reconstructed Hebrew lines: diagnostic overlay only.
   if(highlightView==="detection"&&pageMetadata[i]?.source?.languageCode==="H"&&hebrewReconstructionPreview[i]?.length){
    ctx.save();ctx.lineWidth=2;
