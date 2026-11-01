@@ -542,6 +542,20 @@ function drawHighlights(){
     }
    }
   }
+  // Diagnostic: in Detection + Word mode, outline the actual word candidates.
+  // This is preview-only and does not modify selection metadata or PDF export.
+  if(highlightView==="detection"&&selectionMode==="word"&&pageMetadata[i]?.source?.languageCode==="H"){
+   const candidates=getWordGeometry(i);
+   ctx.save();ctx.strokeStyle="rgba(215,45,35,.95)";ctx.lineWidth=1.5;
+   ctx.font="11px sans-serif";ctx.fillStyle="rgba(155,20,20,.95)";
+   for(const word of candidates){
+    const x=word.x*overlay.width,y=word.y*overlay.height;
+    ctx.strokeRect(x,y,word.width*overlay.width,word.height*overlay.height);
+    const number=word.id.split("-word-").pop();
+    ctx.fillText(number,x+2,Math.max(10,y-2));
+   }
+   ctx.restore();
+  }
  }
 }
 // Recovery for legitimate lines missed by the projection detector.
