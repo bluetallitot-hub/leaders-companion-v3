@@ -1142,6 +1142,46 @@ async function diagnoseHebrewWordCounts(){
  }catch(e){out.textContent="Diagnostic error: "+e.message}
  finally{button.disabled=false}
 }
+// Hebrew second recognition pass: read every detected printed line independently.
+// This is deliberately cue-agnostic: recognition completes before any anchor matching.
+// Rivok/ink geometry remains authoritative; this pass supplies text, not coordinates.
+async function secondPassHebrewLines(side,firstPass){
+ const canvas=$(side===0?"output-left":"output-right");
+ const geometry=detectedLines[side]||[];
+ if(!window.Tesseract||!geometry.length)return firstPass;
+ const worker=await Tesseract.createWorker("heb");
+ const recovered=new Map(firstPass.map(l=>[l.id,l]));
+ let read=0,improved=0,failed=0;
+ try{
+  await worker.setParameters({tessedit_pageseg_mode:"7",preserve_interword_spaces:"1"});
+  const analysis=enhancedAnalysisCanvas(canvas,3),scale=analysis.width/canvas.width;
+  // Read in printed order, including lines missed by the first page-wide pass.
+  const ordered=geometry.slice().sort((a,b)=>a.column-b.column||a.y-b.y);
+  for(const line of ordered){
+   const padX=Math.max(5,Math.round(line.height*canvas.height*.20));
+   const padY=Math.max(3,Math.round(line.height*canvas.height*.12));
+   const left=Math.max(0,Math.floor((line.x*canvas.width-padX)*scale));
+   const top=Math.max(0,Math.floor((line.y*canvas.height-padY)*scale));
+   const right=Math.min(analysis.width,Math.ceil(((line.x+line.width)*canvas.width+padX)*scale));
+   const bottom=Math.min(analysis.height,Math.ceil(((line.y+line.height)*canvas.height+padY)*scale));
+   if(right-left<12||bottom-top<8)continue;
+   try{
+    const crop=canvasCrop(analysis,{left,top,right,bottom});
+    const result=await worker.recognize(crop);
+    const recognized=String(result.data?.text||"").replace(/\\s+/g," ").trim();
+    read++;
+    // A line must contain Hebrew letters. Never replace good OCR with empty output.
+    if(!/[\\u05d0-\\u05ea]/u.test(recognized))continue;
+    const previous=recovered.get(line.id);
+    recovered.set(line.id,{id:line.id,text:recognized,y:line.y,column:line.column,
+     bbox:{y0:line.y,y1:line.y+line.height},recognitionPass:2});
+    if(!previous||previous.text!==recognized)improved++;
+   }catch(e){failed++;console.warn("Hebrew line OCR retry",line.id,e)}
+  }
+ }finally{await worker.terminate()}
+ rawOcrDiagnostics[side]+="\\nHebrew independent line OCR (PSM 7): "+read+" lines; "+improved+" new/replaced transcriptions; "+failed+" errors. No cue filtering applied.";
+ return [...recovered.values()].sort((a,b)=>((a.column===1?0:a.column===0?1:2)-(b.column===1?0:b.column===0?1:2))||a.y-b.y);
+}
 async function autoMatchCues(){
  if(!pageMetadata.length||!importedCues.length)return;
  let total=0;
@@ -1149,7 +1189,7 @@ async function autoMatchCues(){
  for(let side=0;side<pageMetadata.length;side++){
   if(!pageMetadata[side].leadership.cues.length)continue;
   status("Reading "+(side===0?"left":"right")+" page for cue anchors...");
-  try{sourceTextLines[side]=await recognizeCueLines(side);total+=assignCueHighlights(side)}
+  try{sourceTextLines[side]=await recognizeCueLines(side);if(pageMetadata[side].source.languageCode==="H"){status("Running independent Hebrew line OCR before cue matching...");sourceTextLines[side]=await secondPassHebrewLines(side,sourceTextLines[side]);}total+=assignCueHighlights(side)}
   catch(e){rawOcrDiagnostics[side]="OCR error: "+e.message;console.warn("Cue OCR unavailable",e);for(const cue of pageMetadata[side].leadership.cues)cue.matchStatus="ocr-error: "+e.message}
  }
  $("ocr-diagnostics").textContent=pageMetadata.map((r,i)=>"Page "+(r.source.sourcePage||i+1)+" OCR ("+(sourceTextLines[i]||[]).length+" mapped lines):\\n"+(sourceTextLines[i]||[]).map(l=>l.text).join("\\n")+"\\n\\nRAW OCR DIAGNOSTICS:\\n"+(rawOcrDiagnostics[i]||"Not run")).join("\\n\\n");
