@@ -1783,6 +1783,12 @@ async function preview(bytes){
 }
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0;
+const spreadEdits=new Map();
+function saveCurrentSpreadEdits(){if(pageMetadata.length)spreadEdits.set(selectedSpreadFirst,pageMetadata.map(r=>r?JSON.parse(JSON.stringify(r.leadership.highlights||[])):[]));}
+function updateSpreadNavigation(){const total=Math.ceil(sourcePdfPages/2),current=Math.ceil(selectedSpreadFirst/2);$("spread-position").textContent="Spread "+current+" of "+(total||"—")+" · PDF pages "+selectedSpreadFirst+(selectedSpreadFirst+1<=sourcePdfPages?"–"+(selectedSpreadFirst+1):"");$("previous-spread").disabled=!sourcePdfBytes||current<=1;$("next-spread").disabled=!sourcePdfBytes||current>=total;}
+async function navigateSpread(direction){if(!sourcePdfBytes)return;saveCurrentSpreadEdits();selectedSpreadFirst=Math.max(1,Math.min(2*Math.ceil(sourcePdfPages/2)-1,selectedSpreadFirst+direction*2));updateIntakeInventory();try{await loadSelectedSpread()}catch(e){console.error(e);status("Spread navigation failed: "+e.message)}}
+$("previous-spread").addEventListener("click",()=>navigateSpread(-1));
+$("next-spread").addEventListener("click",()=>navigateSpread(1));
 function updateIntakeInventory(){
  const inventory=$("intake-inventory"),summary=$("intake-summary");
  inventory.hidden=!sourcePdfPages;
@@ -1794,6 +1800,7 @@ function updateIntakeInventory(){
  summary.textContent="Original PDF: "+sourcePdfPages+" physical pages; "+spreads+" possible facing pairs. CSV: "+relevant.length+" cue rows; "+printed.length+" distinct printed page references; languages: "+(languages.join(", ")||"not supplied")+". Service-page selection and supplemental-page counts require a verified page mapping; they are not inferred from these totals.";
  $("spread-first").max=String(sourcePdfPages);
  $("spread-first").value=String(selectedSpreadFirst);
+ updateSpreadNavigation();
 }
 async function loadSelectedSpread(){
  if(!sourcePdfBytes)return;
@@ -1804,11 +1811,14 @@ async function loadSelectedSpread(){
  output=await createPdf(sourcePdfBytes.slice());
  baseOutput=output.slice();
  await preview(output);
+ const saved=spreadEdits.get(selectedSpreadFirst);
+ if(saved){pageMetadata.forEach((record,i)=>{if(record&&saved[i])record.leadership.highlights=saved[i]});drawHighlights()}
  $("download").disabled=false;
  status(cueMatchReport);
 }
 $("load-spread").addEventListener("click",async()=>{
  if(!sourcePdfBytes)return;
+ saveCurrentSpreadEdits();
  selectedSpreadFirst=Math.max(1,Math.min(sourcePdfPages,Number($("spread-first").value)||1));
  updateIntakeInventory();
  try{await loadSelectedSpread()}catch(e){console.error(e);status("Spread load failed: "+e.message)}
@@ -1822,7 +1832,7 @@ $("source").addEventListener("change",async()=>{
   if(!window.PDFLib||!window.pdfjsLib)throw Error("PDF libraries unavailable.");
   sourcePdfBytes=new Uint8Array(await file.arrayBuffer());
   const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
-  sourcePdfPages=source.numPages;selectedSpreadFirst=1;
+  sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();
   updateIntakeInventory();
   await loadSelectedSpread();
  }catch(e){console.error(e);status("Import failed: "+e.message)}
