@@ -528,12 +528,84 @@ function cueCandidateDiagnostics(lines,phrase){
  rank.sort((a,b)=>b.score-a.score);
  return rank.slice(0,3).map(r=>"#"+r.line+" "+r.score.toFixed(2)+" "+r.text.slice(0,90)).join(" | ")||"no OCR lines";
 }
+// V3.89: map a fuzzy cue to an actual word-box boundary, never to OCR text.
+function hebrewBoundary(side,lines,phrase,edge){
+ const lineIndex=matchingCueLine(lines,phrase);
+ if(lineIndex===null)return null;
+ const line=lines[lineIndex],geometry=detectedLines[side]||[];
+ const inkLine=geometry.find(g=>g.id===line.id);
+ if(!inkLine)return null;
+ const words=wordCandidates(side,inkLine).slice().sort((a,b)=>b.x-a.x);
+ if(!words.length)return null;
+ const normalize=t=>normalizeCueText(hebrewCueAlias(t))
+  .replace(/יהוה|י[\u05be\u05f3\u05f4"'׳״.\- ]*י/g,"יי")
+  .replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
+ const target=normalize(phrase),source=normalize(line.text);
+ if(target.length<3||source.length<3)return null;
+ const similarity=(a,b)=>{
+  const row=Array.from({length:b.length+1},(_,i)=>i);
+  for(let i=1;i<=a.length;i++){let prior=row[0];row[0]=i;
+   for(let j=1;j<=b.length;j++){const old=row[j];row[j]=Math.min(row[j]+1,row[j-1]+1,prior+(a[i-1]===b[j-1]?0:1));prior=old;}
+  }
+  return 1-row[b.length]/Math.max(a.length,b.length,1);
+ };
+ let best=null;
+ // The cue can occur partway through a longer printed line.
+ for(const reverse of [false,true]){
+  const ordered=reverse?source.slice().reverse():source;
+  for(let i=0;i+target.length<=ordered.length;i++){
+   const scores=target.map((t,k)=>similarity(t,ordered[i+k]));
+   const strong=scores.filter(v=>v>=.72).length;
+   if(strong<Math.ceil(target.length*.75))continue;
+   const score=scores.reduce((a,b)=>a+b,0)/scores.length;
+   if(!best||score>best.score)best={score,offset:i,reverse};
+  }
+ }
+ if(!best)return null;
+ // OCR segmentation and Rivok segmentation can differ. Only infer a word
+ // boundary when the expected word count fits the physical boxes.
+ if(Math.abs(words.length-source.length)>1)return null;
+ const start=best.reverse?source.length-best.offset-target.length:best.offset;
+ const index=edge==="start"?start:start+target.length-1;
+ const physical=words[index];
+ return physical?{line:inkLine,word:physical,index,wordCount:words.length}:null;
+}
+function hebrewRangeHighlights(side,cue,ocr,geometry){
+ const start=hebrewBoundary(side,ocr,cue.startCueHebrew||cue.startCue,"start");
+ const end=hebrewBoundary(side,ocr,cue.endCueHebrew||cue.endCue,"end");
+ if(!start||!end)return null;
+ const columns=[...new Set(geometry.map(l=>l.column))].sort((a,b)=>(a===1?0:a===0?1:2)-(b===1?0:b===0?1:2));
+ const order=(line)=>columns.indexOf(line.column)*100000+line.y*10000;
+ if(order(end.line)<order(start.line)-.001)return null;
+ const selected=[];
+ for(const line of geometry){
+  if(order(line)<order(start.line)-.001||order(line)>order(end.line)+.001)continue;
+  const words=wordCandidates(side,line).slice().sort((a,b)=>b.x-a.x);
+  if(!words.length)continue;
+  const from=line.id===start.line.id?start.index:0;
+  const to=line.id===end.line.id?end.index:words.length-1;
+  if(to<from)continue;
+  for(let k=from;k<=to;k++){
+   const word=words[k];
+   selected.push({highlightId:"HL-"+cue.cueId+"-"+word.id,lineId:line.id,wordId:word.id,
+    cueId:cue.cueId,roleId:cue.role,x:word.x,y:word.y,width:word.width,height:word.height,
+    coordinateSystem:"normalized-top-left",visibleInPdf:false});
+  }
+ }
+ return selected.length?selected:null;
+}
 function assignCueHighlights(side){
  const record=pageMetadata[side],ocr=sourceTextLines[side]||[],geometry=detectedLines[side]||[];
  if(!record||!ocr.length){if(record)for(const cue of record.leadership.cues)cue.matchStatus="ocr-lines-unavailable";return 0;}
  let matches=0;
  const hebrew=record.source.languageCode==="H";
  for(const cue of record.leadership.cues){
+  if(hebrew){
+   const highlights=hebrewRangeHighlights(side,cue,ocr,geometry);
+   if(highlights){record.leadership.highlights.push(...highlights);cue.matchStatus="word-boundary-candidate-review-required";matches++;}
+   else cue.matchStatus="word-boundary-review-required";
+   continue;
+  }
   // Never convert ambiguous OCR into a guessed selection.
   const begin=matchingCueLine(ocr,hebrew?(cue.startCueHebrew||cue.startCue):cue.startCue),
         end=matchingCueLine(ocr,hebrew?(cue.endCueHebrew||cue.endCue):cue.endCue);
