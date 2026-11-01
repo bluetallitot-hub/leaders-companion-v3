@@ -296,7 +296,9 @@ function detectPrintedLines(canvas,side){
   // English prose has narrow, lightly printed lines that the old density threshold missed.
   // Require a little real ink, but do not require a full-width dense line.
   const english=pageMetadata[side]?.source?.languageCode==="E";
-  const threshold=english?2:Math.max(3,Math.floor((right-left)/95));
+  // Use row ink presence for English, rather than requiring multiple dark pixels
+  // at the same scan interval. The opening prose has light, thin strokes.
+  const threshold=english?1:Math.max(3,Math.floor((right-left)/95));
   let start=-1,last=-1;
   const emitBand=(fromRow,toRow)=>{
    if(toRow-fromRow<factor||toRow-fromRow>30*factor)return;
@@ -331,7 +333,7 @@ function detectPrintedLines(canvas,side){
   };
   for(let j=0;j<rows.length;j++){
    if(rows[j]>=threshold){if(start<0)start=j;last=j}
-   else if(start>=0&&j-last>1)emit();
+   else if(start>=0&&j-last>(english?Math.max(2,Math.round(factor*1.5)):1))emit();
   }
   emit();
  }
