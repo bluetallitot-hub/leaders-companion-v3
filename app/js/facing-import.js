@@ -441,6 +441,23 @@ function matchingCueLine(lines,phrase){
  if(runner&&scores[0].score-runner.score<.10)return null;
  return scores[0].index;
 }
+function cueCandidateDiagnostics(lines,phrase){
+ const needle=normalizeCueText(hebrewCueAlias(phrase));
+ if(!needle)return "empty cue";
+ const heb=/[\u0590-\u05ff]/u.test(needle),rank=[];
+ for(let i=0;i<lines.length;i++){
+  let best=0;
+  for(let n=1;n<=3&&i+n<=lines.length;n++){
+   const slice=lines.slice(i,i+n);
+   if(slice.some(l=>l.column!==slice[0].column))break;
+   const t=slice.map(l=>l.text).join(" ");
+   best=Math.max(best,heb?Math.max(hebrewCueSimilarity(t,needle),hebrewAnchorScore(t,needle)):cueSimilarity(t,needle));
+  }
+  rank.push({line:i+1,score:best,text:lines[i].text});
+ }
+ rank.sort((a,b)=>b.score-a.score);
+ return rank.slice(0,3).map(r=>"#"+r.line+" "+r.score.toFixed(2)+" "+r.text.slice(0,90)).join(" | ")||"no OCR lines";
+}
 function assignCueHighlights(side){
  const record=pageMetadata[side],ocr=sourceTextLines[side]||[],geometry=detectedLines[side]||[];
  if(!record||!ocr.length){if(record)for(const cue of record.leadership.cues)cue.matchStatus="ocr-lines-unavailable";return 0;}
@@ -450,7 +467,11 @@ function assignCueHighlights(side){
   // Never convert ambiguous OCR into a guessed selection.
   const begin=matchingCueLine(ocr,hebrew?(cue.startCueHebrew||cue.startCue):cue.startCue),
         end=matchingCueLine(ocr,hebrew?(cue.endCueHebrew||cue.endCue):cue.endCue);
-  if(begin===null||end===null){cue.matchStatus="anchor-review-required ("+(begin===null?"START ":"")+(end===null?"END":"")+")";continue}
+  if(begin===null||end===null){
+   cue.matchStatus="anchor-review-required ("+(begin===null?"START ":"")+(end===null?"END":"")+")";
+   rawOcrDiagnostics[side]+="\\nCUE "+cue.cueId+" START ["+cueCandidateDiagnostics(ocr,hebrew?(cue.startCueHebrew||cue.startCue):cue.startCue)+"] END ["+cueCandidateDiagnostics(ocr,hebrew?(cue.endCueHebrew||cue.endCue):cue.endCue)+"]";
+   continue;
+  }
   const first=ocr[begin],last=ocr[end];
   if(!first||!last){cue.matchStatus="anchor-review-required";continue}
   // The OCR endpoints are anchors only. Fill all intervening printed lines
