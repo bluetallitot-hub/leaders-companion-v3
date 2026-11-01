@@ -1871,6 +1871,8 @@ $("cue-file").addEventListener("change",async()=>{
 });
 $("highlight-view").addEventListener("change",()=>{highlightView=$("highlight-view").value;drawHighlights()});
 $("selection-mode").addEventListener("change",()=>{selectionMode=$("selection-mode").value;drawHighlights()});
+for(const mode of ["line","word"]){$("mode-"+mode).addEventListener("click",()=>{selectionMode=mode;$("selection-mode").value=mode;for(const m of ["line","word"])$("mode-"+m).setAttribute("aria-pressed",String(m===mode));drawHighlights()})}
+
 installHighlightSelection();
 async function runRivokAutomatically(){
  const report=$("rivok-status");
