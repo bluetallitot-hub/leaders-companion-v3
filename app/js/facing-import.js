@@ -763,16 +763,9 @@ function isolatedHebrewCueMatch(side,cue,ocr){
   }
   return hits.sort((a,b)=>b.score-a.score);
  };
- // Do not allow an isolated occurrence of "שלום" to establish the end.
- // End must contain evidence of "עמו" AND "בשלום" in one OCR group,
- // or at least an independently recognized "עמו" in the left column.
+ // Retain all V3.103 candidates; stronger evidence is a preference only.
  const beginnings=[...anchors(start,true),...progressive(start,true)];
- const endPairs=anchors(end,false);
- const endSingles=progressive(end,false).filter(hit=>{
-  const observed=ocr.filter(o=>o.id===hit.line.id).flatMap(o=>tokenize(o.text));
-  return observed.some(w=>similarity("עמו",w)>=.65);
- });
- const endings=[...endPairs,...endSingles];
+ const endings=[...anchors(end,false),...progressive(end,false)];
  const pairs=[];
  for(const a of beginnings)for(const b of endings){
   const ay=a.line.y+a.line.height/2,by=b.line.y+b.line.height/2;
@@ -782,11 +775,13 @@ function isolatedHebrewCueMatch(side,cue,ocr){
   const rightToLeft=ax>bx+.035;
   const sameColumn=Math.abs(ax-bx)<=.035;
   if(!rightToLeft&&!(sameColumn&&by>=ay-.006))continue;
-  // For a two-column verse, require the ending to be in the LEFT column.
-  if(rightToLeft&&bx>=.49)continue;
   const vertical=Math.abs(ay-by);
+  const leftColumnBonus=rightToLeft&&bx<.49?.9:0;
   const aligned=Math.abs(ay-by)<=Math.max(a.line.height,b.line.height)*1.8;
-  pairs.push({a,b,score:a.score+b.score-vertical*3+(rightToLeft?1.2:0)+(aligned?.65:0)});
+  const endText=ocr.filter(o=>o.id===b.line.id).map(o=>tokenize(o.text)).flat();
+  const hasAmo=endText.some(w=>similarity("עמו",w)>=.65);
+  const hasBshalom=endText.some(w=>similarity("בשלום",w)>=.65);
+  pairs.push({a,b,score:a.score+b.score-vertical*2+leftColumnBonus+(aligned?.35:0)+(hasAmo?.6:0)+(hasBshalom?.6:0)});
  }
  if(!pairs.length)return null;
  pairs.sort((a,b)=>b.score-a.score);
