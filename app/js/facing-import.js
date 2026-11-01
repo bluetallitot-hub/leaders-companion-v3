@@ -621,7 +621,25 @@ async function syncHighlightMetadata(){
  if(!output)return;
  const doc=await PDFLib.PDFDocument.load(output);
  storeMasterRoles(doc);
- doc.getPages().forEach((page,i)=>storePageMetadata(page,pageMetadata[i]));
+ doc.getPages().forEach((page,i)=>{
+  const record=pageMetadata[i];if(!record)return;
+  // Render the same approved line/word selection geometry into the actual PDF.
+  // Page metadata remains editable; artwork remains untouched.
+  const lines=detectedLines[i]||[],highlights=record.leadership.highlights||[];
+  const pageW=page.getWidth(),pageH=page.getHeight();
+  for(const line of lines){
+   const full=highlights.find(h=>h.lineId===line.id&&!h.wordId);
+   const overrides=highlights.filter(h=>h.lineId===line.id&&h.wordId);
+   const selections=overrides.length?wordCandidates(i,line).map(w=>({box:w,highlight:overrides.find(h=>h.wordId===w.id)})).filter(x=>x.highlight):full?[{box:line,highlight:full}]:[];
+   for(const item of selections){
+    const b=item.box,color=roleColor(item.highlight.roleId);
+    const rgb=PDFLib.rgb(parseInt(color.slice(1,3),16)/255,parseInt(color.slice(3,5),16)/255,parseInt(color.slice(5,7),16)/255);
+    page.drawRectangle({x:b.x*pageW,y:(1-b.y-b.height)*pageH,width:b.width*pageW,height:b.height*pageH,color:rgb,opacity:.24,blendMode:PDFLib.BlendMode.Multiply});
+   }
+  }
+  for(const h of highlights)h.visibleInPdf=true;
+  storePageMetadata(page,record);
+ });
  output=new Uint8Array(await doc.save());
 }
 function storePageMetadata(page,record){
