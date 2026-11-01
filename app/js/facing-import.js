@@ -401,11 +401,9 @@ function roleColor(role){
 // Word candidates are derived from actual ink gaps, never equal-width divisions.
 // Ambiguous spacing may merge adjacent words; manual line mode remains available.
 function wordCandidates(side,line){
- const recognized=ocrWordGeometry[side]?.get(line.id);
- if(recognized&&recognized.length){
-  return recognized.map((b,index)=>({id:line.id+"-word-"+index,lineId:line.id,column:line.column,
-   x:b.x,y:line.y,width:b.width,height:line.height}));
- }
+ // OCR can split a Hebrew word at nikkud or between its letters.
+ // Use OCR as a recognition aid, not as authoritative selection geometry.
+ // Printed ink gaps below provide the selectable word extents.
  const canvas=$(side===0?"output-left":"output-right"),ctx=canvas.getContext("2d",{willReadFrequently:true});
  const w=canvas.width,h=canvas.height;
  const x0=Math.max(0,Math.floor(line.x*w)),x1=Math.min(w,Math.ceil((line.x+line.width)*w));
@@ -428,10 +426,10 @@ function wordCandidates(side,line){
  const gaps=bands.slice(1).map((b,i)=>b[0]-bands[i][1]-1).sort((a,b)=>a-b);
  const median=gaps.length?gaps[Math.floor(gaps.length/2)]:0;
  const hebrew=pageMetadata[side]?.source?.languageCode==="H";
- const splitAt=Math.max(hebrew?9:5,Math.ceil(median*(hebrew?3.5:2.5)));
+ const splitAt=Math.max(hebrew?13:5,Math.ceil(median*(hebrew?4.5:2.5)));
  const words=[];let start=bands[0][0],end=bands[0][1];
  const emit=()=>{if(end-start<2)return;
-  const xx=Math.max(x0,x0+start-2),right=Math.min(x1,x0+end+3);
+  const xx=Math.max(x0,x0+start-3),right=Math.min(x1,x0+end+4);
   words.push({id:line.id+"-word-"+words.length,lineId:line.id,column:line.column,
    x:xx/w,y:line.y,width:(right-xx)/w,height:line.height});
  };
