@@ -313,12 +313,36 @@ function detectPrintedLines(canvas,side){
     x:Math.max(0,minX-pad)/w,y:top/h,
     width:(Math.min(w,maxX+pad)-Math.max(0,minX-pad))/w,height:(bottom-top)/h});
   };
+  // A dense English paragraph can form one continuous ink band across
+  // multiple lines. The previous code split at most once, then silently
+  // rejected each remaining tall band (>30px). Recursively split at row
+  // density valleys so every line has a chance to survive.
+  const splitBand=(from,to,depth=0)=>{
+   const height=to-from+1;
+   if(!english||height<=17*factor||depth>=12){emitBand(from,to);return}
+   const peak=Math.max(...rows.slice(from,to+1));
+   const candidates=[];
+   const margin=Math.max(3,Math.round(5*factor));
+   for(let j=from+margin;j<=to-margin;j++){
+    const value=rows[j];
+    if(value<=rows[j-1]&&value<=rows[j+1])
+     candidates.push({j,value,score:value/Math.max(1,peak)});
+   }
+   // Prefer whitespace valleys near the expected text-line pitch,
+   // but allow a denser valley when the band would otherwise be discarded.
+   candidates.sort((a,b)=>a.score-b.score);
+   const cut=candidates.find(c=>c.score<=.36)||
+    (height>30*factor?candidates[0]:null);
+   if(!cut){emitBand(from,to);return}
+   splitBand(from,cut.j-1,depth+1);
+   splitBand(cut.j+1,to,depth+1);
+  };
   const emit=()=>{
    if(start<0)return;
    const from=start,to=last;start=-1;
    if(to-from<factor)return;
-   // A tall ink band can contain two touching printed lines. Split only
-   // at a pronounced interior horizontal valley, never at arbitrary halves.
+   if(english){splitBand(from,to);return}
+   // Preserve the existing Hebrew behavior.
    if(to-from>17*factor){
     const values=rows.slice(from,to+1),peak=Math.max(...values);
     const valleys=[];
