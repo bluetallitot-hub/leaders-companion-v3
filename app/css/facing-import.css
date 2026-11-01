@@ -14,3 +14,13 @@
 
 /* V3.150: legible, zoomable working canvas */
 #spread-preview .preview-with-metadata{display:block;min-width:0}#spread-preview .pdf-spread{width:175%;min-width:1050px;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:12px}#spread-preview .pdf-sheet{border:1px solid #b7c8bc;box-shadow:0 2px 8px #0002}#page-zoom{width:180px;accent-color:#245d42}#cue-summary{font-size:.9rem;color:#315a47;font-weight:600}
+
+/* V3.151: full-size spread, no thumbnail fallback */
+#spread-preview{display:block;width:100%;overflow-x:auto;overflow-y:visible}
+#spread-preview[hidden]{display:none!important}
+#spread-preview .preview-with-metadata{display:block;width:max-content;min-width:100%}
+#spread-preview .pdf-spread{display:grid!important;grid-template-columns:repeat(2, minmax(0,1fr))!important;width:175%;min-width:1150px;max-width:none!important;gap:14px;box-sizing:border-box}
+#spread-preview .pdf-sheet{width:100%;min-width:0}
+#spread-preview .pdf-sheet canvas:not(.highlight-overlay){width:100%;height:auto;display:block}
+#spread-preview .pdf-sheet .highlight-overlay{width:100%;height:100%}
+#mode-line[aria-pressed="true"],#mode-word[aria-pressed="true"]{outline:3px solid #c89b1f;outline-offset:2px}
