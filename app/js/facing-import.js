@@ -1140,6 +1140,21 @@ $("cue-file").addEventListener("change",async()=>{
 $("highlight-view").addEventListener("change",()=>{highlightView=$("highlight-view").value;drawHighlights()});
 $("selection-mode").addEventListener("change",()=>{selectionMode=$("selection-mode").value;drawHighlights()});
 installHighlightSelection();
+$("rivok-run").addEventListener("click",async()=>{
+ const button=$("rivok-run"),report=$("rivok-status");
+ const side=pageMetadata.findIndex(p=>p?.source?.languageCode==="H");
+ if(side<0){report.textContent="Upload a Hebrew page first.";return;}
+ if(!window.RivokBrowser){report.textContent="Rivok browser module unavailable.";return;}
+ button.disabled=true;
+ try{
+  const canvas=$(side===0?"output-left":"output-right");
+  const result=await RivokBrowser.detect(canvas,msg=>{report.textContent=msg;});
+  rivokOverlay={side,width:result.imageWidth,height:result.imageHeight,words:result.words};
+  drawHighlights();
+  report.textContent="Rivok detected "+result.words.length+" regions. Purple outlines are experimental word candidates; inspect יִתְבָּרַךְ. No PDF selections changed.";
+ }catch(error){console.error(error);report.textContent="Rivok browser detection failed: "+error.message;}
+ finally{button.disabled=false;}
+});
 $("rivok-export").addEventListener("click",()=>{
  const side=pageMetadata.findIndex(p=>p?.source?.languageCode==="H");
  if(side<0){$("rivok-status").textContent="Upload a Hebrew page first.";return;}
