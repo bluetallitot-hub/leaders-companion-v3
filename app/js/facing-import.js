@@ -274,7 +274,7 @@ function refreshCueVisibilityPicker(){
  const previous=visibleCueId;select.replaceChildren();
  const blank=document.createElement("option");blank.value="";blank.textContent="No cue selected — clean pages";select.append(blank);
  for(const id of ids){const cue=cues.find(c=>c.cueId===id);const option=document.createElement("option");option.value=id;option.textContent=(cue?.role||"Leader")+" — "+id;select.append(option)}
- visibleCueId=ids.includes(previous)?previous:"";select.value=visibleCueId;
+ visibleCueId=ids.includes(previous)?previous:(ids.find(id=>pageMetadata.some(p=>p?.leadership?.highlights?.some(h=>h.cueId===id)))||"");select.value=visibleCueId;
 }
 
 // Analysis-only enhancement: original PDF and visible preview remain unchanged.
@@ -626,16 +626,48 @@ function hebrewRangeHighlights(side,cue,ocr,geometry){
  }
  return selected.length?selected:null;
 }
+
+// Best-effort Hebrew proposal: score ANY matching cue words against OCR lines.
+// A proposal is deliberately editable and never treated as verified.
+function tentativeHebrewHighlights(side,cue,ocr,geometry){
+ if(!geometry.length)return null;
+ const norm=t=>normalizeCueText(String(t||"")).replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
+ const score=(phrase,line)=>{
+  const a=norm(phrase),b=norm(line.text);if(!a.length||!b.length)return 0;
+  let hits=0;
+  for(const word of a)if(b.some(w=>w===word||(word.length>=3&&w.length>=3&&(w.includes(word)||word.includes(w)))))hits++;
+  return hits/a.length;
+ };
+ const ranked=phrase=>ocr.map(l=>({line:geometry.find(g=>g.id===l.id),score:score(phrase,l)}))
+  .filter(v=>v.line&&v.score>0).sort((a,b)=>b.score-a.score);
+ const starts=ranked(cue.startCueHebrew||cue.startCue),ends=ranked(cue.endCueHebrew||cue.endCue);
+ const columns=[...new Set(geometry.map(l=>l.column))].sort((a,b)=>b-a);
+ const order=l=>columns.indexOf(l.column)*100000+l.y*10000;
+ let start=starts[0]?.line,end=ends[0]?.line;
+ if(start&&end&&order(end)<order(start)){
+  const alternative=ends.find(v=>order(v.line)>=order(start));
+  if(alternative)end=alternative.line;
+ }
+ if(!start&&!end)return null;
+ if(!start)start=end;
+ if(!end)end=start;
+ const low=Math.min(order(start),order(end)),high=Math.max(order(start),order(end));
+ const chosen=geometry.filter(l=>order(l)>=low-.001&&order(l)<=high+.001);
+ if(!chosen.length)return null;
+ return chosen.map(line=>({highlightId:"HL-"+cue.cueId+"-"+line.id,lineId:line.id,
+  cueId:cue.cueId,roleId:cue.role,x:line.x,y:line.y,width:line.width,height:line.height,
+  coordinateSystem:"normalized-top-left",visibleInPdf:false,tentative:true}));
+}
 function assignCueHighlights(side){
  const record=pageMetadata[side],ocr=sourceTextLines[side]||[],geometry=detectedLines[side]||[];
- if(!record||!ocr.length){if(record)for(const cue of record.leadership.cues)cue.matchStatus="ocr-lines-unavailable";return 0;}
+ if(!record)return 0;
  let matches=0;
  const hebrew=record.source.languageCode==="H";
  for(const cue of record.leadership.cues){
   if(hebrew){
    const highlights=hebrewRangeHighlights(side,cue,ocr,geometry);
    if(highlights){record.leadership.highlights.push(...highlights);cue.matchStatus="word-boundary-candidate-review-required";matches++;}
-   else cue.matchStatus="word-boundary-review-required";
+   else {const guess=tentativeHebrewHighlights(side,cue,ocr,geometry);if(guess){record.leadership.highlights.push(...guess);cue.matchStatus="tentative-highlight-review-required";matches++;}else cue.matchStatus="no-reliable-position-found";}
    continue;
   }
   // Never convert ambiguous OCR into a guessed selection.
@@ -1460,7 +1492,7 @@ async function autoMatchCues(){
   if(!pageMetadata[side].leadership.cues.length)continue;
   status("Reading "+(side===0?"left":"right")+" page for cue anchors...");
   try{sourceTextLines[side]=await recognizeCueLines(side);if(pageMetadata[side].source.languageCode==="H"){status("Running independent Hebrew line OCR before cue matching...");sourceTextLines[side]=await secondPassHebrewLines(side,sourceTextLines[side]);}total+=assignCueHighlights(side)}
-  catch(e){rawOcrDiagnostics[side]="OCR error: "+e.message;console.warn("Cue OCR unavailable",e);for(const cue of pageMetadata[side].leadership.cues)cue.matchStatus="ocr-error: "+e.message}
+  catch(e){rawOcrDiagnostics[side]="OCR error: "+e.message;console.warn("Cue OCR unavailable",e);total+=assignCueHighlights(side);for(const cue of pageMetadata[side].leadership.cues)if(cue.matchStatus==="unmatched-review-required")cue.matchStatus="ocr-error: "+e.message}
  }
  $("ocr-diagnostics").textContent=pageMetadata.map((r,i)=>"Page "+(r.source.sourcePage||i+1)+" OCR ("+(sourceTextLines[i]||[]).length+" mapped lines):\\n"+(sourceTextLines[i]||[]).map(l=>l.text).join("\\n")+"\\n\\nRAW OCR DIAGNOSTICS:\\n"+(rawOcrDiagnostics[i]||"Not run")).join("\\n\\n");
  cueMatchReport=total+" of "+pageMetadata.reduce((n,r)=>n+r.leadership.cues.length,0)+" cues automatically matched. "+pageMetadata.flatMap(r=>r.leadership.cues.map(c=>c.cueId+": "+c.matchStatus)).join("; ");
