@@ -263,10 +263,24 @@ function cueRowsForPage(ref,kind,language){
 }
 function attachPageRecord(page,entry,language){
  const cues=cueRowsForPage(entry.reference,entry.kind,language);
- const record={schema:"leaders-companion-v3-page-record",version:1,outputPage:entry.outputPage,
-  sourceReference:entry.reference,sourceKind:entry.kind,sourcePdfPage:entry.sourcePage||null,
+ const fields={};
+ for(const cue of cues)for(const [key,value] of Object.entries(cue))if(value!==""&&value!=null){
+  if(!fields[key])fields[key]=[];if(!fields[key].includes(value))fields[key].push(value);
+ }
+ const title=cues.map(c=>c.prayer_title||c.prayer_name||c.title||"").find(Boolean)||null;
+ const record={schema:"leaders-companion-v3-page-record",version:2,
+  identity:{outputPage:entry.outputPage,totalPages:null,sourceReference:entry.reference,sourceKind:entry.kind,
+   sourcePdfPage:entry.sourcePage||null,printedPage:entry.kind==="printed"?String(entry.printedPage||entry.reference).split("-")[0]:"SUP",
+   language:language||null,placeholder:!!entry.placeholder},
+  outputPage:entry.outputPage,sourceReference:entry.reference,sourceKind:entry.kind,sourcePdfPage:entry.sourcePage||null,
   printedPage:entry.kind==="printed"?String(entry.printedPage||entry.reference).split("-")[0]:"SUP",
-  language:language||null,prayerTitle:null,cues,highlights:[],roles:[...roleAssignments],opacity:[...roleOpacity]};
+  language:language||null,prayerTitle:title,fields,cues,
+  leadership:{cues,roles:[...roleAssignments],opacity:[...roleOpacity],highlights:[],reviewStatus:"unreviewed"},
+  identification:{prayerTitle:title,serviceCodes:fields.service_code||[],sectionIds:fields.section_id||[],
+   cueIds:cues.map(c=>c.cue_id).filter(Boolean),sequence:fields.sequence||[]},
+  production:{frameworkBoxes:true,enhancement:"pending",pageStatus:"assembled",notes:fields.leader_notes||[]},
+  content:{heading:null,instructions:null,ocr:null},
+  highlights:[],roles:[...roleAssignments],opacity:[...roleOpacity]};
  page.node.set(PDFLib.PDFName.of("LCPageRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(record)));
  entry.cueIds=cues.map(c=>c.cue_id).filter(Boolean);entry.language=language||null;
  return record;
@@ -282,8 +296,14 @@ async function buildReducedPdf(){
   else throw Error("Unrecognized cue page reference: "+ref);
   for(const index of indices){const key=(source===original?"original":ref)+":"+index;if(included.has(key))continue;included.add(key);const [copy]=await out.copyPages(source,[index]);out.addPage(copy);{const entry={reference:ref,kind,outputPage:out.getPageCount(),sourcePage:index+1};const mapping=kind==="printed"?Object.entries(pageMapping).find(([p,m])=>expandRef(ref).includes(Number(p))&&(Number(m.e)===index+1||Number(m.h)===index+1)):null;const language=mapping?(Number(mapping[1].e)===index+1?"E":"H"):null;if(mapping)entry.printedPage=mapping[0];attachPageRecord(copy,entry,language);manifestPages.push(entry)}}
  }
+ for(const page of out.getPages()){
+  const raw=page.node.get(PDFLib.PDFName.of("LCPageRecord"));
+  if(!raw)continue;
+  const record=JSON.parse(raw.decodeText());record.identity.totalPages=out.getPageCount();
+  page.node.set(PDFLib.PDFName.of("LCPageRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(record)));
+ }
  await out.attach(new TextEncoder().encode("\uFEFF"+csvText()),"edited-cues.csv",{mimeType:"text/csv",description:"Service cue metadata"});
- const manifest={schema:"leaders-companion-v3-service-map",version:3,pages:manifestPages,roles:[...roleAssignments],opacity:[...roleOpacity]};
+ const manifest={schema:"leaders-companion-v3-service-map",version:4,pages:manifestPages,roles:[...roleAssignments],opacity:[...roleOpacity]};
  await out.attach(new TextEncoder().encode(JSON.stringify(manifest,null,2)),"page-map.json",{mimeType:"application/json"});
  window.lastServiceManifest=manifest;reducedPdfBytes=new Uint8Array(await out.save());return reducedPdfBytes;
 }
