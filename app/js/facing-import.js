@@ -1944,6 +1944,7 @@ function manifestEntry(index){return serviceManifest?.pages?.find(p=>Number(p.ou
 function downloadPageNumber(index){
  const entry=manifestEntry(index);
  if(!entry)return String(index);
+ if(entry.kind==="supplement"||String(entry.reference||"").toUpperCase().startsWith("SUP-"))return "SUP";
  if(entry.kind==="printed"){
   const ref=String(entry.reference||"");
   if(/^\\d+-\\d+$/.test(ref)){
