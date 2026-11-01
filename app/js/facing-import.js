@@ -240,7 +240,7 @@ function applyImportedCues(){
  if(!pageMetadata.length)return;
  for(const record of pageMetadata){
   const code=record.source.languageCode,number=record.source.originalPageNumber;
-  const matches=importedCues.filter(c=>{const ref=String(c.source_page||c.printed_page||"").trim();const match=ref.match(/^(\\d+)(?:-(\\d+))?$/);const page=Number(number);const inRange=match&&page>=Number(match[1])&&page<=Number(match[2]||match[1]);const language=String(c.language||"").toUpperCase();return inRange&&(!language||language===code||language==="BOTH"||language==="E/H")});
+  const matches=importedCues.filter(c=>{const ref=String(c.source_page||c.printed_page||"").trim();const manifestRef=record.source.serviceReference;const sameReference=manifestRef&&(ref===manifestRef||(/^(\\d+)(?:-(\\d+))?$/.test(ref)&&/^(\\d+)(?:-(\\d+))?$/.test(manifestRef)&&Number(manifestRef)>=Number(ref.split("-")[0])&&Number(manifestRef)<=Number(ref.split("-").at(-1))));const match=ref.match(/^(\\d+)(?:-(\\d+))?$/);const page=Number(number);const inRange=match&&page>=Number(match[1])&&page<=Number(match[2]||match[1]);const language=String(c.language||"").toUpperCase();return (sameReference||(!manifestRef&&inRange))&&(!language||language===code||language==="BOTH"||language==="E/H"||language==="H+E")});
   record.leadership.cues=matches.map((c,i)=>({
    cueId:c.cue_id||c.test_id||"import-"+i,service:c.service||null,role:c.role_name||c.role_code||c.role||null,
    style:c.style||null,styleSlot:null,startCue:c.cue_left||c.begin_cue||"",endCue:c.cue_right||c.end_cue||"",
@@ -275,7 +275,7 @@ function refreshCueVisibilityPicker(){
  const blank=document.createElement("option");blank.value="";blank.textContent="No cue selected — clean pages";select.append(blank);
  const all=document.createElement("option");all.value="__all__";all.textContent="All proposed highlights (English + Hebrew)";select.append(all);
  for(const id of ids){const cue=cues.find(c=>c.cueId===id);const option=document.createElement("option");option.value=id;option.textContent=(cue?.role||"Leader")+" — "+id;select.append(option)}
- visibleCueId=ids.includes(previous)||previous==="__all__"?previous:(ids.some(id=>pageMetadata.some(p=>p?.leadership?.highlights?.some(h=>h.cueId===id)))?"__all__":"");select.value=visibleCueId;
+ visibleCueId=ids.includes(previous)||previous==="__all__"?previous:"__all__";select.value=visibleCueId;
 }
 
 // Analysis-only enhancement: original PDF and visible preview remain unchanged.
@@ -1723,6 +1723,7 @@ async function createPdf(bytes){
  if(records.length===2&&records[0].meta.language==="Hebrew"&&records[1].meta.language==="English")records.reverse();
  pageMetadata=records.map(r=>makeIntakeRecord(r.meta,r.sourceIndex));
  pageMetadata.forEach(r=>{r.leadership.highlights=[];r.leadership.role=roleConfig.id});
+ if(serviceManifest?.pages){for(let i=0;i<pageMetadata.length;i++){const sourcePage=selectedSpreadFirst+i,entry=serviceManifest.pages.find(p=>p.outputPage===sourcePage);if(!entry)continue;const record=pageMetadata[i];record.source.serviceReference=entry.reference;record.source.originalPageNumber=entry.kind==="printed"?String(entry.reference):record.source.originalPageNumber;const original=entry.sourcePage;const pair=servicePageMapping?.[String(entry.reference)];if(pair&&original){const language=Number(pair.e)===original?"English":Number(pair.h)===original?"Hebrew":null;if(language){record.source.language=language;record.source.languageCode=language==="English"?"E":"H";}}}}
  applyImportedCues();
  storeMasterRoles(out);
  for(let i=0;i<records.length;i++){
@@ -1798,7 +1799,7 @@ async function preview(bytes){
  await autoMatchCues();
 }
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
-let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0;
+let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null;
 const spreadEdits=new Map();
 function saveCurrentSpreadEdits(){if(pageMetadata.length)spreadEdits.set(selectedSpreadFirst,pageMetadata.map(r=>r?JSON.parse(JSON.stringify(r.leadership.highlights||[])):[]));}
 function updateSpreadNavigation(){const total=Math.ceil(sourcePdfPages/2),current=Math.ceil(selectedSpreadFirst/2);$("spread-position").textContent="Spread "+current+" of "+(total||"—")+" · PDF pages "+selectedSpreadFirst+(selectedSpreadFirst+1<=sourcePdfPages?"–"+(selectedSpreadFirst+1):"");$("previous-spread").disabled=!sourcePdfBytes||current<=1;$("next-spread").disabled=!sourcePdfBytes||current>=total;}
@@ -1955,6 +1956,7 @@ async function restoreSiddurIntake(){
  importedCues=rows.filter(c=>c.source_page||c.printed_page);
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  filename=(data.pdfName||"siddur.pdf").replace(/\.pdf$/i,"");
+ serviceManifest=data.manifest||null;servicePageMapping=data.pageMapping||null;
  sourcePdfBytes=new Uint8Array(data.pdf);
  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
  sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();
@@ -1965,5 +1967,5 @@ async function restoreSiddurIntake(){
 if(new URLSearchParams(location.search).get("intake")==="1")restoreSiddurIntake().catch(e=>status("Intake handoff failed: "+e.message));
 
 // V3.150 editor visibility controls
-const zoomControl=$("page-zoom");if(zoomControl){const applyZoom=()=>{$("spread-preview").querySelector(".pdf-spread").style.width=zoomControl.value+"%";$("zoom-value").textContent=zoomControl.value+"%"};zoomControl.addEventListener("input",applyZoom);applyZoom();}
+const zoomControl=$("page-zoom");if(zoomControl){const applyZoom=()=>{$("spread-preview").querySelector(".pdf-spread").style.width=zoomControl.value+"%";$("spread-preview").querySelector(".pdf-spread").style.minWidth="0";$("zoom-value").textContent=zoomControl.value+"%"};zoomControl.addEventListener("input",applyZoom);applyZoom();}
 $("show-detection")?.addEventListener("click",()=>{highlightView=highlightView==="detection"?"highlights":"detection";$("highlight-view").value=highlightView;$("show-detection").textContent=highlightView==="detection"?"Hide selectable lines":"Show selectable lines";drawHighlights()});
