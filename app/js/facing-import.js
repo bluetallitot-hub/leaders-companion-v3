@@ -1940,50 +1940,113 @@ $("rivok-json").addEventListener("change",async e=>{
 });
 $("rivok-clear").addEventListener("click",()=>{rivokOverlay=null;drawHighlights();$("rivok-status").textContent="Rivok overlay cleared.";});
 $("hebrew-ocr-diagnostic").addEventListener("click",diagnoseHebrewWordCounts);
+function manifestEntry(index){return serviceManifest?.pages?.find(p=>Number(p.outputPage)===index)||null;}
 function downloadPageNumber(index){
- const entry=serviceManifest?.pages?.find(p=>p.outputPage===index);
+ const entry=manifestEntry(index);
  if(!entry)return String(index);
- if(entry.kind==="printed")return String(entry.reference||index);
+ if(entry.kind==="printed"){
+  const ref=String(entry.reference||"");
+  if(/^\\d+-\\d+$/.test(ref)){
+   const [a,b]=ref.split("-").map(Number);
+   const pair=servicePageMapping?.[String(a)];
+   if(pair){if(Number(pair.e)===Number(entry.sourcePage))return String(a);if(Number(pair.h)===Number(entry.sourcePage))return String(a);}
+   return ref;
+  }
+  return ref||String(index);
+ }
  return "";
+}
+function cuesForExportPage(index){
+ const entry=manifestEntry(index),ref=String(entry?.reference||"").trim();
+ if(!ref)return [];
+ return importedCues.filter(c=>{
+  const cr=String(c.source_page||c.printed_page||"").trim();
+  if(cr===ref)return true;
+  const a=cr.match(/^(\\d+)(?:-(\\d+))?$/),b=ref.match(/^(\\d+)(?:-(\\d+))?$/);
+  return !!(a&&b&&Number(a[1])<=Number(b[2]||b[1])&&Number(b[1])<=Number(a[2]||a[1]));
+ });
+}
+function printable(value){return String(value||"").replace(/[^\\x20-\\x7e]/g,"").trim();}
+function exportProgress(done,total,stage){
+ const percent=Math.round(done/Math.max(1,total)*100);
+ const bar=$("export-progress"),label=$("export-status");
+ if(bar)bar.value=percent;
+ if(label)label.textContent=stage+" — "+done+" / "+total+" pages ("+percent+"%)";
 }
 async function exportEntireService(){
  if(!sourcePdfBytes)throw Error("No service PDF loaded.");
  saveCurrentSpreadEdits();
  const original=await PDFLib.PDFDocument.load(sourcePdfBytes.slice()),result=await PDFLib.PDFDocument.create();
- const pages=await result.copyPages(original,Array.from({length:original.getPageCount()},(_,i)=>i));
- const font=await result.embedFont(PDFLib.StandardFonts.HelveticaBold);
+ const total=original.getPageCount(),quality=$("export-quality")?.value||"original";
+ const font=await result.embedFont(PDFLib.StandardFonts.Helvetica);
+ const bold=await result.embedFont(PDFLib.StandardFonts.HelveticaBold);
+ const sourceDoc=quality==="enhanced"?await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise:null;
  let highlighted=0;
- for(let i=0;i<pages.length;i++){
-  const page=pages[i];result.addPage(page);
-  const spread=2*Math.floor(i/2)+1,side=i%2;
+ const metadata={schema:"leaders-companion-v3-export",version:3,source:filename,created:new Date().toISOString(),totalPages:total,quality,pages:[],roles:serviceManifest?.roles||[],opacity:[...serviceRoleOpacity]};
+ for(let i=0;i<total;i++){
+  exportProgress(i,total,"Building complete service");
+  const entry=manifestEntry(i+1),cues=cuesForExportPage(i+1);
+  let page;
+  if(sourceDoc){
+   const src=await sourceDoc.getPage(i+1),viewport=src.getViewport({scale:2});
+   const canvas=document.createElement("canvas");canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+   await src.render({canvasContext:canvas.getContext("2d"),viewport}).promise;
+   // Enhancement is applied to the full original page without cropping or repositioning.
+   // Thus normalized highlight coordinates stay in the same coordinate system.
+   cleanPixels(canvas);
+   const image=await result.embedPng(await (await fetch(canvas.toDataURL("image/png"))).arrayBuffer());
+   const originalPage=original.getPage(i),w=originalPage.getWidth(),ht=originalPage.getHeight();
+   page=result.addPage([w,ht]);page.drawImage(image,{x:0,y:0,width:w,height:ht});
+  }else{
+   const copied=await result.copyPages(original,[i]);page=result.addPage(copied[0]);
+  }
+  const width=page.getWidth(),height=page.getHeight(),spread=2*Math.floor(i/2)+1,side=i%2;
   const edits=spreadEdits.get(spread)?.[side]||[];
-  const width=page.getWidth(),height=page.getHeight();
   for(const mark of edits){
    if(![mark.x,mark.y,mark.width,mark.height].every(Number.isFinite)||mark.width<=0||mark.height<=0)continue;
    const hex=roleColor(mark.roleId).replace("#",""),value=parseInt(hex,16);
-   const color=PDFLib.rgb(((value>>16)&255)/255,((value>>8)&255)/255,(value&255)/255);
-   page.drawRectangle({x:mark.x*width,y:(1-mark.y-mark.height)*height,width:mark.width*width,height:mark.height*height,color,opacity:highlightAlpha(mark),blendMode:"Multiply"});
+   page.drawRectangle({x:mark.x*width,y:(1-mark.y-mark.height)*height,width:mark.width*width,height:mark.height*height,color:PDFLib.rgb(((value>>16)&255)/255,((value>>8)&255)/255,(value&255)/255),opacity:highlightAlpha(mark),blendMode:"Multiply"});
    highlighted++;
   }
-  const number=downloadPageNumber(i+1);
+  const number=downloadPageNumber(i+1),title=printable(cues.find(c=>c.prayer_action)?.prayer_action||"");
+  // Header/footer are drawn over a white strip, outside the main text wherever possible.
   if(number){
-   const size=13,tw=font.widthOfTextAtSize(number,size);
-   page.drawRectangle({x:width-64,y:height-38,width:55,height:25,color:PDFLib.rgb(1,1,1),opacity:.92});
-   page.drawText(number,{x:width-12-tw,y:height-30,size,font,color:PDFLib.rgb(.7,.1,.13)});
+   const size=12,tw=bold.widthOfTextAtSize(number,size);
+   page.drawRectangle({x:width-105,y:height-35,width:95,height:25,color:PDFLib.rgb(1,1,1),opacity:.95});
+   page.drawText(number,{x:width-14-tw,y:height-27,size,font:bold,color:PDFLib.rgb(.7,.1,.13)});
   }
+  if(title){
+   const text=title.slice(0,75),size=10;
+   page.drawRectangle({x:12,y:height-35,width:Math.min(width-130,400),height:24,color:PDFLib.rgb(1,1,1),opacity:.94});
+   page.drawText(text,{x:16,y:height-26,size,font:bold,color:PDFLib.rgb(.12,.26,.31)});
+  }
+  const cueText=cues.map(c=>[c.cue_id,c.role_name||c.role_code,c.cue_left,c.cue_right].map(printable).filter(Boolean).join(" | ")).filter(Boolean);
+  if(cueText.length){
+   const maxLines=Math.min(3,cueText.length),lineHeight=10;
+   page.drawRectangle({x:8,y:4,width:width-16,height:maxLines*lineHeight+8,color:PDFLib.rgb(1,1,1),opacity:.96});
+   cueText.slice(0,maxLines).forEach((line,k)=>page.drawText(line.slice(0,105),{x:12,y:8+(maxLines-1-k)*lineHeight,size:8,font,color:PDFLib.rgb(.15,.2,.22)}));
+  }
+  const pageInfo={outputPage:i+1,printedPage:number,manifest:entry,cues,prayerTitle:cues.find(c=>c.prayer_action)?.prayer_action||null,highlights:edits};
+  metadata.pages.push(pageInfo);
+  page.node.set(PDFLib.PDFName.of("LCIntakeRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(pageInfo)));
+  // Yield to the UI so the progress bar can repaint during large exports.
+  if(i%2===0)await new Promise(resolve=>setTimeout(resolve,0));
  }
- return {bytes:new Uint8Array(await result.save()),pages:pages.length,highlighted};
+ if(typeof result.attach==="function")await result.attach(new TextEncoder().encode(JSON.stringify(metadata,null,2)),"leaders-companion-service-metadata.json",{mimeType:"application/json",description:"Page map, cues, prayer titles and highlight geometry"});
+ result.setTitle(filename+" — Leader's Companion service framework");
+ result.setSubject("Complete service pages with cue metadata, page references, and visible highlights");
+ exportProgress(total,total,"Complete");
+ return {bytes:new Uint8Array(await result.save()),pages:total,highlighted};
 }
 $("download").addEventListener("click",async()=>{
  const button=$("download");button.disabled=true;
  try{
-  status("Exporting all "+sourcePdfPages+" service pages with visible highlights…");
   const result=await exportEntireService();
   const url=URL.createObjectURL(new Blob([result.bytes],{type:"application/pdf"}));
-  const a=document.createElement("a");a.href=url;a.download=filename+"-complete-highlighted.pdf";
+  const a=document.createElement("a");a.href=url;a.download=filename+"-service-framework.pdf";
   document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-  status("Downloaded "+result.pages+" pages with "+result.highlighted+" visible highlight rectangles. Printed page numbers included where mapped.");
- }catch(e){console.error(e);status("Full-service export failed: "+e.message)}
+  status("Downloaded "+result.pages+" pages with "+result.highlighted+" visible highlights and embedded page/cue metadata.");
+ }catch(e){console.error(e);status("Full-service export failed: "+e.message);$("export-status").textContent="Export failed: "+e.message}
  finally{button.disabled=false}
 });
 
