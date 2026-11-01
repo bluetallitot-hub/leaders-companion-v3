@@ -1,7 +1,7 @@
 "use strict";
 const $=id=>document.getElementById(id);
 const W=612,H=792,REGIONS=[{x:171.36,y:98,w:380.88,h:540},{x:59.76,y:98,w:380.88,h:540}];
-let output=null,filename="siddur",pageMetadata=[],roleConfig=null,highlightDraft=null,importedCues=[];
+let output=null,baseOutput=null,filename="siddur",pageMetadata=[],roleConfig=null,highlightDraft=null,importedCues=[];
 function status(s){$("status").textContent=s}
 const workerURL="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
 function drawTemplate(page,side){
@@ -513,7 +513,7 @@ function installHighlightSelection(){
   const nearest=p=>{
    const lines=detectedLines[i]||[];
    const inside=lines.filter(l=>p.x>=l.x-.01&&p.x<=l.x+l.width+.01&&p.y>=l.y-.007&&p.y<=l.y+l.height+.007);
-   if(inside.length)return inside[0];
+   if(inside.length)return inside.sort((a,b)=>Math.abs(p.y-a.y-a.height/2)-Math.abs(p.y-b.y-b.height/2))[0];
    const recovered=recoverClickedLine(i,p);if(recovered)return recovered;
    return lines.filter(l=>p.x>=l.x-.02&&p.x<=l.x+l.width+.02&&Math.abs(p.y-l.y-l.height/2)<.014)
     .sort((a,b)=>Math.abs(p.y-a.y-a.height/2)-Math.abs(p.y-b.y-b.height/2))[0]||null;
@@ -530,7 +530,9 @@ function installHighlightSelection(){
    const end=target(point(e))||start,items=selectionMode==="word"?getWordGeometry(i):detectedLines[i];
    const a=items.findIndex(x=>x.id===start.id),b=items.findIndex(x=>x.id===end.id);
    if(a<0||b<0){start=null;return}
-   const chosen=a===b?[start]:items.slice(Math.min(a,b),Math.max(a,b)+1).filter(l=>l.column===start.column);
+   const ordered=items.slice().sort((u,v)=>u.column-v.column||u.y-v.y||u.x-v.x);
+   const from=ordered.findIndex(x=>x.id===start.id),to=ordered.findIndex(x=>x.id===end.id);
+   const chosen=from===to?[start]:ordered.slice(Math.min(from,to),Math.max(from,to)+1).filter(l=>l.column===start.column);
    const highlights=pageMetadata[i].leadership.highlights;
    for(const item of chosen){
     const role=pageMetadata[i].leadership.cues[0]?.role||roleConfig.id;
@@ -619,7 +621,7 @@ async function autoMatchCues(){
 }
 async function syncHighlightMetadata(){
  if(!output)return;
- const doc=await PDFLib.PDFDocument.load(output);
+ const doc=await PDFLib.PDFDocument.load(baseOutput||output);
  storeMasterRoles(doc);
  doc.getPages().forEach((page,i)=>{
   const record=pageMetadata[i];if(!record)return;
@@ -634,7 +636,7 @@ async function syncHighlightMetadata(){
    for(const item of selections){
     const b=item.box,color=roleColor(item.highlight.roleId);
     const rgb=PDFLib.rgb(parseInt(color.slice(1,3),16)/255,parseInt(color.slice(3,5),16)/255,parseInt(color.slice(5,7),16)/255);
-    page.drawRectangle({x:b.x*pageW,y:(1-b.y-b.height)*pageH,width:b.width*pageW,height:b.height*pageH,color:rgb,opacity:.24,blendMode:PDFLib.BlendMode.Multiply});
+    page.drawRectangle({x:b.x*pageW,y:(1-b.y-b.height)*pageH,width:b.width*pageW,height:b.height*pageH,color:rgb,opacity:.34,blendMode:PDFLib.BlendMode.Multiply});
    }
   }
   for(const h of highlights)h.visibleInPdf=true;
@@ -740,12 +742,13 @@ async function preview(bytes){
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 $("source").addEventListener("change",async()=>{
  const file=$("source").files[0];if(!file)return;
- $("download").disabled=true;output=null;pageMetadata=[];$("spread-preview").hidden=true;
+ $("download").disabled=true;output=null;baseOutput=null;pageMetadata=[];$("spread-preview").hidden=true;
  filename=file.name.replace(/\.pdf$/i,"")||"siddur";
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  try{
   if(!window.PDFLib||!window.pdfjsLib)throw Error("PDF libraries unavailable.");
   output=await createPdf(new Uint8Array(await file.arrayBuffer()));
+  baseOutput=output.slice();
   await preview(output);$("download").disabled=false;
   status(cueMatchReport);
  }catch(e){console.error(e);status("Import failed: "+e.message)}
