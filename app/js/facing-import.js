@@ -716,6 +716,60 @@ function tentativeEnglishHighlights(side,cue,ocr,geometry){
   coordinateSystem:"normalized-top-left",visibleInPdf:false,tentative:true
  }));
 }
+// Isolated Hebrew engine v1: Rivok geometry + OCR text, no legacy Hebrew matcher.
+function isolatedHebrewCueMatch(side,cue,ocr){
+ const words=rivokWordsBySide[side],lines=detectedLines[side];
+ if(!words?.length||!lines?.length)return null;
+ const tokenize=t=>normalizeCueText(hebrewCueAlias(t)).replace(/יהוה/g,"יי")
+  .replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
+ const start=tokenize(cue.startCueHebrew||cue.startCue),end=tokenize(cue.endCueHebrew||cue.endCue);
+ const similarity=(a,b)=>{
+  const dp=Array.from({length:b.length+1},(_,i)=>i);
+  for(let i=1;i<=a.length;i++){let prev=dp[0];dp[0]=i;
+   for(let j=1;j<=b.length;j++){const old=dp[j];dp[j]=Math.min(dp[j]+1,dp[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=old;}}
+  return 1-dp[b.length]/Math.max(a.length,b.length,1);
+ };
+ const anchors=(phrase,begin)=>{
+  const indices=begin?[1,2]:[phrase.length-2,phrase.length-1];
+  if(indices[0]<0||indices[1]>=phrase.length)return [];
+  const hits=[];
+  for(const observation of ocr){
+   const line=lines.find(l=>l.id===observation.id);if(!line)continue;
+   const raw=tokenize(observation.text);
+   for(const seq of [raw,raw.slice().reverse()]){
+    for(let j=0;j+1<seq.length;j++){
+     const x=similarity(phrase[indices[0]],seq[j]),y=similarity(phrase[indices[1]],seq[j+1]);
+     if(x<.55||y<.55)continue;
+     hits.push({line,score:x+y,begin});
+    }
+   }
+  }
+  return hits.sort((a,b)=>b.score-a.score);
+ };
+ const beginnings=anchors(start,true),endings=anchors(end,false),pairs=[];
+ for(const a of beginnings)for(const b of endings){
+  const ay=a.line.y+a.line.height/2,by=b.line.y+b.line.height/2;
+  if(Math.abs(ay-by)>Math.max(a.line.height,b.line.height)*1.1)continue;
+  const ax=a.line.x+a.line.width/2,bx=b.line.x+b.line.width/2;
+  if(ax<=bx+.01)continue;
+  pairs.push({a,b,score:a.score+b.score-Math.abs(ay-by)*10});
+ }
+ if(!pairs.length)return null;
+ pairs.sort((a,b)=>b.score-a.score);
+ const {a,b}=pairs[0];
+ const top=Math.min(a.line.y,b.line.y),bottom=Math.max(a.line.y+a.line.height,b.line.y+b.line.height);
+ const left=Math.min(a.line.x,b.line.x),right=Math.max(a.line.x+a.line.width,b.line.x+b.line.width);
+ // Select only Rivok word boxes on this row between the anchor groups.
+ const chosen=words.filter(w=>{
+  const cy=w.y+w.height/2,cx=w.x+w.width/2;
+  return cy>=top-.006&&cy<=bottom+.006&&cx>=left-.006&&cx<=right+.006;
+ });
+ if(!chosen.length)return null;
+ return chosen.map(w=>({highlightId:"HL-"+cue.cueId+"-"+w.id,
+  lineId:w.lineId,wordId:w.id,cueId:cue.cueId,roleId:cue.role,
+  x:w.x,y:w.y,width:w.width,height:w.height,
+  coordinateSystem:"normalized-top-left",visibleInPdf:false,tentative:true}));
+}
 function assignCueHighlights(side){
  const record=pageMetadata[side],ocr=sourceTextLines[side]||[],geometry=detectedLines[side]||[];
  if(!record)return 0;
@@ -723,9 +777,9 @@ function assignCueHighlights(side){
  const hebrew=record.source.languageCode==="H";
  for(const cue of record.leadership.cues){
   if(hebrew){
-   const highlights=hebrewRangeHighlights(side,cue,ocr,geometry);
-   if(highlights){record.leadership.highlights.push(...highlights);cue.matchStatus="word-boundary-candidate-review-required";matches++;}
-   else {const guess=tentativeHebrewHighlights(side,cue,ocr,geometry);if(guess){record.leadership.highlights.push(...guess);cue.matchStatus="tentative-highlight-review-required";matches++;}else cue.matchStatus="no-reliable-position-found";}
+   const highlights=isolatedHebrewCueMatch(side,cue,ocr);
+   if(highlights?.length){record.leadership.highlights.push(...highlights);cue.matchStatus="isolated-rivok-candidate-review-required";matches++;}
+   else cue.matchStatus=rivokWordsBySide[side]?.length?"rivok-anchor-pair-not-found":"rivok-unavailable";
    continue;
   }
   // Never convert ambiguous OCR into a guessed selection.
