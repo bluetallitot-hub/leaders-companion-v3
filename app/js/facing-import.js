@@ -817,7 +817,7 @@ async function diagnoseHebrewWordCounts(){
    const rows=reconciliation.groups.map((group,i)=>{
     const line=group.anchor;
     const text=line.text||"";
-    const count=text.trim()?text.trim().split(/\\s+/u).length:0;
+    const count=text.trim()?text.trim().split(/\s+/u).length:0;
     const fragments=group.fragments;
     return (i+1)+". col "+line.column+" | OCR words: "+count+
      " | assigned image fragments: "+fragments.length+
@@ -827,7 +827,7 @@ async function diagnoseHebrewWordCounts(){
    rows.push("Unassigned image fragments: "+reconciliation.unassigned.length);
    rows.push("NOTE: diagnostic-only grouping; selection rectangles remain unchanged.");
    reports.push("Hebrew page "+(pageMetadata[side].source.sourcePage||side+1)+
-    " | OCR mapped "+ocr.length+" of "+geometry.length+" detected lines\\n"+
+    " | OCR mapped "+ocr.length+" of "+geometry.length+" detected lines\n"+
     rows.join("\n")+"\n\nRAW OCR:\n"+rawOcrDiagnostics[side]);
   }
   out.textContent=reports.join("\n\n");
