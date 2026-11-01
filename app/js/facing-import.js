@@ -1738,6 +1738,21 @@ async function createPdf(bytes){
  }
  return new Uint8Array(await out.save());
 }
+function refreshMetadataDialog(){
+ const dialog=$("metadata-dialog");if(!dialog)return;
+ $("view-metadata").disabled=!pageMetadata.length;
+ $("metadata-spread-label").textContent=$("spread-position").textContent;
+ const content=$("metadata-dialog-content");content.replaceChildren();
+ for(const [index,id] of ["metadata-left","metadata-right"].entries()){
+  if(!pageMetadata[index])continue;
+  const source=$(id),panel=document.createElement("section"),heading=document.createElement("h3");
+  heading.textContent=index===0?"Left page":"Right page";panel.append(heading);
+  const dl=source.querySelector("dl");if(dl)panel.append(dl.cloneNode(true));
+  content.append(panel);
+ }
+}
+$("view-metadata").addEventListener("click",()=>{refreshMetadataDialog();$("metadata-dialog").showModal()});
+$("close-metadata").addEventListener("click",()=>$("metadata-dialog").close());
 function displayMetadata(){
  for(let i=0;i<2;i++){
   const panel=$(i===0?"metadata-left":"metadata-right"),record=pageMetadata[i];
@@ -1767,6 +1782,7 @@ function displayMetadata(){
    dt.textContent=label;dd.textContent=String(value);dl.append(dt,dd);
   }
  }
+ refreshMetadataDialog();
 }
 async function preview(bytes){
  const doc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
