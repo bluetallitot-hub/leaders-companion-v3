@@ -1747,6 +1747,20 @@ async function createPdf(bytes){
  pageMetadata.forEach(r=>{r.leadership.highlights=[];r.leadership.role=roleConfig.id});
  if(serviceManifest?.pages){for(let i=0;i<pageMetadata.length;i++){const sourcePage=records[i].sourceIndex+1,entry=serviceManifest.pages.find(p=>p.outputPage===sourcePage);if(!entry)continue;const record=pageMetadata[i];record.source.serviceReference=entry.reference;record.source.originalPageNumber=entry.kind==="printed"?String(entry.reference):"SUP";record.identification.binderOrder=sourcePage;record.source.sourceId=entry.reference;const original=entry.sourcePage;const pair=servicePageMapping?.[String(entry.reference).split("-")[0]];if(pair&&original){const language=Number(pair.e)===original?"English":Number(pair.h)===original?"Hebrew":null;if(language){record.source.language=language;record.source.languageCode=language==="English"?"E":"H";}}}}
  applyImportedCues();
+ for(let i=0;i<pageMetadata.length;i++){
+  const embedded=embeddedPageRecords[records[i].sourceIndex];
+  if(!embedded)continue;
+  const record=pageMetadata[i];
+  record.source.originalPageNumber=embedded.printedPage||record.source.originalPageNumber;
+  record.source.serviceReference=embedded.sourceReference||record.source.serviceReference;
+  record.source.languageCode=embedded.language||record.source.languageCode;
+  record.identification.prayerName=embedded.prayerTitle||record.identification.prayerName;
+  record.leadership.cues=(embedded.cues||[]).map((c,k)=>({
+   cueId:c.cue_id||"cue-"+k,role:c.role_name||c.role_code||"",prayer:c.prayer_title||null,
+   startCue:c.cue_left||"",endCue:c.cue_right||"",style:c.style||"",matchStatus:"embedded-page-record",
+   highlights:[]
+  }));
+ }
  storeMasterRoles(out);
  for(let i=0;i<records.length;i++){
   const {meta,png}=records[i],page=out.addPage([W,H]);
@@ -1821,7 +1835,7 @@ async function preview(bytes){
  await autoMatchCues();
 }
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
-let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null,serviceRoleOpacity=new Map();
+let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null,serviceRoleOpacity=new Map(),embeddedPageRecords=[];
 const spreadEdits=new Map();
 function saveCurrentSpreadEdits(){if(pageMetadata.length)spreadEdits.set(selectedSpreadFirst,pageMetadata.map(r=>r?JSON.parse(JSON.stringify(r.leadership.highlights||[])):[]));}
 function updateSpreadNavigation(){const total=Math.ceil(sourcePdfPages/2),current=Math.ceil(selectedSpreadFirst/2),percent=Math.round(Math.min(sourcePdfPages,selectedSpreadFirst+1)/Math.max(1,sourcePdfPages)*100);$("spread-position").textContent="Spread "+current+" of "+(total||"—")+" · PDF pages "+selectedSpreadFirst+(selectedSpreadFirst+1<=sourcePdfPages?"–"+(selectedSpreadFirst+1):"")+" · "+percent+"% through service";const progress=$("review-progress");if(progress)progress.value=percent;$("previous-spread").disabled=!sourcePdfBytes||current<=1;$("next-spread").disabled=!sourcePdfBytes||current>=total;}
@@ -1963,6 +1977,7 @@ $("rivok-clear").addEventListener("click",()=>{rivokOverlay=null;drawHighlights(
 $("hebrew-ocr-diagnostic").addEventListener("click",diagnoseHebrewWordCounts);
 function manifestEntry(index){return serviceManifest?.pages?.find(p=>Number(p.outputPage)===index)||null;}
 function downloadPageNumber(index){
+ const embedded=embeddedPageRecords[index-1];if(embedded)return embedded.printedPage||"SUP";
  const entry=manifestEntry(index);
  if(!entry)return String(index);
  if(entry.kind==="supplement"||String(entry.reference||"").toUpperCase().startsWith("SUP-"))return "SUP";
@@ -1979,6 +1994,7 @@ function downloadPageNumber(index){
  return "";
 }
 function cuesForExportPage(index){
+ const embedded=embeddedPageRecords[index-1];if(embedded)return embedded.cues||[];
  const entry=manifestEntry(index),ref=String(entry?.reference||"").trim();
  if(!ref)return [];
  return importedCues.filter(c=>{
@@ -2072,6 +2088,14 @@ $("download").addEventListener("click",async()=>{
  finally{button.disabled=false}
 });
 
+async function readEmbeddedPageRecords(bytes){
+ const doc=await PDFLib.PDFDocument.load(bytes.slice());
+ return doc.getPages().map((page,i)=>{
+  try{const field=page.node.get(PDFLib.PDFName.of("LCPageRecord"));if(!field)return null;
+   const value=field.decodeText?.();return value?JSON.parse(value):null;
+  }catch(e){console.warn("Page record unreadable",i+1,e);return null}
+ });
+}
 async function restoreSiddurIntake(){
  if(!window.indexedDB)return;
  const db=await new Promise((resolve,reject)=>{const q=indexedDB.open("leaders-companion-siddur-v3",1);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains("projects"))q.result.createObjectStore("projects")};q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});
@@ -2082,7 +2106,7 @@ async function restoreSiddurIntake(){
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  filename=(data.pdfName||"siddur.pdf").replace(/\.pdf$/i,"");
  serviceManifest=data.manifest||null;servicePageMapping=data.pageMapping||null;serviceRoleOpacity=new Map(data.roleOpacity||serviceManifest?.opacity||[]);
- sourcePdfBytes=new Uint8Array(data.pdf);
+ sourcePdfBytes=new Uint8Array(data.pdf);embeddedPageRecords=await readEmbeddedPageRecords(sourcePdfBytes);
  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
  sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();
  updateIntakeInventory();
