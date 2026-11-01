@@ -456,69 +456,60 @@ function matchingCueLine(lines,phrase){
   }
   return found.length===1?found[0]:null;
  }
- // Hebrew: match consecutive Hebrew words in reading order, just as English does.
- // Strip vowel marks and normalize printed divine-name variants. OCR sometimes
- // reports the words of a right-to-left line in reverse array order, so test
- // each consistent line orientation; never accept a partial phrase.
+ // Hebrew: position-aware 3-of-4 recognition. The unreadable word may be at
+ // either edge; the adjacent image word box supplies its position, not its text.
  const tokens=t=>normalizeCueText(t)
   .replace(/יהוה|י[\u05be\u05f3\u05f4"'׳״.\- ]*י/g,"יי")
   .replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
  const target=tokens(needle);
- if(!target.length)return null;
- const required=Math.ceil(target.length*0.75),found=[];
+ if(target.length<3)return null;
+ const distance=(a,b)=>{
+  const row=Array.from({length:b.length+1},(_,i)=>i);
+  for(let i=1;i<=a.length;i++){
+   let previous=row[0];row[0]=i;
+   for(let j=1;j<=b.length;j++){
+    const old=row[j];
+    row[j]=Math.min(row[j]+1,row[j-1]+1,previous+(a[i-1]===b[j-1]?0:1));
+    previous=old;
+   }
+  }
+  return row[b.length];
+ };
+ const similarity=(a,b)=>1-distance(a,b)/Math.max(a.length,b.length,1);
+ const minStrong=Math.ceil(target.length*.75),candidates=[];
  for(const reversed of [false,true]){
   const stream=[];
   for(let i=0;i<lines.length;i++){
    const words=tokens(lines[i].text);
-   for(const word of (reversed?words.reverse():words))stream.push({word,line:i,column:lines[i].column});
-  }
-  for(let i=0;i<stream.length;i++)for(let width=Math.max(1,target.length-1);width<=target.length+1&&i+width<=stream.length;width++){
-   const segment=stream.slice(i,i+width);
-   if(segment.some(w=>w.column!==segment[0].column))continue;
-   const dp=Array.from({length:target.length+1},()=>Array(width+1).fill(0));
-   for(let x=1;x<=target.length;x++)for(let y=1;y<=width;y++)
-    dp[x][y]=Math.max(dp[x-1][y],dp[x][y-1],dp[x-1][y-1]+(target[x-1]===segment[y-1].word?1:0));
-   const count=dp[target.length][width];
-   if(count>=required)found.push({line:segment[0].line,count});
-  }
- }
- // V3.86: V2-style consonantal edit alignment only when strict token matching fails.
- // Require a unique location, at least three readable words and a clear runner-up gap.
- if(!found.length&&target.length>=3){
-  const distance=(a,b)=>{
-   const prev=Array.from({length:b.length+1},(_,i)=>i);
-   for(let i=1;i<=a.length;i++){
-    const row=[i];
-    for(let j=1;j<=b.length;j++)row[j]=Math.min(row[j-1]+1,prev[j]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
-    for(let j=0;j<row.length;j++)prev[j]=row[j];
-   }
-   return prev[b.length];
-  };
-  const wordScore=(a,b)=>1-distance(a,b)/Math.max(a.length,b.length,1);
-  const candidates=[];
-  for(const reversed of [false,true]){
-   const stream=[];
-   for(let i=0;i<lines.length;i++)for(const word of (reversed?tokens(lines[i].text).reverse():tokens(lines[i].text)))
+   for(const word of (reversed?words.reverse():words))
     stream.push({word,line:i,column:lines[i].column});
-   for(let i=0;i+target.length<=stream.length;i++){
-    const segment=stream.slice(i,i+target.length);
-    if(segment.some(w=>w.column!==segment[0].column))continue;
-    const scores=target.map((word,k)=>wordScore(word,segment[k].word));
-    const strong=scores.filter(v=>v>=.60).length;
-    const avg=scores.reduce((a,b)=>a+b,0)/scores.length;
-    if(strong>=Math.ceil(target.length*.75)&&avg>=.70)
-     candidates.push({line:segment[0].line,score:avg,strong});
-   }
   }
-  const perLine=new Map();
-  for(const c of candidates)if(!perLine.has(c.line)||perLine.get(c.line).score<c.score)perLine.set(c.line,c);
-  const ranked=[...perLine.values()].sort((a,b)=>b.score-a.score);
-  if(ranked.length&&(!ranked[1]||ranked[0].score-ranked[1].score>=.12))return ranked[0].line;
+  for(let i=0;i+target.length<=stream.length;i++){
+   const window=stream.slice(i,i+target.length);
+   if(window.some(w=>w.column!==window[0].column))continue;
+   const scores=target.map((t,k)=>similarity(t,window[k].word));
+   const strong=scores.filter(v=>v>=.72).length;
+   if(strong<minStrong)continue;
+   // A missing edge word is acceptable only if its neighboring words are
+   // present in order. For 4-word cues, three strong positions suffice.
+   const average=scores.reduce((sum,v)=>sum+v,0)/scores.length;
+   const strongAverage=scores.filter(v=>v>=.72).reduce((sum,v)=>sum+v,0)/strong;
+   if(strongAverage<.80)continue;
+   candidates.push({line:window[0].line,score:strongAverage*.8+average*.2,strong,
+    position:i,orientation:reversed});
+  }
  }
- if(!found.length)return null;
- const best=Math.max(...found.map(f=>f.count));
- const unique=[...new Set(found.filter(f=>f.count===best).map(f=>f.line))];
- return unique.length===1?unique[0]:null;
+ // Multiple windows on one printed line are the same line-level candidate.
+ const byLine=new Map();
+ for(const c of candidates){
+  const prior=byLine.get(c.line);
+  if(!prior||c.score>prior.score)byLine.set(c.line,c);
+ }
+ const ranked=[...byLine.values()].sort((a,b)=>b.score-a.score);
+ if(!ranked.length)return null;
+ // Do not infer a location if another printed line is nearly as plausible.
+ if(ranked[1]&&ranked[0].score-ranked[1].score<.10)return null;
+ return ranked[0].line;
 }
 function cueCandidateDiagnostics(lines,phrase){
  const needle=normalizeCueText(hebrewCueAlias(phrase));
