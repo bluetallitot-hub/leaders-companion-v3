@@ -1949,7 +1949,7 @@ $("download").addEventListener("click",async()=>{
 async function restoreSiddurIntake(){
  if(!window.indexedDB)return;
  const db=await new Promise((resolve,reject)=>{const q=indexedDB.open("leaders-companion-siddur-v3",1);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains("projects"))q.result.createObjectStore("projects")};q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});
- const data=await new Promise((resolve,reject)=>{const tx=db.transaction("projects","readonly");const q=tx.objectStore("projects").get("active");q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});db.close();
+ const data=await new Promise((resolve,reject)=>{const tx=db.transaction("projects","readonly");const q=tx.objectStore("projects").get("handoff");q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});db.close();
  if(!data?.pdf||!data?.csv)throw Error("No saved PDF and cue CSV found. Return to Siddur Intake and save the project again.");
  const rows=parseCsv(data.csv);
  importedCues=rows.filter(c=>c.printed_page&&c.language&&(c.begin_cue||c.begin_cue_hebrew)&&(c.end_cue||c.end_cue_hebrew));
@@ -1960,6 +1960,6 @@ async function restoreSiddurIntake(){
  sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();
  updateIntakeInventory();
  await loadSelectedSpread();
- status("Restored "+data.pdfName+" and "+importedCues.length+" usable cues. Physical PDF-to-printed-page mapping is still required before restricting to cue-selected spreads.");
+ status("Restored "+data.pdfName+" and "+importedCues.length+" usable cues. The PDF contains only the verified selected bilingual spreads.");
 }
 if(new URLSearchParams(location.search).get("intake")==="1")restoreSiddurIntake().catch(e=>status("Intake handoff failed: "+e.message));
