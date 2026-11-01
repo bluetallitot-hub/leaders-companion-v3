@@ -761,8 +761,9 @@ function isolatedHebrewCueMatch(side,cue,ocr){
  if(!a)return null;
  // Resume at the matched beginning, not the start of the page.
  const b=findAnchor(end,a.rank);
- if(!b||b.rank<a.rank)return null;
- const ids=new Set([a.line.id,b.line.id]);
+ // A found beginning is always a visible proposal, even if the end fails.
+ const ids=new Set([a.line.id]);
+ if(b&&b.rank>=a.rank)ids.add(b.line.id);
  const chosen=words.filter(w=>ids.has(w.lineId));
  if(!chosen.length)return null;
  return chosen.map(w=>({highlightId:"HL-"+cue.cueId+"-"+w.id,
