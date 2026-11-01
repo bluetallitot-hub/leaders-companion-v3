@@ -451,6 +451,7 @@ function roleColor(role){
 // Word candidates are derived from actual ink gaps, never equal-width divisions.
 // Ambiguous spacing may merge adjacent words; manual line mode remains available.
 function wordCandidates(side,line){
+ if(pageMetadata[side]?.source?.languageCode==="H"&&rivokWordsBySide[side])return rivokWordsBySide[side].filter(w=>w.lineId===line.id);
  // OCR can split a Hebrew word at nikkud or between its letters.
  // Use OCR as a recognition aid, not as authoritative selection geometry.
  // Printed ink gaps below provide the selectable word extents.
@@ -573,6 +574,47 @@ function wordCandidates(side,line){
 function getWordGeometry(side){
  return detectedLines[side].flatMap(l=>wordCandidates(side,l));
 }
+// Rivok word boxes are authoritative for Hebrew selection after detection.
+let rivokWordsBySide=[null,null];
+function installRivokSelectionGeometry(side,result){
+ const canvas=$(side===0?"output-left":"output-right"),w=canvas.width,h=canvas.height;
+ const words=result.words.map((item,i)=>{
+  const [x0,y0,x1,y1]=item.bbox;
+  return {id:"rivok-word-"+i,x:Math.max(0,x0)/w,y:Math.max(0,y0)/h,
+   width:(Math.min(w,x1)-Math.max(0,x0))/w,height:(Math.min(h,y1)-Math.max(0,y0))/h};
+ }).filter(v=>v.width>0&&v.height>0);
+ // Cluster by vertical center; two-column lines share a baseline but must stay separate.
+ const rows=[];
+ for(const word of words.slice().sort((a,b)=>(a.y+a.height/2)-(b.y+b.height/2))){
+  const cy=word.y+word.height/2;
+  const row=rows.find(r=>Math.abs(r.cy-cy)<Math.max(.005,Math.min(word.height,r.height)*.45));
+  if(row){row.words.push(word);row.cy=(row.cy*(row.words.length-1)+cy)/row.words.length;row.height=Math.max(row.height,word.height)}
+  else rows.push({cy,height:word.height,words:[word]});
+ }
+ const lines=[];
+ for(const row of rows){
+  const sorted=row.words.slice().sort((a,b)=>a.x-b.x);
+  const groups=[];let current=[];
+  for(const word of sorted){
+   const prev=current[current.length-1];
+   // A wide gap separates the two upper columns; ordinary word gaps do not.
+   const gap=prev?word.x-(prev.x+prev.width):0;
+   if(prev&&gap>Math.max(.055,row.height*2.3)){groups.push(current);current=[]}
+   current.push(word);
+  }
+  if(current.length)groups.push(current);
+  for(const group of groups){
+   const x=Math.min(...group.map(v=>v.x)),y=Math.min(...group.map(v=>v.y));
+   const right=Math.max(...group.map(v=>v.x+v.width)),bottom=Math.max(...group.map(v=>v.y+v.height));
+   const center=(x+right)/2,column=center<.49?0:center>.51?1:2;
+   const line={id:"rivok-line-"+lines.length,column,x,y,width:right-x,height:bottom-y};
+   for(const word of group){word.lineId=line.id;word.column=column}
+   lines.push(line);
+  }
+ }
+ rivokWordsBySide[side]=words;
+ detectedLines[side]=lines;
+}
 let rivokOverlay=null;
 function drawHighlights(){
  for(let i=0;i<2;i++){
@@ -580,7 +622,7 @@ function drawHighlights(){
   if(!overlay||!base)return;
   overlay.width=base.width;overlay.height=base.height;
   const ctx=overlay.getContext("2d");ctx.clearRect(0,0,overlay.width,overlay.height);
-  if(rivokOverlay&&i===rivokOverlay.side){
+  if(rivokOverlay&&i===rivokOverlay.side&&highlightView==="detection"){
    ctx.save();
    for(const word of rivokOverlay.words){
     const [x0,y0,x1,y1]=word.bbox;
@@ -682,7 +724,7 @@ function installHighlightSelection(){
    const lines=detectedLines[i]||[];
    const inside=lines.filter(l=>p.x>=l.x-.01&&p.x<=l.x+l.width+.01&&p.y>=l.y-.007&&p.y<=l.y+l.height+.007);
    if(inside.length)return inside.sort((a,b)=>Math.abs(p.y-a.y-a.height/2)-Math.abs(p.y-b.y-b.height/2))[0];
-   const recovered=recoverClickedLine(i,p);if(recovered)return recovered;
+   const recovered=rivokWordsBySide[i]?null:recoverClickedLine(i,p);if(recovered)return recovered;
    return lines.filter(l=>p.x>=l.x-.02&&p.x<=l.x+l.width+.02&&Math.abs(p.y-l.y-l.height/2)<.014)
     .sort((a,b)=>Math.abs(p.y-a.y-a.height/2)-Math.abs(p.y-b.y-b.height/2))[0]||null;
   };
@@ -1116,7 +1158,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 $("source").addEventListener("change",async()=>{
  const file=$("source").files[0];if(!file)return;
  $("download").disabled=true;output=null;baseOutput=null;pageMetadata=[];ocrWordGeometry=[new Map(),new Map()];$("spread-preview").hidden=true;
- rivokOverlay=null;
+ rivokOverlay=null;rivokWordsBySide=[null,null];
  filename=file.name.replace(/\.pdf$/i,"")||"siddur";
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  try{
@@ -1150,6 +1192,7 @@ async function runRivokAutomatically(){
  try{
   const result=await RivokBrowser.detect(canvas,msg=>{report.textContent=msg;});
   rivokOverlay={side,width:result.imageWidth,height:result.imageHeight,words:result.words};
+  installRivokSelectionGeometry(side,result);
   drawHighlights();
   report.textContent="Automatic Rivok detection: "+result.words.length+" Hebrew word candidates. Purple outlines show results; no extra click required.";
  }catch(error){
