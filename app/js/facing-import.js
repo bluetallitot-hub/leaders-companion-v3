@@ -891,6 +891,38 @@ function reconstructedHebrewPreview(fragments,ocrLines){
  }
  return groups.sort((a,b)=>b.column-a.column||a.y-b.y);
 }
+// V3.63 validation: rescan original rendered page ink inside each
+// reconstructed vertical band. No OCR-based width guesses or padding.
+function refineHebrewPreviewFromInk(side,lines){
+ const canvas=$(side===0?"output-left":"output-right");
+ if(!canvas||!canvas.width)return {lines,refined:0};
+ const w=canvas.width,h=canvas.height;
+ const region=REGIONS[side],left=Math.max(0,Math.round(region.x/ W*w)+3);
+ const right=Math.min(w,Math.round((region.x+region.w)/W*w)-3);
+ const data=canvas.getContext("2d",{willReadFrequently:true}).getImageData(0,0,w,h).data;
+ let refined=0;
+ const result=lines.map(line=>{
+  const top=Math.max(0,Math.floor(line.y*h)),bottom=Math.min(h,Math.ceil((line.y+line.height)*h));
+  // Restrict each scan to its own physical line and original layout region.
+  const l=line.column===2?left:Math.max(left,Math.floor(line.x*w)-Math.round(.025*w));
+  const r=line.column===2?right:Math.min(right,Math.ceil((line.x+line.width)*w)+Math.round(.025*w));
+  let minX=r,maxX=l,minY=bottom,maxY=top;
+  for(let y=top;y<bottom;y++)for(let x=l;x<r;x++){
+   const p=(y*w+x)*4;
+   if(data[p]<165&&data[p+1]<165&&data[p+2]<165){
+    minX=Math.min(minX,x);maxX=Math.max(maxX,x);
+    minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+   }
+  }
+  if(maxX<=minX||maxY<=minY)return line;
+  const pad=2;
+  refined++;
+  return {...line,x:Math.max(l,minX-pad)/w,y:Math.max(top,minY-pad)/h,
+   width:(Math.min(r,maxX+pad)-Math.max(l,minX-pad))/w,
+   height:(Math.min(bottom,maxY+pad)-Math.max(top,minY-pad))/h,inkRefined:true};
+ });
+ return {lines:result,refined};
+}
 async function diagnoseHebrewWordCounts(){
  const button=$("hebrew-ocr-diagnostic"),out=$("ocr-diagnostics");
  button.disabled=true;
@@ -905,7 +937,9 @@ async function diagnoseHebrewWordCounts(){
    const geometry=detectedLines[side]||[];
    const reconciliation=reconcileHebrewLinesForReport(side,ocr);
    currentHebrewPreviewSide=side;
-   hebrewReconstructionPreview[side]=reconstructedHebrewPreview(geometry,ocr);
+   const reconstruction=reconstructedHebrewPreview(geometry,ocr);
+   const inkResult=refineHebrewPreviewFromInk(side,reconstruction);
+   hebrewReconstructionPreview[side]=inkResult.lines;
    const rows=reconciliation.groups.map((group,i)=>{
     const line=group.anchor;
     const text=line.text||"";
@@ -918,6 +952,7 @@ async function diagnoseHebrewWordCounts(){
    });
    rows.push("Unassigned image fragments: "+reconciliation.unassigned.length);
    rows.push("Adaptive layout transition: "+(hebrewLayoutTransitions[side]===null?"not confidently detected":(hebrewLayoutTransitions[side]*100).toFixed(1)+"% of canvas height"));
+   rows.push("Original-image ink-refined rectangles: "+inkResult.refined);
    rows.push("Short isolated full-width lines padded: "+hebrewReconstructionPreview[side].filter(g=>g.shortLine).length);
    rows.push("Image-first reconstructed lines: "+hebrewReconstructionPreview[side].length+"; merged groups: "+hebrewReconstructionPreview[side].filter(g=>g.count>1).length+" (green=OCR nearby, orange=no OCR nearby)");
    rows.push("NOTE: image-first horizontal grouping is preview-only; selection rectangles remain unchanged.");
