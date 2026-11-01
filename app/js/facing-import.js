@@ -531,67 +531,59 @@ function cueCandidateDiagnostics(lines,phrase){
 // V3.89: map a fuzzy cue to an actual word-box boundary, never to OCR text.
 // V3.90: recognize reliable INTERNAL cue words, then project outward to
 // the unrecognized first/last words using physical scanned word positions.
+// V3.91: match any two cue positions (including 2+4), even when intervening
+// OCR words are wrong. Project their known offsets onto physical ink boxes.
 function hebrewBoundary(side,lines,phrase,edge){
  const normalize=t=>normalizeCueText(hebrewCueAlias(t))
   .replace(/יהוה|י[\u05be\u05f3\u05f4"'׳״.\- ]*י/g,"יי")
   .replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
  const target=normalize(phrase);
  if(target.length<3)return null;
- const distance=(a,b)=>{
+ const similarity=(a,b)=>{
   const row=Array.from({length:b.length+1},(_,i)=>i);
   for(let i=1;i<=a.length;i++){let prior=row[0];row[0]=i;
    for(let j=1;j<=b.length;j++){const old=row[j];row[j]=Math.min(row[j]+1,row[j-1]+1,prior+(a[i-1]===b[j-1]?0:1));prior=old;}
-  }return row[b.length];
+  }return 1-row[b.length]/Math.max(a.length,b.length,1);
  };
- const similarity=(a,b)=>1-distance(a,b)/Math.max(a.length,b.length,1);
  const geometry=detectedLines[side]||[],candidates=[];
  for(const line of lines){
   const inkLine=geometry.find(g=>g.id===line.id);
   if(!inkLine)continue;
   const physical=wordCandidates(side,inkLine).slice().sort((a,b)=>b.x-a.x);
   const source=normalize(line.text);
-  if(!source.length||!physical.length)continue;
-  // The OCR may have missed both boundary words. Search for the internal
-  // pair and infer the whole cue by its offset within the printed word row.
+  if(source.length<2||physical.length<target.length)continue;
+  // A reliable positional projection requires OCR and scanned segmentation
+  // to agree. Never silently invent a missing physical word box.
+  if(Math.abs(source.length-physical.length)>1)continue;
   for(const reverse of [false,true]){
    const ordered=reverse?source.slice().reverse():source;
-   for(let from=0;from<target.length;from++){
-    for(let to=from+1;to<target.length;to++){
-     const span=to-from+1;
-     if(span<2||span>ordered.length)continue;
-     for(let pos=0;pos+span<=ordered.length;pos++){
-      const scores=target.slice(from,to+1).map((t,k)=>similarity(t,ordered[pos+k]));
-      const strong=scores.filter(v=>v>=.78).length;
-      if(strong<2||strong<span-1)continue;
-      const avg=scores.reduce((x,y)=>x+y,0)/span;
-      if(avg<.82)continue;
-      // Align the matched OCR substring to the printed boxes. A one-word
-      // OCR/ink discrepancy is tolerated; larger discrepancies are not.
-      if(Math.abs(source.length-physical.length)>1)continue;
-      const physicalPos=reverse?source.length-pos-span:pos;
-      const inferredStart=physicalPos-from;
-      const inferredEnd=inferredStart+target.length-1;
-      if(inferredStart<0||inferredEnd>=physical.length)continue;
-      const internal=(from>0&&to<target.length-1)?0.08:0;
-      const score=avg+internal+Math.min(span,4)*.01;
-      candidates.push({line:inkLine,physical,index:edge==="start"?inferredStart:inferredEnd,
-       score,from,to,pos});
-     }
-    }
+   for(let start=0;start+target.length<=ordered.length;start++){
+    const scores=target.map((t,k)=>similarity(t,ordered[start+k]));
+    const strong=scores.map((v,i)=>({v,i})).filter(x=>x.v>=.78);
+    if(strong.length<2)continue;
+    // Two separated matches (e.g. cue words 2 and 4) establish the
+    // positions of unrecognized words between them.
+    const spread=strong[strong.length-1].i-strong[0].i;
+    if(spread<1)continue;
+    const mean=strong.reduce((sum,x)=>sum+x.v,0)/strong.length;
+    if(mean<.85)continue;
+    const physicalStart=reverse?source.length-start-target.length:start;
+    const physicalEnd=physicalStart+target.length-1;
+    if(physicalStart<0||physicalEnd>=physical.length)continue;
+    const score=mean+.025*Math.min(strong.length,4)+.012*spread;
+    candidates.push({line:inkLine,physical,index:edge==="start"?physicalStart:physicalEnd,score});
    }
   }
  }
- // Multiple matching internal substrings on one line may imply different
- // endpoints; group by physical boundary and reject competing locations.
  const unique=new Map();
  for(const c of candidates){
   const key=c.line.id+":"+c.index;
   if(!unique.has(key)||unique.get(key).score<c.score)unique.set(key,c);
  }
  const ranked=[...unique.values()].sort((a,b)=>b.score-a.score);
- if(!ranked.length||ranked[1]&&ranked[0].score-ranked[1].score<.10)return null;
- const best=ranked[0],word=best.physical[best.index];
- return {line:best.line,word,index:best.index,wordCount:best.physical.length};
+ if(!ranked.length||(ranked[1]&&ranked[0].score-ranked[1].score<.08))return null;
+ const best=ranked[0];
+ return {line:best.line,word:best.physical[best.index],index:best.index,wordCount:best.physical.length};
 }
 function hebrewRangeHighlights(side,cue,ocr,geometry){
  const start=hebrewBoundary(side,ocr,cue.startCueHebrew||cue.startCue,"start");
