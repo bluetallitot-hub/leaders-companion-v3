@@ -284,7 +284,9 @@ function detectPrintedLines(canvas,side){
  // Each half is scanned independently to avoid bridging Hebrew columns.
  const slices=pageMetadata[side]?.source?.languageCode==="H"?[[.02,.49],[.51,.98]]:[[.02,.98]];
  for(let column=0;column<slices.length;column++){
-  const [from,to]=slices[column],left=Math.round(x0+region.w*from),right=Math.round(x0+region.w*to);
+  // Slice coordinates must use the enhanced canvas width, not unscaled PDF points.
+  // Previously English analysis scanned only the left half of its 2x image.
+  const [from,to]=slices[column],left=Math.round(x0+(x1-x0)*from),right=Math.round(x0+(x1-x0)*to);
   const rows=[];
   for(let y=y0;y<y1;y++){
    let n=0;
