@@ -416,8 +416,7 @@ function assignCueHighlights(side){
   // Follow printed reading order: Hebrew right-to-left columns, English left-to-right.
   // Only traverse a column boundary in the forward reading direction.
   const hebrew=record.source.languageCode==="H";
-  const columns=[...new Set(geometry.map(l=>l.column))].sort((a,b)=>a-b);
-  if(hebrew)columns.reverse();
+  const columns=[...new Set(geometry.map(l=>l.column))].sort((a,b)=>hebrew?((a===2?2:a===1?0:1)-(b===2?2:b===1?0:1)):a-b);
   const columnRank=c=>columns.indexOf(c);
   const rankA=columnRank(first.column),rankB=columnRank(last.column);
   if(rankA<0||rankB<0||rankB<rankA||rankB-rankA>1){
@@ -1151,8 +1150,8 @@ async function preview(bytes){
   canvas.width=Math.ceil(v.width);canvas.height=Math.ceil(v.height);
   await page.render({canvasContext:canvas.getContext("2d"),viewport:v}).promise;
  }
- displayMetadata();$("spread-preview").hidden=false;$("empty-preview").hidden=true;detectedLines=[0,1].map(i=>i<doc.numPages?detectPrintedLines($(i===0?"output-left":"output-right"),i):[]);drawHighlights();status("Detected "+detectedLines.map(a=>a.length).join(" / ")+" candidate printed lines.");await autoMatchCues();
- await runRivokAutomatically();
+ displayMetadata();$("spread-preview").hidden=false;$("empty-preview").hidden=true;detectedLines=[0,1].map(i=>i<doc.numPages?detectPrintedLines($(i===0?"output-left":"output-right"),i):[]);drawHighlights();status("Detected "+detectedLines.map(a=>a.length).join(" / ")+" candidate printed lines.");await runRivokAutomatically();
+ await autoMatchCues();
 }
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 $("source").addEventListener("change",async()=>{
