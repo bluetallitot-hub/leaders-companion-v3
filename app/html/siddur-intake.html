@@ -2,10 +2,10 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Leader's Companion — Siddur Intake</title><link rel="stylesheet" href="../css/facing-import.css">
 <script defer src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-<style>.intake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.intake-stat{border:1px solid #aebdb8;border-radius:8px;padding:14px}.intake-stat strong{display:block;font-size:1.6rem}.intake-table{width:100%;border-collapse:collapse}.intake-table th,.intake-table td{padding:7px;border-bottom:1px solid #ddd;text-align:left} .intake-table-wrap{max-height:420px;overflow:auto} .warning{color:#8b4c0d}</style></head>
+<style>.intake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.intake-stat{border:1px solid #aebdb8;border-radius:8px;padding:14px}.intake-stat strong{display:block;font-size:1.6rem}.intake-table{width:100%;border-collapse:collapse}.intake-table th,.intake-table td{padding:7px;border-bottom:1px solid #ddd;text-align:left} .intake-table-wrap{max-height:420px;overflow:auto} .warning{color:#8b4c0d}.role-row{display:grid;grid-template-columns:minmax(130px,1fr) 110px minmax(160px,1fr) 60px;gap:12px;align-items:center;padding:9px;border-bottom:1px solid #ddd}.swatch{display:inline-block;width:28px;height:24px;border:1px solid #666;vertical-align:middle;margin-right:8px}.role-row input[type=range]{width:100%} .role-locked{opacity:.85}</style></head>
 <body><main><header><p class="eyebrow">Leader's Companion V3</p><h1>Complete Siddur intake</h1><p>Load the complete original siddur and the service cue CSV. This intake inventories the source before any page alignment or highlighting.</p></header>
 <section class="panel"><h2>1. Original source files</h2><label for="siddur">Complete original siddur PDF</label><input id="siddur" type="file" accept=".pdf,application/pdf"><label for="cues">Service cue CSV (from Leader's Companion Database v2.0)</label><input id="cues" type="file" accept=".csv,text/csv"><p id="status" role="status" aria-live="polite">Choose the two files to calculate the intake inventory.</p></section>
-<section class="panel"><h2>2. Page selection method</h2><label for="selection-method">Include pages by</label><select id="selection-method"><option value="span">Entire service span (first through last referenced printed page)</option><option value="cues">Cue-based pages only (distinct referenced printed pages)</option></select><p class="hint">Both methods select bilingual facing pairs. Every Hebrew page must have its matching English page and vice versa. Missing counterparts require review; no page is silently substituted.</p><p id="selection-estimate" aria-live="polite">Upload a CSV to estimate the selected printed pages.</p></section><section class="panel"><h2>3. Page and spread inventory</h2><div class="intake-grid">
+<section class="panel"><h2>2. Page selection method</h2><label for="selection-method">Include pages by</label><select id="selection-method"><option value="span">Entire service span (first through last referenced printed page)</option><option value="cues">Cue-based pages only (distinct referenced printed pages)</option></select><p class="hint">Both methods select bilingual facing pairs. Every Hebrew page must have its matching English page and vice versa. Missing counterparts require review; no page is silently substituted.</p><p id="selection-estimate" aria-live="polite">Upload a CSV to estimate the selected printed pages.</p></section><section class="panel"><h2>3. Highlight roles and opacity</h2><p class="hint">Roles and supplied colors are imported from the cue sheet. Up to six roles are supported; only roles actually present are shown. Missing colors use the six default palette slots. Colors cannot be changed here.</p><div id="roles" aria-live="polite"><p class="hint">Upload a cue CSV to load its roles.</p></div><button id="lock-roles" type="button" disabled>Fix opacity for this siddur</button><p id="role-status" class="hint">Set opacity before starting page editing. Once fixed, it applies throughout the siddur.</p></section><section class="panel"><h2>4. Page and spread inventory</h2><div class="intake-grid">
 <div class="intake-stat">Original PDF pages<strong id="pdf-pages">—</strong></div>
 <div class="intake-stat">Cue records<strong id="cue-count">—</strong></div>
 <div class="intake-stat">Distinct printed page references<strong id="printed-count">—</strong></div>
@@ -13,12 +13,45 @@
 <div class="intake-stat">Expected output spreads<strong id="spread-count">Pending mapping</strong></div>
 <div class="intake-stat">Supplemental pages<strong id="supplement-count">Not identified</strong></div>
 </div><p class="hint">Cue rows are not pages. The final count requires a verified printed-to-physical page map, service page selection, and supplemental pages. No source files are altered.</p></section>
-<section class="panel"><h2>4. Printed page references in the CSV</h2><p id="csv-note" class="hint">Upload the CSV to see its printed-page references and cue counts.</p><div class="intake-table-wrap"><table class="intake-table"><thead><tr><th>Printed page</th><th>Language</th><th>Cues</th><th>Physical PDF page</th></tr></thead><tbody id="page-rows"></tbody></table></div></section>
-<section class="panel"><h2>5. Continue to the existing editor</h2><p>The existing editor remains the authority for facing-page alignment, Rivok Hebrew matching, and temporary cue highlights. Complete-service mapping and handoff are not yet wired to this intake inventory.</p><a href="facing-import.html">Open facing-page editor</a></section>
-<footer>Intake V3.112 · Original files stay on your device. No automatic assumptions about page offsets.</footer></main>
+<section class="panel"><h2>5. Printed page references in the CSV</h2><p id="csv-note" class="hint">Upload the CSV to see its printed-page references and cue counts.</p><div class="intake-table-wrap"><table class="intake-table"><thead><tr><th>Printed page</th><th>Language</th><th>Cues</th><th>Physical PDF page</th></tr></thead><tbody id="page-rows"></tbody></table></div></section>
+<section class="panel"><h2>6. Continue to the existing editor</h2><p>The existing editor remains the authority for facing-page alignment, Rivok Hebrew matching, and temporary cue highlights. Complete-service mapping and handoff are not yet wired to this intake inventory.</p><a href="facing-import.html">Open facing-page editor</a></section>
+<footer>Intake V3.113 · Original files stay on your device. No automatic assumptions about page offsets.</footer></main>
 <script>
-const $=id=>document.getElementById(id);let pdfCount=null,csvRows=null;
+const $=id=>document.getElementById(id);let pdfCount=null,csvRows=null,rolesLocked=false;const roleOpacity=new Map();const canonicalColors=["#F5D03C","#75C56A","#74B9E7","#F3A65B","#DA88B8","#AE93DC"];
 function parseCsv(text){const rows=[];let row=[],field="",quoted=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(quoted&&text[i+1]==='"'){field+='"';i++}else quoted=!quoted}else if(c===','&&!quoted){row.push(field);field=""}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(field);if(row.some(x=>x.trim()))rows.push(row);row=[];field=""}else field+=c}row.push(field);if(row.some(x=>x.trim()))rows.push(row);if(!rows.length)return[];const headers=rows.shift().map(h=>h.trim().replace(/^\uFEFF/,"").toLowerCase());return rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()])));}
+function roleName(r){return String(r.role||r.role_name||r.highlight_role||r.assigned_role||r.leader_role||"").trim();}
+function roleColor(r){return String(r.color||r.role_color||r.highlight_color||r.colour||"").trim();}
+function safeColor(value){const v=value.trim();return /^#[0-9a-f]{6}$/i.test(v)||/^#[0-9a-f]{3}$/i.test(v)?v:null;}
+function renderRoles(){
+ const container=$("roles");container.replaceChildren();
+ if(!csvRows){container.textContent="Upload a cue CSV to load its roles.";return;}
+ const found=new Map(),warnings=[];
+ for(const row of csvRows){
+  const name=roleName(row);if(!name)continue;
+  const key=name.toLowerCase(),raw=roleColor(row),color=safeColor(raw);
+  if(!found.has(key))found.set(key,{name,color:null});
+  if(color){const existing=found.get(key);if(existing.color&&existing.color.toLowerCase()!==color.toLowerCase())warnings.push("Conflicting colors for "+name);else existing.color=color;}
+  else if(raw)warnings.push("Unrecognized color for "+name+": "+raw);
+ }
+ const list=[...found.values()];
+ if(!list.length){container.textContent="No role column was recognized. Check the CSV headers (role, role_name, highlight_role, assigned_role).";$("lock-roles").disabled=true;return;}
+ if(list.length>6)warnings.push("CSV contains "+list.length+" roles; maximum supported is six. Resolve the extra roles before proceeding.");
+ for(const [i,role] of list.slice(0,6).entries()){
+  const color=role.color||canonicalColors[i];
+  const row=document.createElement("div");row.className="role-row";
+  const name=document.createElement("strong");name.textContent=role.name;
+  const swatchCell=document.createElement("div"),swatch=document.createElement("span");swatch.className="swatch";swatch.style.background=color;swatchCell.append(swatch,document.createTextNode(color));
+  const slider=document.createElement("input");slider.type="range";slider.min="10";slider.max="100";slider.step="5";slider.value=String(roleOpacity.get(role.name)??40);slider.disabled=rolesLocked;
+  const percent=document.createElement("output");percent.textContent=slider.value+"%";
+  slider.addEventListener("input",()=>{roleOpacity.set(role.name,Number(slider.value));percent.textContent=slider.value+"%";swatch.style.opacity=String(Number(slider.value)/100)});
+  swatch.style.opacity=String(Number(slider.value)/100);
+  row.append(name,swatchCell,slider,percent);container.append(row);
+ }
+ if(warnings.length){const note=document.createElement("p");note.className="warning";note.textContent=warnings.join("; ");container.append(note);}
+ $("lock-roles").disabled=rolesLocked||list.length>6;
+ $("role-status").textContent=rolesLocked?"Opacity fixed for this siddur.":"Adjust each role's opacity, then fix settings for the entire siddur.";
+}
+$("lock-roles").addEventListener("click",()=>{rolesLocked=true;renderRoles();});
 function refresh(){const rows=csvRows||[];const grouped=new Map();for(const r of rows){const page=r.printed_page||r.printed_page_number||r.page||"";const lang=r.language||r.language_code||"";if(!page)continue;const key=page+"|"+lang;if(!grouped.has(key))grouped.set(key,{page,lang,count:0});grouped.get(key).count++;}
 $("pdf-pages").textContent=pdfCount??"—";$("cue-count").textContent=csvRows?rows.length:"—";$("printed-count").textContent=csvRows?new Set([...grouped.values()].map(x=>x.page)).size:"—";const pageNumbers=[...new Set([...grouped.values()].map(g=>g.page))].filter(v=>/^\\d+$/.test(v)).map(Number).sort((a,b)=>a-b);
 const method=$("selection-method").value;
@@ -33,5 +66,5 @@ $("csv-note").textContent=csvRows?grouped.size+" page/language references found.
 $("status").textContent=(pdfCount===null?"Waiting for PDF. ":"PDF loaded. ")+(csvRows===null?"Waiting for CSV.":"CSV loaded. Review the inventory below.");}
 $("selection-method").addEventListener("change",refresh);
 $("siddur").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{const bytes=new Uint8Array(await file.arrayBuffer());const doc=await pdfjsLib.getDocument({data:bytes}).promise;pdfCount=doc.numPages;refresh()}catch(err){$("status").textContent="PDF intake failed: "+err.message}});
-$("cues").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{csvRows=parseCsv(await file.text());refresh()}catch(err){$("status").textContent="CSV intake failed: "+err.message}});
+$("cues").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{csvRows=parseCsv(await file.text());rolesLocked=false;roleOpacity.clear();renderRoles();refresh()}catch(err){$("status").textContent="CSV intake failed: "+err.message}});
 </script></body></html>
