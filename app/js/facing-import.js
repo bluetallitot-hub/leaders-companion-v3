@@ -318,6 +318,7 @@ function detectPrintedLines(canvas,side){
 // Scanned-only pages need OCR; never claim a match from geometry alone.
 let sourceTextLines=[[],[]];
 let rawOcrDiagnostics=["",""];
+let ocrWordGeometry=[new Map(),new Map()];
 let cueMatchReport="Automatic cue matching has not run.";
 function normalizeCueText(s){return String(s||"").normalize("NFKD").replace(/[\u0591-\u05c7]/g,"").replace(/[‘’“”"'.,:;!?—–-]/g," ").replace(/\s+/g," ").trim().toLowerCase()}
 function cueSimilarity(a,b){
@@ -400,6 +401,11 @@ function roleColor(role){
 // Word candidates are derived from actual ink gaps, never equal-width divisions.
 // Ambiguous spacing may merge adjacent words; manual line mode remains available.
 function wordCandidates(side,line){
+ const recognized=ocrWordGeometry[side]?.get(line.id);
+ if(recognized&&recognized.length){
+  return recognized.map((b,index)=>({id:line.id+"-word-"+index,lineId:line.id,column:line.column,
+   x:b.x,y:line.y,width:b.width,height:line.height}));
+ }
  const canvas=$(side===0?"output-left":"output-right"),ctx=canvas.getContext("2d",{willReadFrequently:true});
  const w=canvas.width,h=canvas.height;
  const x0=Math.max(0,Math.floor(line.x*w)),x1=Math.min(w,Math.ceil((line.x+line.width)*w));
@@ -421,7 +427,8 @@ function wordCandidates(side,line){
  // local median positive gap by a conservative margin.
  const gaps=bands.slice(1).map((b,i)=>b[0]-bands[i][1]-1).sort((a,b)=>a-b);
  const median=gaps.length?gaps[Math.floor(gaps.length/2)]:0;
- const splitAt=Math.max(4,Math.ceil(median*2.2));
+ const hebrew=pageMetadata[side]?.source?.languageCode==="H";
+ const splitAt=Math.max(hebrew?9:5,Math.ceil(median*(hebrew?3.5:2.5)));
  const words=[];let start=bands[0][0],end=bands[0][1];
  const emit=()=>{if(end-start<2)return;
   const xx=Math.max(x0,x0+start-2),right=Math.min(x1,x0+end+3);
@@ -583,6 +590,7 @@ async function recognizeCueLines(side){
  // Tesseract builds differ in whether they expose lines or words.
  const candidates=raw.length?raw:(Array.isArray(data.words)?data.words:[]);
  const geometry=detectedLines[side]||[],mapped=[];
+ ocrWordGeometry[side]=new Map();
  rawOcrDiagnostics[side]="OCR engine: "+lang+"; raw lines: "+raw.length+"; raw words: "+(Array.isArray(data.words)?data.words.length:0)+"; candidates: "+candidates.length+"\n"+candidates.map(c=>String(c.text||"").trim()).filter(Boolean).join("\n");
  for(const line of candidates){
   const value=String(line.text||"").trim(),box=line.bbox;
@@ -592,6 +600,28 @@ async function recognizeCueLines(side){
    .sort((a,b)=>Math.abs(cy-a.y-a.height/2)-Math.abs(cy-b.y-b.height/2))[0];
   if(closest&&Math.abs(cy-closest.y-closest.height/2)<.025){
    mapped.push({id:closest.id,text:value,y:closest.y,column:closest.column});
+  }
+ }
+ // Preserve actual OCR word bounding boxes for word-level selection.
+ // The line's printed-ink geometry controls vertical placement; OCR controls word width.
+ if(Array.isArray(data.words)){
+  const perLine=new Map();
+  for(const word of data.words){
+   const b=word.bbox;if(!b||!String(word.text||"").trim())continue;
+   const cx=(x+(b.x0+b.x1)/2)/canvas.width,cy=(y+(b.y0+b.y1)/2)/canvas.height;
+   const closest=geometry.filter(g=>cx>=g.x-.018&&cx<=g.x+g.width+.018)
+    .sort((a,b)=>Math.abs(cy-a.y-a.height/2)-Math.abs(cy-b.y-b.height/2))[0];
+   if(!closest||Math.abs(cy-closest.y-closest.height/2)>.025)continue;
+   const left=Math.max(closest.x,(x+b.x0-2)/canvas.width);
+   const right=Math.min(closest.x+closest.width,(x+b.x1+2)/canvas.width);
+   if(right-left<.003)continue;
+   if(!perLine.has(closest.id))perLine.set(closest.id,[]);
+   perLine.get(closest.id).push({x:left,width:right-left});
+  }
+  for(const [id,boxes] of perLine){
+   boxes.sort((a,b)=>a.x-b.x);
+   // Reject unusable OCR segmentation and retain the ink-gap fallback.
+   if(boxes.length&&boxes.every(b=>b.width>.003))ocrWordGeometry[side].set(id,boxes);
   }
  }
  // Combine OCR words assigned to the same printed line.
@@ -742,7 +772,7 @@ async function preview(bytes){
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 $("source").addEventListener("change",async()=>{
  const file=$("source").files[0];if(!file)return;
- $("download").disabled=true;output=null;baseOutput=null;pageMetadata=[];$("spread-preview").hidden=true;
+ $("download").disabled=true;output=null;baseOutput=null;pageMetadata=[];ocrWordGeometry=[new Map(),new Map()];$("spread-preview").hidden=true;
  filename=file.name.replace(/\.pdf$/i,"")||"siddur";
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  try{
