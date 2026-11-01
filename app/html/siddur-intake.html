@@ -251,6 +251,26 @@ async function autoMapPages(){
  }catch(e){$("map-status").textContent="Image OCR failed: "+e.message}finally{if(worker)await worker.terminate();btn.disabled=false}
 }
 $("scan-map").addEventListener("click",autoMapPages);
+function cueRowsForPage(ref,kind,language){
+ const reference=String(ref||"").trim();
+ const range=x=>{const m=String(x||"").match(/^(\\d+)(?:-(\\d+))?$/);return m?[Number(m[1]),Number(m[2]||m[1])]:null};
+ return (csvRows||[]).filter(c=>{
+  const source=String(c.source_page||"").trim();
+  if(source===reference)return true;
+  const a=range(source),b=range(reference);
+  return !!(a&&b&&a[0]<=b[1]&&b[0]<=a[1]);
+ }).filter(c=>{const l=String(c.language||"").trim().toUpperCase();return !language||!l||l===language||["BOTH","E/H","H+E"].includes(l)});
+}
+function attachPageRecord(page,entry,language){
+ const cues=cueRowsForPage(entry.reference,entry.kind,language);
+ const record={schema:"leaders-companion-v3-page-record",version:1,outputPage:entry.outputPage,
+  sourceReference:entry.reference,sourceKind:entry.kind,sourcePdfPage:entry.sourcePage||null,
+  printedPage:entry.kind==="printed"?String(entry.printedPage||entry.reference).split("-")[0]:"SUP",
+  language:language||null,prayerTitle:null,cues,highlights:[],roles:[...roleAssignments],opacity:[...roleOpacity]};
+ page.node.set(PDFLib.PDFName.of("LCPageRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(record)));
+ entry.cueIds=cues.map(c=>c.cue_id).filter(Boolean);entry.language=language||null;
+ return record;
+}
 async function buildReducedPdf(){
  const refs=orderedRefs(),pages=siddurPages();
  if(!refs.length||pages.some(p=>!mapValid(pageMapping[p])))throw Error("Verify all printed-page pairs first.");
@@ -258,12 +278,12 @@ async function buildReducedPdf(){
  for(const ref of refs){const kind=refKind(ref);let source=original,indices=[];
   if(kind==="printed"){indices=expandRef(ref).flatMap(p=>{const m=pageMapping[p];return [Number(m.e)-1,Number(m.h)-1]})}
   else if(kind==="internal"){indices=expandRef(ref).map(p=>Number(p)-1);if(indices.some(i=>i<0||i>=original.getPageCount()))throw Error("Internal PDF page out of range: "+ref)}
-  else if(kind==="supplement"||kind==="external"){const data=supplements[ref];if(!data?.bytes?.length){if(!data?.placeholder)throw Error("Upload or reserve a page for "+ref);const placeholder=out.addPage([612,792]);const font=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);placeholder.drawText("SUPPLEMENT RESERVED",{x:48,y:730,size:18,font});placeholder.drawText(ref.replace(/[^\\x20-\\x7E]/g,""),{x:48,y:685,size:14,font});placeholder.drawText("Upload the document when available.",{x:48,y:650,size:11,font});manifestPages.push({reference:ref,kind,outputPage:out.getPageCount(),placeholder:true});continue}source=await PDFLib.PDFDocument.load(new Uint8Array(data.bytes).slice());indices=Array.from({length:source.getPageCount()},(_,i)=>i)}
+  else if(kind==="supplement"||kind==="external"){const data=supplements[ref];if(!data?.bytes?.length){if(!data?.placeholder)throw Error("Upload or reserve a page for "+ref);const placeholder=out.addPage([612,792]);const font=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);placeholder.drawText("SUPPLEMENT RESERVED",{x:48,y:730,size:18,font});placeholder.drawText(ref.replace(/[^\\x20-\\x7E]/g,""),{x:48,y:685,size:14,font});placeholder.drawText("Upload the document when available.",{x:48,y:650,size:11,font});{const entry={reference:ref,kind,outputPage:out.getPageCount(),placeholder:true};attachPageRecord(placeholder,entry,null);manifestPages.push(entry)}continue}source=await PDFLib.PDFDocument.load(new Uint8Array(data.bytes).slice());indices=Array.from({length:source.getPageCount()},(_,i)=>i)}
   else throw Error("Unrecognized cue page reference: "+ref);
-  for(const index of indices){const key=(source===original?"original":ref)+":"+index;if(included.has(key))continue;included.add(key);const [copy]=await out.copyPages(source,[index]);out.addPage(copy);manifestPages.push({reference:ref,kind,outputPage:out.getPageCount(),sourcePage:index+1})}
+  for(const index of indices){const key=(source===original?"original":ref)+":"+index;if(included.has(key))continue;included.add(key);const [copy]=await out.copyPages(source,[index]);out.addPage(copy);{const entry={reference:ref,kind,outputPage:out.getPageCount(),sourcePage:index+1};const mapping=kind==="printed"?Object.entries(pageMapping).find(([p,m])=>expandRef(ref).includes(Number(p))&&(Number(m.e)===index+1||Number(m.h)===index+1)):null;const language=mapping?(Number(mapping[1].e)===index+1?"E":"H"):null;if(mapping)entry.printedPage=mapping[0];attachPageRecord(copy,entry,language);manifestPages.push(entry)}}
  }
  await out.attach(new TextEncoder().encode("\uFEFF"+csvText()),"edited-cues.csv",{mimeType:"text/csv",description:"Service cue metadata"});
- const manifest={schema:"leaders-companion-v3-service-map",version:2,pages:manifestPages,roles:[...roleAssignments],opacity:[...roleOpacity]};
+ const manifest={schema:"leaders-companion-v3-service-map",version:3,pages:manifestPages,roles:[...roleAssignments],opacity:[...roleOpacity]};
  await out.attach(new TextEncoder().encode(JSON.stringify(manifest,null,2)),"page-map.json",{mimeType:"application/json"});
  window.lastServiceManifest=manifest;reducedPdfBytes=new Uint8Array(await out.save());return reducedPdfBytes;
 }
