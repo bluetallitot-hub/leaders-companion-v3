@@ -259,10 +259,28 @@ function applyImportedCues(){
 let detectedLines=[[],[]];
 let highlightView="highlights";
 let selectionMode="line";
+// Analysis-only enhancement: original PDF and visible preview remain unchanged.
+function enhancedAnalysisCanvas(source,scale=2){
+ const out=document.createElement("canvas");out.width=source.width*scale;out.height=source.height*scale;
+ const ctx=out.getContext("2d",{willReadFrequently:true});
+ ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
+ ctx.drawImage(source,0,0,out.width,out.height);
+ const img=ctx.getImageData(0,0,out.width,out.height),d=img.data;
+ // Grayscale with gentle contrast expansion, avoiding aggressive binary thresholding.
+ for(let i=0;i<d.length;i+=4){
+  const gray=.299*d[i]+.587*d[i+1]+.114*d[i+2];
+  const adjusted=Math.max(0,Math.min(255,(gray-128)*1.55+143));
+  d[i]=d[i+1]=d[i+2]=adjusted;
+ }
+ ctx.putImageData(img,0,0);
+ return out;
+}
 function detectPrintedLines(canvas,side){
- const ctx=canvas.getContext("2d",{willReadFrequently:true}),w=canvas.width,h=canvas.height;
+ const enhanced=pageMetadata[side]?.source?.languageCode==="E"?enhancedAnalysisCanvas(canvas,2):canvas;
+ const factor=enhanced.width/canvas.width;
+ const ctx=enhanced.getContext("2d",{willReadFrequently:true}),w=enhanced.width,h=enhanced.height;
  const pixels=ctx.getImageData(0,0,w,h).data,region=REGIONS[side],result=[];
- const x0=Math.round(region.x),x1=Math.round(region.x+region.w),y0=Math.round(H-region.y-region.h),y1=Math.round(H-region.y);
+ const x0=Math.round(region.x*factor),x1=Math.round((region.x+region.w)*factor),y0=Math.round((H-region.y-region.h)*factor),y1=Math.round((H-region.y)*factor);
  // Each half is scanned independently to avoid bridging Hebrew columns.
  const slices=pageMetadata[side]?.source?.languageCode==="H"?[[.02,.49],[.51,.98]]:[[.02,.98]];
  for(let column=0;column<slices.length;column++){
@@ -279,14 +297,14 @@ function detectPrintedLines(canvas,side){
   const threshold=english?2:Math.max(3,Math.floor((right-left)/95));
   let start=-1,last=-1;
   const emitBand=(fromRow,toRow)=>{
-   if(toRow-fromRow<1||toRow-fromRow>30)return;
+   if(toRow-fromRow<factor||toRow-fromRow>30*factor)return;
    let minX=right,maxX=left;
    for(let y=y0+fromRow;y<=y0+toRow;y++)for(let x=left;x<right;x++){
     const j=(y*w+x)*4;if(pixels[j]<145){minX=Math.min(minX,x);maxX=Math.max(maxX,x)}
    }
-   if(maxX-minX<=(english?12:18))return;
-   const pad=2;
-   const top=Math.max(0,y0+fromRow-1),bottom=Math.min(h,y0+toRow+2);
+   if(maxX-minX<=(english?12:18)*factor)return;
+   const pad=2*factor;
+   const top=Math.max(0,y0+fromRow-factor),bottom=Math.min(h,y0+toRow+2*factor);
    result.push({id:"line-"+column+"-"+fromRow,column,
     x:Math.max(0,minX-pad)/w,y:top/h,
     width:(Math.min(w,maxX+pad)-Math.max(0,minX-pad))/w,height:(bottom-top)/h});
@@ -294,17 +312,17 @@ function detectPrintedLines(canvas,side){
   const emit=()=>{
    if(start<0)return;
    const from=start,to=last;start=-1;
-   if(to-from<1)return;
+   if(to-from<factor)return;
    // A tall ink band can contain two touching printed lines. Split only
    // at a pronounced interior horizontal valley, never at arbitrary halves.
-   if(to-from>17){
+   if(to-from>17*factor){
     const values=rows.slice(from,to+1),peak=Math.max(...values);
     const valleys=[];
-    for(let j=5;j<values.length-5;j++){
+    for(let j=5*factor;j<values.length-5*factor;j++){
      if(values[j]<=peak*.36&&values[j]<=values[j-1]&&values[j]<=values[j+1])valleys.push(j);
     }
     valleys.sort((a,b)=>values[a]-values[b]);
-    const cut=valleys.find(j=>j>=7&&values.length-j>=8);
+    const cut=valleys.find(j=>j>=7*factor&&values.length-j>=8*factor);
     if(cut!==undefined){emitBand(from,from+cut-1);emitBand(from+cut+1,to);return}
    }
    emitBand(from,to);
@@ -606,7 +624,9 @@ async function recognizeCueLines(side){
  if(!canvas||!record||!window.Tesseract){rawOcrDiagnostics[side]="OCR unavailable: missing canvas, page record or Tesseract.";return [];}
  const lang=record.source.languageCode==="H"?"heb":"eng";
  const region=REGIONS[side],x=Math.round(region.x),y=Math.round(H-region.y-region.h);
- const crop=canvasCrop(canvas,{left:x,top:y,right:Math.round(region.x+region.w),bottom:Math.round(H-region.y)});
+ const analysis=lang==="eng"?enhancedAnalysisCanvas(canvas,2):canvas;
+ const factor=analysis.width/canvas.width;
+ const crop=canvasCrop(analysis,{left:x*factor,top:y*factor,right:Math.round((region.x+region.w)*factor),bottom:Math.round((H-region.y)*factor)});
  const result=await Tesseract.recognize(crop,lang);
  const data=result.data||{},raw=Array.isArray(data.lines)?data.lines:[];
  // Tesseract builds differ in whether they expose lines or words.
@@ -617,7 +637,7 @@ async function recognizeCueLines(side){
  for(const line of candidates){
   const value=String(line.text||"").trim(),box=line.bbox;
   if(!value||!box)continue;
-  const cy=(y+(box.y0+box.y1)/2)/canvas.height,cx=(x+(box.x0+box.x1)/2)/canvas.width;
+  const cy=(y+(box.y0+box.y1)/(2*factor))/canvas.height,cx=(x+(box.x0+box.x1)/(2*factor))/canvas.width;
   const closest=geometry.filter(g=>cx>=g.x-.04&&cx<=g.x+g.width+.04)
    .sort((a,b)=>Math.abs(cy-a.y-a.height/2)-Math.abs(cy-b.y-b.height/2))[0];
   if(closest&&Math.abs(cy-closest.y-closest.height/2)<.025){
@@ -630,12 +650,12 @@ async function recognizeCueLines(side){
   const perLine=new Map();
   for(const word of data.words){
    const b=word.bbox;if(!b||!String(word.text||"").trim())continue;
-   const cx=(x+(b.x0+b.x1)/2)/canvas.width,cy=(y+(b.y0+b.y1)/2)/canvas.height;
+   const cx=(x+(b.x0+b.x1)/(2*factor))/canvas.width,cy=(y+(b.y0+b.y1)/(2*factor))/canvas.height;
    const closest=geometry.filter(g=>cx>=g.x-.018&&cx<=g.x+g.width+.018)
     .sort((a,b)=>Math.abs(cy-a.y-a.height/2)-Math.abs(cy-b.y-b.height/2))[0];
    if(!closest||Math.abs(cy-closest.y-closest.height/2)>.025)continue;
-   const left=Math.max(closest.x,(x+b.x0-2)/canvas.width);
-   const right=Math.min(closest.x+closest.width,(x+b.x1+2)/canvas.width);
+   const left=Math.max(closest.x,(x+(b.x0-2)/factor)/canvas.width);
+   const right=Math.min(closest.x+closest.width,(x+(b.x1+2)/factor)/canvas.width);
    if(right-left<.003)continue;
    if(!perLine.has(closest.id))perLine.set(closest.id,[]);
    perLine.get(closest.id).push({x:left,width:right-left});
