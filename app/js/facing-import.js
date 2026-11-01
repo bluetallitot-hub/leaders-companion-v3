@@ -1735,7 +1735,7 @@ async function createPdf(bytes){
   const canvas=document.createElement("canvas");canvas.width=Math.ceil(v.width);canvas.height=Math.ceil(v.height);
   const ctx=canvas.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
   await src.render({canvasContext:ctx,viewport:v}).promise;
-  const meta=await readMetadata(source,first+i,canvas);
+  const meta=await readMetadata(source,first+i,canvas);const embedded=embeddedPageRecords[first+i];if(embedded?.language){meta.language=embedded.language==="E"?"English":embedded.language==="H"?"Hebrew":meta.language;}
   const crop=detectCrop(canvas,meta),cleaned=canvasCrop(canvas,crop);
   cleanPixels(cleaned);
   const png=await out.embedPng(await (await fetch(cleaned.toDataURL("image/png"))).arrayBuffer());
@@ -2039,7 +2039,7 @@ async function exportEntireService(){
    const copied=await result.copyPages(original,[i]);page=result.addPage(copied[0]);
   }
   const width=page.getWidth(),height=page.getHeight(),spread=2*Math.floor(i/2)+1,side=i%2;
-  const edits=spreadEdits.get(spread)?.[side]||[];
+  const edits=spreadEdits.get(spread)?.[side]||embeddedPageRecords[i]?.highlights||[];
   for(const mark of edits){
    if(![mark.x,mark.y,mark.width,mark.height].every(Number.isFinite)||mark.width<=0||mark.height<=0)continue;
    const hex=roleColor(mark.roleId).replace("#",""),value=parseInt(hex,16);
@@ -2064,8 +2064,9 @@ async function exportEntireService(){
    page.drawRectangle({x:8,y:4,width:width-16,height:maxLines*lineHeight+8,color:PDFLib.rgb(1,1,1),opacity:.96});
    cueText.slice(0,maxLines).forEach((line,k)=>page.drawText(line.slice(0,105),{x:12,y:8+(maxLines-1-k)*lineHeight,size:8,font,color:PDFLib.rgb(.15,.2,.22)}));
   }
-  const pageInfo={...(embeddedPageRecords[i]||{}),outputPage:i+1,printedPage:number,manifest:entry,cues,prayerTitle:embeddedPageRecords[i]?.prayerTitle||null,highlights:edits};
+  const pageInfo={...(embeddedPageRecords[i]||{}),outputPage:i+1,printedPage:number,manifest:entry,cues,prayerTitle:embeddedPageRecords[i]?.prayerTitle||null,highlights:edits,leadership:{...(embeddedPageRecords[i]?.leadership||{}),cues,highlights:edits}};
   metadata.pages.push(pageInfo);
+  page.node.set(PDFLib.PDFName.of("LCPageRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(pageInfo)));
   page.node.set(PDFLib.PDFName.of("LCIntakeRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(pageInfo)));
   // Yield to the UI so the progress bar can repaint during large exports.
   if(i%2===0)await new Promise(resolve=>setTimeout(resolve,0));
@@ -2100,8 +2101,8 @@ async function restoreSiddurIntake(){
  if(!window.indexedDB)return;
  const db=await new Promise((resolve,reject)=>{const q=indexedDB.open("leaders-companion-siddur-v3",1);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains("projects"))q.result.createObjectStore("projects")};q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});
  const data=await new Promise((resolve,reject)=>{const tx=db.transaction("projects","readonly");const q=tx.objectStore("projects").get("handoff");q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});db.close();
- if(!data?.pdf||!data?.csv)throw Error("No saved PDF and cue CSV found. Return to Siddur Intake and save the project again.");
- const rows=parseCsv(data.csv);
+ if(!data?.pdf)throw Error("No saved PDF found. Return to Siddur Intake and save the project again.");
+ const rows=data.csv?parseCsv(data.csv):[];
  importedCues=rows.filter(c=>c.source_page||c.printed_page);
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  filename=(data.pdfName||"siddur.pdf").replace(/\.pdf$/i,"");
