@@ -568,6 +568,28 @@ function hebrewRangeHighlights(side,cue,ocr,geometry){
    for(let j=1;j<=b.length;j++){const old=dp[j];dp[j]=Math.min(dp[j]+1,dp[j-1]+1,prior+(a[i-1]===b[j-1]?0:1));prior=old;}}
   return 1-dp[b.length]/Math.max(a.length,b.length,1);
  };
+ // Canonicalize OCR substitutions and attached Hebrew prefixes for anchor matching.
+ const key=w=>String(w||"").replace(/[ךםןףץ]/g,c=>({"ך":"כ","ם":"מ","ן":"נ","ף":"פ","ץ":"צ"}[c]));
+ const approximate=(a,b)=>Math.max(edit(key(a),key(b)),edit(key(a).replace(/^ו/,""),key(b).replace(/^ו/,"")));
+ const phraseAnchors=(phrase,which)=>{
+  const wanted=which==="start"?[1,2]:[phrase.length-2,phrase.length-1];
+  const found=[];
+  for(const observed of ocr){
+   const line=geometry.find(g=>g.id===observed.id);if(!line)continue;
+   const source=tokenize(observed.text);
+   for(let j=0;j<source.length-1;j++){
+    for(const [first,second] of [wanted]){
+     if(first<0||second>=phrase.length)continue;
+     const a=approximate(phrase[first],source[j]),b=approximate(phrase[second],source[j+1]);
+     if(a<.55||b<.55)continue;
+     found.push({line,order:ordered.findIndex(l=>l.id===line.id),
+      score:a+b+1.5,ocrStart:j-first,ocrEnd:j+1+(phrase.length-1-second),
+      sourceCount:source.length,anchorPair:true});
+    }
+   }
+  }
+  return found;
+ };
  const candidates=phrase=>{
   const results=[];
   for(const observed of ocr){
@@ -597,20 +619,25 @@ function hebrewRangeHighlights(side,cue,ocr,geometry){
   }
   return results.sort((a,b)=>b.score-a.score).slice(0,30);
  };
- const starts=candidates(startWords),ends=candidates(endWords),pairs=[];
+ const starts=[...phraseAnchors(startWords,"start"),...candidates(startWords)];
+ const ends=[...phraseAnchors(endWords,"end"),...candidates(endWords)];
+ const pairs=[];
  for(const a of starts)for(const b of ends){
   const span=b.order-a.order;
   if(span<0||span>3)continue;
-  if(span===0&&b.to<a.from)continue;
+  if(span===0&&(b.anchorPair?b.ocrEnd:b.to)<(a.anchorPair?a.ocrStart:a.from))continue;
   // Phrase evidence dominates; favor nearby endpoints as a tie breaker.
-  pairs.push({a,b,score:a.score+b.score-span*.8+(span===0?.6:0)});
+  pairs.push({a,b,score:a.score+b.score-span*.8+(span===0?.6:0)+(a.anchorPair&&b.anchorPair?2:0)});
  }
  if(!pairs.length)return null;
  pairs.sort((a,b)=>b.score-a.score);
  const {a,b}=pairs[0],selected=[];
  for(let p=a.order;p<=b.order;p++){
   const line=ordered[p],words=wordCandidates(side,line).slice().sort((x,y)=>y.x-x.x);
-  const from=p===a.order?a.from:0,to=p===b.order?b.to:words.length-1;
+  // When OCR and ink segmentation disagree, cover the whole source line.
+  // Do not project seven OCR tokens onto four image fragments.
+  const from=p===a.order?(a.anchorPair?0:a.from):0;
+  const to=p===b.order?(b.anchorPair?words.length-1:b.to):words.length-1;
   for(let k=from;k<=to;k++){
    const word=words[k];if(!word)continue;
    selected.push({highlightId:"HL-"+cue.cueId+"-"+word.id,lineId:line.id,wordId:word.id,
