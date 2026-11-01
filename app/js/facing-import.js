@@ -870,6 +870,18 @@ function reconstructedHebrewPreview(fragments,ocrLines){
    group.fragments.push(fragment);
   }else groups.push({...fragment,fragments:[fragment]});
  }
+ // Short isolated words need a little room for edge letters and nikkud.
+ // Expand only preview geometry, never the underlying detected/selected lines.
+ for(const group of groups){
+  if(group.column!==2||group.width>=.16||group.count>1)continue;
+  const padX=Math.min(.009,group.width*.18),padY=Math.min(.0035,group.height*.18);
+  const oldRight=group.x+group.width,oldBottom=group.y+group.height;
+  group.x=Math.max(0,group.x-padX);
+  group.y=Math.max(0,group.y-padY);
+  group.width=Math.min(1,oldRight+padX)-group.x;
+  group.height=Math.min(1,oldBottom+padY)-group.y;
+  group.shortLine=true;
+ }
  for(const group of groups){
   const mid=group.y+group.height/2;
   const anchor=ocrLines.find(a=>(group.column===2||a.column===group.column)&&a.bbox&&
@@ -906,6 +918,7 @@ async function diagnoseHebrewWordCounts(){
    });
    rows.push("Unassigned image fragments: "+reconciliation.unassigned.length);
    rows.push("Adaptive layout transition: "+(hebrewLayoutTransitions[side]===null?"not confidently detected":(hebrewLayoutTransitions[side]*100).toFixed(1)+"% of canvas height"));
+   rows.push("Short isolated full-width lines padded: "+hebrewReconstructionPreview[side].filter(g=>g.shortLine).length);
    rows.push("Image-first reconstructed lines: "+hebrewReconstructionPreview[side].length+"; merged groups: "+hebrewReconstructionPreview[side].filter(g=>g.count>1).length+" (green=OCR nearby, orange=no OCR nearby)");
    rows.push("NOTE: image-first horizontal grouping is preview-only; selection rectangles remain unchanged.");
    reports.push("Hebrew page "+(pageMetadata[side].source.sourcePage||side+1)+
