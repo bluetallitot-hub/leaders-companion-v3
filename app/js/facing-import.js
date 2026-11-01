@@ -1940,14 +1940,52 @@ $("rivok-json").addEventListener("change",async e=>{
 });
 $("rivok-clear").addEventListener("click",()=>{rivokOverlay=null;drawHighlights();$("rivok-status").textContent="Rivok overlay cleared.";});
 $("hebrew-ocr-diagnostic").addEventListener("click",diagnoseHebrewWordCounts);
+function downloadPageNumber(index){
+ const entry=serviceManifest?.pages?.find(p=>p.outputPage===index);
+ if(!entry)return String(index);
+ if(entry.kind==="printed")return String(entry.reference||index);
+ return "";
+}
+async function exportEntireService(){
+ if(!sourcePdfBytes)throw Error("No service PDF loaded.");
+ saveCurrentSpreadEdits();
+ const original=await PDFLib.PDFDocument.load(sourcePdfBytes.slice()),result=await PDFLib.PDFDocument.create();
+ const pages=await result.copyPages(original,Array.from({length:original.getPageCount()},(_,i)=>i));
+ const font=await result.embedFont(PDFLib.StandardFonts.HelveticaBold);
+ let highlighted=0;
+ for(let i=0;i<pages.length;i++){
+  const page=pages[i];result.addPage(page);
+  const spread=2*Math.floor(i/2)+1,side=i%2;
+  const edits=spreadEdits.get(spread)?.[side]||[];
+  const width=page.getWidth(),height=page.getHeight();
+  for(const mark of edits){
+   if(![mark.x,mark.y,mark.width,mark.height].every(Number.isFinite)||mark.width<=0||mark.height<=0)continue;
+   const hex=roleColor(mark.roleId).replace("#",""),value=parseInt(hex,16);
+   const color=PDFLib.rgb(((value>>16)&255)/255,((value>>8)&255)/255,(value&255)/255);
+   page.drawRectangle({x:mark.x*width,y:(1-mark.y-mark.height)*height,width:mark.width*width,height:mark.height*height,color,opacity:highlightAlpha(mark),blendMode:"Multiply"});
+   highlighted++;
+  }
+  const number=downloadPageNumber(i+1);
+  if(number){
+   const size=13,tw=font.widthOfTextAtSize(number,size);
+   page.drawRectangle({x:width-64,y:height-38,width:55,height:25,color:PDFLib.rgb(1,1,1),opacity:.92});
+   page.drawText(number,{x:width-12-tw,y:height-30,size,font,color:PDFLib.rgb(.7,.1,.13)});
+  }
+ }
+ return {bytes:new Uint8Array(await result.save()),pages:pages.length,highlighted};
+}
 $("download").addEventListener("click",async()=>{
- if(!output)return;
- try{await syncHighlightMetadata()}catch(e){status("Could not save highlight metadata: "+e.message);return}
- const url=URL.createObjectURL(new Blob([output],{type:"application/pdf"}));
- const a=document.createElement("a");a.href=url;a.download=filename+"-v3.pdf";
- document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+ const button=$("download");button.disabled=true;
+ try{
+  status("Exporting all "+sourcePdfPages+" service pages with visible highlights…");
+  const result=await exportEntireService();
+  const url=URL.createObjectURL(new Blob([result.bytes],{type:"application/pdf"}));
+  const a=document.createElement("a");a.href=url;a.download=filename+"-complete-highlighted.pdf";
+  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+  status("Downloaded "+result.pages+" pages with "+result.highlighted+" visible highlight rectangles. Printed page numbers included where mapped.");
+ }catch(e){console.error(e);status("Full-service export failed: "+e.message)}
+ finally{button.disabled=false}
 });
-
 
 async function restoreSiddurIntake(){
  if(!window.indexedDB)return;
