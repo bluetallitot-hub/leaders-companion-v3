@@ -1751,7 +1751,7 @@ function refreshMetadataDialog(){
   content.append(panel);
  }
 }
-$("view-metadata").addEventListener("click",()=>{refreshMetadataDialog();$("metadata-dialog").showModal()});
+$("view-metadata").addEventListener("click",()=>{refreshMetadataDialog();$("metadata-dialog").show()});
 $("close-metadata").addEventListener("click",()=>$("metadata-dialog").close());
 function displayMetadata(){
  for(let i=0;i<2;i++){
@@ -1820,7 +1820,8 @@ function updateIntakeInventory(){
 }
 async function loadSelectedSpread(){
  if(!sourcePdfBytes)return;
- $("download").disabled=true;output=null;baseOutput=null;pageMetadata=[];
+ $("download").disabled=true;
+ if($("metadata-dialog").open){$("metadata-spread-label").textContent=$("spread-position").textContent+" — loading";$("metadata-dialog-content").textContent="Loading metadata for the selected spread…";}output=null;baseOutput=null;pageMetadata=[];
  ocrWordGeometry=[new Map(),new Map()];$("spread-preview").hidden=true;
  rivokOverlay=null;rivokWordsBySide=[null,null];
  visibleCueId="";
@@ -1829,6 +1830,7 @@ async function loadSelectedSpread(){
  await preview(output);
  const saved=spreadEdits.get(selectedSpreadFirst);
  if(saved){pageMetadata.forEach((record,i)=>{if(record&&saved[i])record.leadership.highlights=saved[i]});drawHighlights()}
+ if($("metadata-dialog").open)refreshMetadataDialog();
  $("download").disabled=false;
  status(cueMatchReport);
 }
