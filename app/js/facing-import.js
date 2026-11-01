@@ -1168,10 +1168,10 @@ async function secondPassHebrewLines(side,firstPass){
    try{
     const crop=canvasCrop(analysis,{left,top,right,bottom});
     const result=await worker.recognize(crop);
-    const recognized=String(result.data?.text||"").replace(/\\s+/g," ").trim();
+    const recognized=String(result.data?.text||"").replace(/\s+/g," ").trim();
     read++;
     // A line must contain Hebrew letters. Never replace good OCR with empty output.
-    if(!/[\\u05d0-\\u05ea]/u.test(recognized))continue;
+    if(!/[\u05d0-\u05ea]/u.test(recognized))continue;
     const previous=recovered.get(line.id);
     recovered.set(line.id,{id:line.id,text:recognized,y:line.y,column:line.column,
      bbox:{y0:line.y,y1:line.y+line.height},recognitionPass:2});
@@ -1179,7 +1179,7 @@ async function secondPassHebrewLines(side,firstPass){
    }catch(e){failed++;console.warn("Hebrew line OCR retry",line.id,e)}
   }
  }finally{await worker.terminate()}
- rawOcrDiagnostics[side]+="\\nHebrew independent line OCR (PSM 7): "+read+" lines; "+improved+" new/replaced transcriptions; "+failed+" errors. No cue filtering applied.";
+ rawOcrDiagnostics[side]+="\nHebrew independent line OCR (PSM 7): "+read+" lines; "+improved+" new/replaced transcriptions; "+failed+" errors. No cue filtering applied.";
  return [...recovered.values()].sort((a,b)=>((a.column===1?0:a.column===0?1:2)-(b.column===1?0:b.column===0?1:2))||a.y-b.y);
 }
 async function autoMatchCues(){
