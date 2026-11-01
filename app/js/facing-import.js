@@ -813,19 +813,42 @@ function reconcileHebrewLinesForReport(side,ocrLines){
 // V3.59 preview geometry: union fragments assigned to the same OCR line.
 // Unassigned fragments remain separate; never guess across vertical gaps.
 let hebrewReconstructionPreview=[[],[]];
-function reconstructedHebrewPreview(reconciliation){
- const result=[];
- const union=fragments=>{
-  const x=Math.min(...fragments.map(f=>f.x)),y=Math.min(...fragments.map(f=>f.y));
-  const right=Math.max(...fragments.map(f=>f.x+f.width));
-  const bottom=Math.max(...fragments.map(f=>f.y+f.height));
-  return {x,y,width:right-x,height:bottom-y,column:fragments[0].column};
+// V3.60: group horizontal pieces by image geometry, not OCR membership.
+// Keep each detector column independent and avoid merging adjacent baselines.
+function reconstructedHebrewPreview(fragments,ocrLines){
+ const union=items=>{
+  const x=Math.min(...items.map(f=>f.x)),y=Math.min(...items.map(f=>f.y));
+  const right=Math.max(...items.map(f=>f.x+f.width));
+  const bottom=Math.max(...items.map(f=>f.y+f.height));
+  return {x,y,width:right-x,height:bottom-y,column:items[0].column};
  };
- for(const group of reconciliation.groups){
-  if(group.fragments.length)result.push({...union(group.fragments),kind:"ocr",count:group.fragments.length});
+ const groups=[];
+ const ordered=fragments.slice().sort((a,b)=>a.column-b.column||a.y-b.y||a.x-b.x);
+ for(const fragment of ordered){
+  const mid=fragment.y+fragment.height/2;
+  const candidates=groups.filter(g=>{
+   if(g.column!==fragment.column)return false;
+   const overlap=Math.max(0,Math.min(g.y+g.height,fragment.y+fragment.height)-Math.max(g.y,fragment.y));
+   const ratio=overlap/Math.max(.00001,Math.min(g.height,fragment.height));
+   const center=Math.abs(mid-(g.y+g.height/2));
+   const similar=Math.max(g.height,fragment.height)/Math.max(.00001,Math.min(g.height,fragment.height))<1.9;
+   return ratio>=.58&&center<=Math.min(g.height,fragment.height)*.42&&similar;
+  }).sort((a,b)=>Math.abs(mid-(a.y+a.height/2))-Math.abs(mid-(b.y+b.height/2)));
+  if(candidates.length){
+   const group=candidates[0];
+   const merged=union([...group.fragments,fragment]);
+   Object.assign(group,merged);
+   group.fragments.push(fragment);
+  }else groups.push({...fragment,fragments:[fragment]});
  }
- for(const fragment of reconciliation.unassigned)result.push({...fragment,kind:"unassigned",count:1});
- return result.sort((a,b)=>b.column-a.column||a.y-b.y);
+ for(const group of groups){
+  const mid=group.y+group.height/2;
+  const anchor=ocrLines.find(a=>a.column===group.column&&a.bbox&&
+   Math.abs(mid-(a.bbox.y0+a.bbox.y1)/2)<Math.max(.012,group.height*.55));
+  group.kind=anchor?"ocr":"unassigned";
+  group.count=group.fragments.length;
+ }
+ return groups.sort((a,b)=>b.column-a.column||a.y-b.y);
 }
 async function diagnoseHebrewWordCounts(){
  const button=$("hebrew-ocr-diagnostic"),out=$("ocr-diagnostics");
@@ -840,7 +863,7 @@ async function diagnoseHebrewWordCounts(){
    const byId=new Map(ocr.map(l=>[l.id,l.text]));
    const geometry=detectedLines[side]||[];
    const reconciliation=reconcileHebrewLinesForReport(side,ocr);
-   hebrewReconstructionPreview[side]=reconstructedHebrewPreview(reconciliation);
+   hebrewReconstructionPreview[side]=reconstructedHebrewPreview(geometry,ocr);
    const rows=reconciliation.groups.map((group,i)=>{
     const line=group.anchor;
     const text=line.text||"";
@@ -852,8 +875,8 @@ async function diagnoseHebrewWordCounts(){
      " | "+text;
    });
    rows.push("Unassigned image fragments: "+reconciliation.unassigned.length);
-   rows.push("Preview reconstructed rectangles: "+hebrewReconstructionPreview[side].length+" (green=OCR anchored, orange=unassigned)");
-   rows.push("NOTE: diagnostic-only grouping; selection rectangles remain unchanged.");
+   rows.push("Image-first reconstructed lines: "+hebrewReconstructionPreview[side].length+"; merged groups: "+hebrewReconstructionPreview[side].filter(g=>g.count>1).length+" (green=OCR nearby, orange=no OCR nearby)");
+   rows.push("NOTE: image-first horizontal grouping is preview-only; selection rectangles remain unchanged.");
    reports.push("Hebrew page "+(pageMetadata[side].source.sourcePage||side+1)+
     " | OCR mapped "+ocr.length+" of "+geometry.length+" detected lines\n"+
     rows.join("\n")+"\n\nRAW OCR:\n"+rawOcrDiagnostics[side]);
