@@ -438,20 +438,36 @@ function englishAnchorScore(text,phrase){
 function matchingCueLine(lines,phrase){
  const alias=hebrewCueAlias(phrase),needle=normalizeCueText(alias);
  if(needle.length<4)return null;
+ // English: require every cue word in order and adjacent, not a bag-of-words score.
+ // Reject ambiguous repeated occurrences rather than selecting a plausible location.
+ if(!/[\u0590-\u05ff]/u.test(needle)){
+  const tokens=t=>normalizeCueText(t).replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(Boolean);
+  const target=tokens(needle),stream=[];
+  for(let i=0;i<lines.length;i++)for(const word of tokens(lines[i].text))stream.push({word,line:i,column:lines[i].column});
+  if(!target.length)return null;
+  const found=[];
+  for(let i=0;i+target.length<=stream.length;i++){
+   if(stream[i].word!==target[0])continue;
+   let valid=true;
+   for(let j=1;j<target.length;j++){
+    if(stream[i+j].word!==target[j]||stream[i+j].column!==stream[i].column){valid=false;break}
+   }
+   if(valid)found.push(stream[i].line);
+  }
+  return found.length===1?found[0]:null;
+ }
  const scores=[];
  for(let i=0;i<lines.length;i++){
-  // Score contiguous OCR lines. Never allow a loose match to select a passage.
   let best=0;
   for(let n=1;n<=3&&i+n<=lines.length;n++){
    const slice=lines.slice(i,i+n);
    if(slice.some(l=>l.column!==slice[0].column))break;
-   best=Math.max(best,/[\u0590-\u05ff]/u.test(needle)?Math.max(hebrewCueSimilarity(slice.map(l=>l.text).join(" "),needle),hebrewAnchorScore(slice.map(l=>l.text).join(" "),needle)):Math.max(cueSimilarity(slice.map(l=>l.text).join(" "),needle),englishAnchorScore(slice.map(l=>l.text).join(" "),needle)));
+   best=Math.max(best,hebrewCueSimilarity(slice.map(l=>l.text).join(" "),needle),hebrewAnchorScore(slice.map(l=>l.text).join(" "),needle));
   }
-  if(best>=(/[\u0590-\u05ff]/u.test(needle)?.78:.65))scores.push({index:i,score:best});
+  if(best>=.78)scores.push({index:i,score:best});
  }
  scores.sort((a,b)=>b.score-a.score);
  if(!scores.length)return null;
- // Neighboring windows of the same phrase are not separate occurrences.
  const runner=scores.find(c=>Math.abs(c.index-scores[0].index)>2);
  if(runner&&scores[0].score-runner.score<.10)return null;
  return scores[0].index;
