@@ -256,13 +256,13 @@ function cueRowsForPage(ref,kind,language){
  const range=x=>{const m=String(x||"").match(/^(\\d+)(?:-(\\d+))?$/);return m?[Number(m[1]),Number(m[2]||m[1])]:null};
  return (csvRows||[]).filter(c=>{
   const source=String(c.source_page||"").trim();
-  if(source===reference)return true;
+  if(source===reference||String(c.printed_page||"").trim()===reference)return true;
   const a=range(source),b=range(reference);
   return !!(a&&b&&a[0]<=b[1]&&b[0]<=a[1]);
  }).filter(c=>{const l=String(c.language||"").trim().toUpperCase();return !language||!l||l===language||["BOTH","E/H","H+E"].includes(l)});
 }
 function attachPageRecord(page,entry,language){
- const cues=cueRowsForPage(entry.reference,entry.kind,language);
+ const cues=cueRowsForPage(entry.printedPage||entry.reference,entry.kind,language).map(c=>({...c,beginCue:c.begin_cue||c.cue_left||"",endCue:c.end_cue||c.cue_right||"",leaderRole:c.role_name||c.role_code||"",performanceStyle:c.style||""}));
  const fields={};
  for(const cue of cues)for(const [key,value] of Object.entries(cue))if(value!==""&&value!=null){
   if(!fields[key])fields[key]=[];if(!fields[key].includes(value))fields[key].push(value);
