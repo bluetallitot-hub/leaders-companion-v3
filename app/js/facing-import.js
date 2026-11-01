@@ -553,78 +553,65 @@ function cueCandidateDiagnostics(lines,phrase){
 // OCR words are wrong. Project their known offsets onto physical ink boxes.
 // Rank candidate anchors by distinctive cue words and the complete cue context.
 // A common divine-name token alone must never outrank a distinctive phrase.
-function hebrewBoundaryCandidates(side,lines,phrase,edge){
- const tokens=t=>normalizeCueText(hebrewCueAlias(t)).replace(/יהוה/g,"יי")
+// Match ordered cue phrases as a unit. Never score isolated generic words
+// as complete boundaries; OCR errors may substitute or omit individual words.
+function hebrewRangeHighlights(side,cue,ocr,geometry){
+ const tokenize=t=>normalizeCueText(hebrewCueAlias(t)).replace(/יהוה/g,"יי")
   .replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
- const cue=tokens(phrase),geometry=detectedLines[side]||[];
+ const startWords=tokenize(cue.startCueHebrew||cue.startCue);
+ const endWords=tokenize(cue.endCueHebrew||cue.endCue);
  const columns=[...new Set(geometry.map(l=>l.column))].sort((a,b)=>b-a);
  const ordered=geometry.slice().sort((a,b)=>columns.indexOf(a.column)-columns.indexOf(b.column)||a.y-b.y);
- const distance=(a,b)=>{
+ const edit=(a,b)=>{
   const dp=Array.from({length:b.length+1},(_,i)=>i);
-  for(let i=1;i<=a.length;i++){let old=dp[0];dp[0]=i;
-   for(let j=1;j<=b.length;j++){const prev=dp[j];dp[j]=Math.min(dp[j]+1,dp[j-1]+1,old+(a[i-1]===b[j-1]?0:1));old=prev;}}
+  for(let i=1;i<=a.length;i++){let prior=dp[0];dp[0]=i;
+   for(let j=1;j<=b.length;j++){const old=dp[j];dp[j]=Math.min(dp[j]+1,dp[j-1]+1,prior+(a[i-1]===b[j-1]?0:1));prior=old;}}
   return 1-dp[b.length]/Math.max(a.length,b.length,1);
  };
- const candidates=[];
- for(const recognized of lines){
-  const line=geometry.find(g=>g.id===recognized.id);if(!line)continue;
-  const source=tokens(recognized.text),physical=wordCandidates(side,line).slice().sort((a,b)=>b.x-a.x);
-  if(!source.length||!physical.length)continue;
-  for(let ci=0;ci<cue.length;ci++)for(let j=0;j<source.length;j++){
-   const sim=distance(cue[ci],source[j]);
-   if(sim<.60)continue;
-   // Prefer long, distinctive words; 'יי' is weak evidence by itself.
-   const specificity=Math.min(1,cue[ci].length/5);
-   const neighborEvidence=cue.reduce((sum,word,k)=>{
-    if(k===ci)return sum;
-    const position=j+(k-ci);
-    if(position<0||position>=source.length)return sum;
-    return sum+Math.max(0,distance(word,source[position])-.45);
-   },0);
-   const physicalIndex=Math.max(0,Math.min(physical.length-1,Math.round((j+.5)*physical.length/source.length-.5)));
-   let index=physicalIndex+(edge==="start"?-ci:cue.length-1-ci);
-   let pos=ordered.findIndex(l=>l.id===line.id);
-   while(pos>=0&&pos<ordered.length){
-    const words=wordCandidates(side,ordered[pos]).slice().sort((a,b)=>b.x-a.x);
-    if(!words.length)break;
-    if(index<0){pos--;if(pos<0)break;index+=wordCandidates(side,ordered[pos]).length;continue;}
-    if(index>=words.length){index-=words.length;pos++;continue;}
-    candidates.push({line:ordered[pos],index,word:words[index],wordCount:words.length,
-      order:pos*1000+index,score:sim*.65+specificity*.25+neighborEvidence*.5,
-      anchorIndex:ci,anchorWord:cue[ci]});
-    break;
+ const candidates=phrase=>{
+  const results=[];
+  for(const observed of ocr){
+   const line=geometry.find(g=>g.id===observed.id);if(!line)continue;
+   const source=tokenize(observed.text),physical=wordCandidates(side,line).slice().sort((a,b)=>b.x-a.x);
+   if(!source.length||!physical.length)continue;
+   // Slide the complete cue along the OCR line, tolerating a missing first
+   // or last word, but insisting on multiple supporting words in order.
+   for(let offset=-phrase.length+1;offset<source.length;offset++){
+    let evidence=0,distinct=0,weighted=0;
+    for(let k=0;k<phrase.length;k++){
+     const j=offset+k;if(j<0||j>=source.length)continue;
+     const similarity=edit(phrase[k],source[j]);
+     if(similarity<.58)continue;
+     const weight=phrase[k].length<=2?.12:1;
+     weighted+=similarity*weight;evidence+=weight;
+     if(weight===1)distinct++;
+    }
+    if(distinct<1||evidence<.95)continue;
+    const coverage=evidence/Math.max(1,phrase.filter(w=>w.length>2).length);
+    const score=weighted+coverage*.7;
+    const projected=index=>Math.max(0,Math.min(physical.length-1,
+     Math.round((index+.5)*physical.length/source.length-.5)));
+    const from=projected(Math.max(0,offset)),to=projected(Math.min(source.length-1,offset+phrase.length-1));
+    results.push({line,order:ordered.findIndex(l=>l.id===line.id),from,to,score,distinct});
    }
   }
- }
- return candidates.sort((a,b)=>b.score-a.score).slice(0,40);
-}
-function hebrewRangeHighlights(side,cue,ocr,geometry){
- const starts=hebrewBoundaryCandidates(side,ocr,cue.startCueHebrew||cue.startCue,"start");
- const ends=hebrewBoundaryCandidates(side,ocr,cue.endCueHebrew||cue.endCue,"end");
- if(!starts.length||!ends.length)return null;
- // Choose a plausible start/end PAIR, not two independent high-frequency matches.
- const pairs=[];
- for(const start of starts)for(const end of ends){
-  const span=end.order-start.order;
-  if(span<0||span>10000)continue;
-  const sameLine=start.line.id===end.line.id;
-  if(sameLine&&end.index<start.index)continue;
-  // Short Psalm 29:11 cue normally occupies a single printed line;
-  // favor close boundaries while allowing continuation across columns.
-  const score=start.score+end.score-Math.min(span,10000)*.0002+
-   (sameLine?.24:0)+(start.anchorWord.length>=3?.08:0)+(end.anchorWord.length>=3?.08:0);
-  pairs.push({start,end,score});
+  return results.sort((a,b)=>b.score-a.score).slice(0,30);
+ };
+ const starts=candidates(startWords),ends=candidates(endWords),pairs=[];
+ for(const a of starts)for(const b of ends){
+  const span=b.order-a.order;
+  if(span<0||span>3)continue;
+  if(span===0&&b.to<a.from)continue;
+  // Phrase evidence dominates; favor nearby endpoints as a tie breaker.
+  pairs.push({a,b,score:a.score+b.score-span*.8+(span===0?.6:0)});
  }
  if(!pairs.length)return null;
  pairs.sort((a,b)=>b.score-a.score);
- const {start,end}=pairs[0],selected=[];
- const columns=[...new Set(geometry.map(l=>l.column))].sort((a,b)=>b-a);
- const ordered=geometry.slice().sort((a,b)=>columns.indexOf(a.column)-columns.indexOf(b.column)||a.y-b.y);
- const first=ordered.findIndex(l=>l.id===start.line.id),last=ordered.findIndex(l=>l.id===end.line.id);
- if(first<0||last<first)return null;
- for(let p=first;p<=last;p++){
-  const line=ordered[p],words=wordCandidates(side,line).slice().sort((a,b)=>b.x-a.x);
-  for(let k=(p===first?start.index:0);k<= (p===last?end.index:words.length-1);k++){
+ const {a,b}=pairs[0],selected=[];
+ for(let p=a.order;p<=b.order;p++){
+  const line=ordered[p],words=wordCandidates(side,line).slice().sort((x,y)=>y.x-x.x);
+  const from=p===a.order?a.from:0,to=p===b.order?b.to:words.length-1;
+  for(let k=from;k<=to;k++){
    const word=words[k];if(!word)continue;
    selected.push({highlightId:"HL-"+cue.cueId+"-"+word.id,lineId:line.id,wordId:word.id,
     cueId:cue.cueId,roleId:cue.role,x:word.x,y:word.y,width:word.width,height:word.height,
