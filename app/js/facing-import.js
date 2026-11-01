@@ -420,6 +420,21 @@ function hebrewAnchorScore(text,phrase){
  }
  return best;
 }
+// English cues may occupy only part of a longer OCR line. Compare contiguous
+// word windows instead of penalizing the surrounding printed text.
+function englishAnchorScore(text,phrase){
+ const words=v=>normalizeCueText(v).split(" ").filter(Boolean);
+ const source=words(text),target=words(phrase);
+ if(!source.length||!target.length)return 0;
+ let best=0;
+ for(let i=0;i<source.length;i++)for(let n=Math.max(1,target.length-1);n<=Math.min(source.length-i,target.length+1);n++){
+  const sample=source.slice(i,i+n);
+  const hits=target.filter(w=>sample.some(v=>v===w||(w.length>=5&&v.length>=5&&v.slice(0,4)===w.slice(0,4)))).length;
+  const score=hits/Math.max(target.length,n);
+  best=Math.max(best,score);
+ }
+ return best;
+}
 function matchingCueLine(lines,phrase){
  const alias=hebrewCueAlias(phrase),needle=normalizeCueText(alias);
  if(needle.length<4)return null;
@@ -430,7 +445,7 @@ function matchingCueLine(lines,phrase){
   for(let n=1;n<=3&&i+n<=lines.length;n++){
    const slice=lines.slice(i,i+n);
    if(slice.some(l=>l.column!==slice[0].column))break;
-   best=Math.max(best,/[\u0590-\u05ff]/u.test(needle)?Math.max(hebrewCueSimilarity(slice.map(l=>l.text).join(" "),needle),hebrewAnchorScore(slice.map(l=>l.text).join(" "),needle)):cueSimilarity(slice.map(l=>l.text).join(" "),needle));
+   best=Math.max(best,/[\u0590-\u05ff]/u.test(needle)?Math.max(hebrewCueSimilarity(slice.map(l=>l.text).join(" "),needle),hebrewAnchorScore(slice.map(l=>l.text).join(" "),needle)):Math.max(cueSimilarity(slice.map(l=>l.text).join(" "),needle),englishAnchorScore(slice.map(l=>l.text).join(" "),needle)));
   }
   if(best>=(/[\u0590-\u05ff]/u.test(needle)?.78:.65))scores.push({index:i,score:best});
  }
@@ -451,7 +466,7 @@ function cueCandidateDiagnostics(lines,phrase){
    const slice=lines.slice(i,i+n);
    if(slice.some(l=>l.column!==slice[0].column))break;
    const t=slice.map(l=>l.text).join(" ");
-   best=Math.max(best,heb?Math.max(hebrewCueSimilarity(t,needle),hebrewAnchorScore(t,needle)):cueSimilarity(t,needle));
+   best=Math.max(best,heb?Math.max(hebrewCueSimilarity(t,needle),hebrewAnchorScore(t,needle)):Math.max(cueSimilarity(t,needle),englishAnchorScore(t,needle)));
   }
   rank.push({line:i+1,score:best,text:lines[i].text});
  }
