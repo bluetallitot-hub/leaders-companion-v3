@@ -273,8 +273,9 @@ function refreshCueVisibilityPicker(){
  const ids=[...new Set(cues.map(c=>c.cueId).filter(Boolean))];
  const previous=visibleCueId;select.replaceChildren();
  const blank=document.createElement("option");blank.value="";blank.textContent="No cue selected — clean pages";select.append(blank);
+ const all=document.createElement("option");all.value="__all__";all.textContent="All proposed highlights (English + Hebrew)";select.append(all);
  for(const id of ids){const cue=cues.find(c=>c.cueId===id);const option=document.createElement("option");option.value=id;option.textContent=(cue?.role||"Leader")+" — "+id;select.append(option)}
- visibleCueId=ids.includes(previous)?previous:(ids.find(id=>pageMetadata.some(p=>p?.leadership?.highlights?.some(h=>h.cueId===id)))||"");select.value=visibleCueId;
+ visibleCueId=ids.includes(previous)||previous==="__all__"?previous:(ids.some(id=>pageMetadata.some(p=>p?.leadership?.highlights?.some(h=>h.cueId===id)))?"__all__":"");select.value=visibleCueId;
 }
 
 // Analysis-only enhancement: original PDF and visible preview remain unchanged.
@@ -927,7 +928,7 @@ function drawHighlights(){
    }
    ctx.restore();
   }
-  const selected=(pageMetadata[i]?.leadership?.highlights||[]).filter(h=>visibleCueId&&h.cueId===visibleCueId);
+  const selected=(pageMetadata[i]?.leadership?.highlights||[]).filter(h=>visibleCueId==="__all__"||visibleCueId&&h.cueId===visibleCueId);
   for(const line of detectedLines[i]){
    const lineHighlight=selected.find(h=>!h.wordId&&h.lineId===line.id);
    const wordOverrides=selected.filter(h=>h.wordId&&h.lineId===line.id);
