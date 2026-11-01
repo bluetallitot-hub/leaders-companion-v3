@@ -426,17 +426,38 @@ function wordCandidates(side,line){
  const gaps=bands.slice(1).map((b,i)=>b[0]-bands[i][1]-1).sort((a,b)=>a-b);
  const median=gaps.length?gaps[Math.floor(gaps.length/2)]:0;
  const hebrew=pageMetadata[side]?.source?.languageCode==="H";
- const splitAt=Math.max(hebrew?13:5,Math.ceil(median*(hebrew?4.5:2.5)));
- const words=[];let start=bands[0][0],end=bands[0][1];
+ // For Hebrew, punctuation and vowel marks form small isolated ink bands.
+ // Merge those fragments with their adjacent word before identifying spaces.
+ // A period to the left of an RTL word belongs to that preceding word.
+ let units=bands.map(b=>b.slice());
+ if(hebrew&&units.length>1){
+  const small=Math.max(3,Math.round(image.height*.20));
+  for(let k=units.length-1;k>=0;k--){
+   const width=units[k][1]-units[k][0]+1;
+   if(width>small||units.length===1)continue;
+   const leftGap=k>0?units[k][0]-units[k-1][1]-1:Infinity;
+   const rightGap=k+1<units.length?units[k+1][0]-units[k][1]-1:Infinity;
+   // Prefer attaching trailing RTL punctuation to the word on its right.
+   const neighbor=(k+1<units.length&&rightGap<=Math.max(12,leftGap*1.5))?k+1:k-1;
+   if(neighbor<0)continue;
+   units[neighbor][0]=Math.min(units[neighbor][0],units[k][0]);
+   units[neighbor][1]=Math.max(units[neighbor][1],units[k][1]);
+   units.splice(k,1);
+  }
+ }
+ const unitGaps=units.slice(1).map((b,i)=>b[0]-units[i][1]-1).filter(g=>g>=0).sort((a,b)=>a-b);
+ const typical=unitGaps.length?unitGaps[Math.floor(unitGaps.length/2)]:median;
+ const splitAt=Math.max(hebrew?8:5,Math.ceil(typical*(hebrew?2.5:2.5)));
+ const words=[];let start=units[0][0],end=units[0][1];
  const emit=()=>{if(end-start<2)return;
   const xx=Math.max(x0,x0+start-3),right=Math.min(x1,x0+end+4);
   words.push({id:line.id+"-word-"+words.length,lineId:line.id,column:line.column,
    x:xx/w,y:line.y,width:(right-xx)/w,height:line.height});
  };
- for(let i=1;i<bands.length;i++){
-  const gap=bands[i][0]-end-1;
-  if(gap>=splitAt){emit();start=bands[i][0]}
-  end=bands[i][1];
+ for(let i=1;i<units.length;i++){
+  const gap=units[i][0]-end-1;
+  if(gap>=splitAt){emit();start=units[i][0]}
+  end=units[i][1];
  }
  emit();
  return words;
