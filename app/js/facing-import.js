@@ -793,15 +793,15 @@ async function diagnoseHebrewWordCounts(){
    const geometry=detectedLines[side]||[];
    const rows=geometry.slice().sort((a,b)=>b.column-a.column||a.y-b.y).map((line,i)=>{
     const text=byId.get(line.id)||"";
-    const count=text.trim()?text.trim().split(/\\s+/u).length:0;
+    const count=text.trim()?text.trim().split(/\s+/u).length:0;
     return (i+1)+". col "+line.column+" | OCR words: "+(count||"unmapped")+
      " | image candidates: "+wordCandidates(side,line).length+" | "+(text||"[no OCR mapping]");
    });
    reports.push("Hebrew page "+(pageMetadata[side].source.sourcePage||side+1)+
     " | OCR mapped "+ocr.length+" of "+geometry.length+" detected lines\\n"+
-    rows.join("\\n")+"\\n\\nRAW OCR:\\n"+rawOcrDiagnostics[side]);
+    rows.join("\n")+"\n\nRAW OCR:\n"+rawOcrDiagnostics[side]);
   }
-  out.textContent=reports.join("\\n\\n");
+  out.textContent=reports.join("\n\n");
   out.closest("details").open=true;
  }catch(e){out.textContent="Diagnostic error: "+e.message}
  finally{button.disabled=false}
