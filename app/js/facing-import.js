@@ -769,7 +769,7 @@ function isolatedHebrewCueMatch(side,cue,ocr){
      const best=Math.max(0,...nearby.map(t=>wordScore(phrase[j],t.word)));
      if(best>=.65){score+=best;matched++;}
     }
-    candidates.push({index:i,token:expanded[i],score:score+matched*.35-k*.12,matched});
+    candidates.push({index:i,token:expanded[i],score:score+matched*.35-k*.12,matched,anchorIndex:k});
    }
   }
   return candidates.sort((a,b)=>b.score-a.score||a.index-b.index)[0]||null;
@@ -778,9 +778,39 @@ function isolatedHebrewCueMatch(side,cue,ocr){
  if(!beginning)return null;
  // End is searched ONLY after the beginning's position in the reading stream.
  const ending=locate(end,beginning.index+1);
- const ids=new Set([beginning.token.lineId]);
- if(ending)ids.add(ending.token.lineId);
- const chosen=words.filter(w=>ids.has(w.lineId));
+ // Map the OCR cue's word span onto Rivok word boxes. OCR identifies
+ // positions; only Rivok rectangles are ever used for the overlay.
+ const rivokByLine=id=>words.filter(w=>w.lineId===id).sort((a,b)=>b.x-a.x);
+ const closestRivok=t=>{
+  const candidates=rivokByLine(t.lineId);
+  return candidates.sort((a,b)=>Math.abs(a.x+a.width/2-t.x)-Math.abs(b.x+b.width/2-t.x))[0];
+ };
+ const selection=new Map();
+ const include=(w)=>{if(w)selection.set(w.id,w);};
+ const endpoint=(match,phrase)=>{
+  if(!match)return;
+  const lineId=match.token.lineId;
+  const row=rivokByLine(lineId);
+  if(!row.length)return;
+  const anchor=closestRivok(match.token);
+  if(!anchor)return;
+  const anchorPos=row.findIndex(w=>w.id===anchor.id);
+  // In Hebrew visual reading order, subsequent words are to the left.
+  // Estimate missing OCR words using adjacent Rivok boxes, never OCR rectangles.
+  const first=Math.max(0,anchorPos-match.anchorIndex);
+  const last=Math.min(row.length-1,first+phrase.length-1);
+  for(let i=first;i<=last;i++)include(row[i]);
+  // Include independently recognized cue tokens on this line when available.
+  const from=Math.max(0,match.index-match.anchorIndex);
+  for(const t of expanded.slice(from,Math.min(expanded.length,from+phrase.length+2))){
+   if(t.lineId!==lineId)break;
+   const target=closestRivok(t);
+   if(target)include(target);
+  }
+ };
+ endpoint(beginning,start);
+ endpoint(ending,end);
+ const chosen=[...selection.values()];
  if(!chosen.length)return null;
  return chosen.map(w=>({highlightId:"HL-"+cue.cueId+"-"+w.id,
   lineId:w.lineId,wordId:w.id,cueId:cue.cueId,roleId:cue.role,
