@@ -465,23 +465,26 @@ function matchingCueLine(lines,phrase){
   .replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
  const target=tokens(needle);
  if(!target.length)return null;
- const found=[];
+ const required=Math.ceil(target.length*0.75),found=[];
  for(const reversed of [false,true]){
   const stream=[];
   for(let i=0;i<lines.length;i++){
    const words=tokens(lines[i].text);
    for(const word of (reversed?words.reverse():words))stream.push({word,line:i,column:lines[i].column});
   }
-  for(let i=0;i+target.length<=stream.length;i++){
-   if(stream[i].word!==target[0])continue;
-   let valid=true;
-   for(let j=1;j<target.length;j++){
-    if(stream[i+j].word!==target[j]){valid=false;break}
-   }
-   if(valid)found.push(stream[i].line);
+  for(let i=0;i<stream.length;i++)for(let width=Math.max(1,target.length-1);width<=target.length+1&&i+width<=stream.length;width++){
+   const segment=stream.slice(i,i+width);
+   if(segment.some(w=>w.column!==segment[0].column))continue;
+   const dp=Array.from({length:target.length+1},()=>Array(width+1).fill(0));
+   for(let x=1;x<=target.length;x++)for(let y=1;y<=width;y++)
+    dp[x][y]=Math.max(dp[x-1][y],dp[x][y-1],dp[x-1][y-1]+(target[x-1]===segment[y-1].word?1:0));
+   const count=dp[target.length][width];
+   if(count>=required)found.push({line:segment[0].line,count});
   }
  }
- const unique=[...new Set(found)];
+ if(!found.length)return null;
+ const best=Math.max(...found.map(f=>f.count));
+ const unique=[...new Set(found.filter(f=>f.count===best).map(f=>f.line))];
  return unique.length===1?unique[0]:null;
 }
 function cueCandidateDiagnostics(lines,phrase){
