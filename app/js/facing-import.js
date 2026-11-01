@@ -494,7 +494,13 @@ function assignCueHighlights(side){
    if(rank===rankB)return center<=endY+.004;
    return true;
   });
-  if(!selected.length){cue.matchStatus="geometry-review-required";continue}
+  if(!selected.length){
+   // OCR endpoints may be on the same printed line even when OCR line bounds
+   // and Rivok word-center bounds differ slightly. Only accept identical IDs.
+   const exact=first.id===last.id?geometry.find(l=>l.id===first.id):null;
+   if(exact)selected.push(exact);
+   else {cue.matchStatus="geometry-review-required";rawOcrDiagnostics[side]+="\\nGEOMETRY "+cue.cueId+" start="+first.id+" col="+first.column+" y="+first.y+" end="+last.id+" col="+last.column+" y="+last.y+" rank="+rankA+".."+rankB;continue;}
+  }
   for(const line of selected){
    if(!record.leadership.highlights.some(h=>h.lineId===line.id)){
     record.leadership.highlights.push({highlightId:"HL-"+cue.cueId+"-"+line.id,lineId:line.id,cueId:cue.cueId,roleId:cue.role,
