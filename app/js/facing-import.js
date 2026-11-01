@@ -1218,6 +1218,46 @@ async function secondPassHebrewLines(side,firstPass){
  rawOcrDiagnostics[side]+="\nHebrew independent line OCR (PSM 7): "+read+" lines; "+improved+" new/replaced transcriptions; "+failed+" errors. No cue filtering applied.";
  return [...recovered.values()].sort((a,b)=>((a.column===1?0:a.column===0?1:2)-(b.column===1?0:b.column===0?1:2))||a.y-b.y);
 }
+// V3.84 independent word OCR diagnostic. Does not alter cue matches or highlights.
+async function diagnoseHebrewWordRecognition(){
+ const button=$("hebrew-word-ocr-diagnostic"),output=$("hebrew-word-ocr-results");
+ const side=pageMetadata.findIndex((r,i)=>r?.source?.languageCode==="H"&&rivokWordsBySide[i]?.length);
+ if(side<0){output.textContent="Load a Hebrew page and wait for Rivok word detection first.";return}
+ if(!window.Tesseract){output.textContent="Tesseract unavailable.";return}
+ button.disabled=true;output.replaceChildren();
+ const heading=document.createElement("p");
+ heading.textContent="Comparing original and mark-suppressed word crops. This is diagnostic only; no cue matching.";
+ output.append(heading);
+ const canvas=$(side===0?"output-left":"output-right"),scale=3,analysis=enhancedAnalysisCanvas(canvas,scale);
+ const words=rivokWordsBySide[side].slice().sort((a,b)=>a.column-b.column||a.y-b.y||b.x-a.x).slice(0,45);
+ let worker;
+ try{
+  worker=await Tesseract.createWorker("heb");
+  await worker.setParameters({tessedit_pageseg_mode:"8"});
+  for(let i=0;i<words.length;i++){
+   const word=words[i],pad=Math.max(4,Math.round(word.height*canvas.height*.2));
+   const left=Math.max(0,Math.floor((word.x*canvas.width-pad)*scale));
+   const top=Math.max(0,Math.floor((word.y*canvas.height-pad)*scale));
+   const right=Math.min(analysis.width,Math.ceil(((word.x+word.width)*canvas.width+pad)*scale));
+   const bottom=Math.min(analysis.height,Math.ceil(((word.y+word.height)*canvas.height+pad)*scale));
+   if(right-left<8||bottom-top<8)continue;
+   const original=canvasCrop(analysis,{left,top,right,bottom});
+   const cleaned=consonantOnlyOcrCanvas(original);
+   const first=await worker.recognize(original),second=await worker.recognize(cleaned);
+   const text1=normalizeCueText(first.data?.text||"").replace(/[^\u05d0-\u05ea ]/g,"").trim();
+   const text2=normalizeCueText(second.data?.text||"").replace(/[^\u05d0-\u05ea ]/g,"").trim();
+   const row=document.createElement("div");
+   row.style.cssText="display:flex;gap:12px;align-items:center;border-bottom:1px solid #ddd;padding:7px;flex-wrap:wrap";
+   const picture=document.createElement("img");picture.src=original.toDataURL("image/png");picture.alt="Original printed Hebrew word crop";picture.style.cssText="max-width:220px;max-height:75px;object-fit:contain;background:white";
+   const detail=document.createElement("span");
+   detail.textContent="#"+(i+1)+"  Original OCR: "+(text1||"∅")+" ("+Math.round(first.data?.confidence||0)+"%) | Mark-suppressed OCR: "+(text2||"∅")+" ("+Math.round(second.data?.confidence||0)+"%) | Vocabulary: "+(LITURGICAL_WORDS.has(text1)?"first ":"")+(LITURGICAL_WORDS.has(text2)?"second":"") ;
+   row.append(picture,detail);output.append(row);
+   heading.textContent="Compared "+(i+1)+" of "+words.length+" word boxes (diagnostic only).";
+  }
+ }catch(e){const p=document.createElement("p");p.textContent="Word diagnostic error: "+e.message;output.append(p)}
+ finally{if(worker)await worker.terminate();button.disabled=false}
+}
+$("hebrew-word-ocr-diagnostic").addEventListener("click",diagnoseHebrewWordRecognition);
 async function autoMatchCues(){
  if(!pageMetadata.length||!importedCues.length)return;
  let total=0;
