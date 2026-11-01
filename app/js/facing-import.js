@@ -746,24 +746,44 @@ function isolatedHebrewCueMatch(side,cue,ocr){
   }
   return hits.sort((a,b)=>b.score-a.score);
  };
- const beginnings=anchors(start,true),endings=anchors(end,false),pairs=[];
+ // Progressive single-word anchors: OCR fragments need not contain both words.
+ const progressive=(phrase,begin)=>{
+  const hits=[];
+  for(let k=0;k<phrase.length-1;k++){
+   const idx=begin?k:phrase.length-1-k;
+   if(phrase[idx].length<3)continue;
+   for(const observation of ocr){
+    const line=lines.find(l=>l.id===observation.id);if(!line)continue;
+    for(const word of tokenize(observation.text)){
+     const score=similarity(phrase[idx],word);
+     if(score>=.67)hits.push({line,score:score+.12*(phrase[idx].length>=4),begin,anchorIndex:idx});
+    }
+   }
+   if(hits.length)break;
+  }
+  return hits.sort((a,b)=>b.score-a.score);
+ };
+ const beginnings=[...anchors(start,true),...progressive(start,true)];
+ const endings=[...anchors(end,false),...progressive(end,false)];
+ const pairs=[];
  for(const a of beginnings)for(const b of endings){
   const ay=a.line.y+a.line.height/2,by=b.line.y+b.line.height/2;
-  if(Math.abs(ay-by)>Math.max(a.line.height,b.line.height)*1.1)continue;
+  // Right Hebrew column is read before the left column. Separate columns
+  // are not required to share a baseline; on one column, end follows start.
   const ax=a.line.x+a.line.width/2,bx=b.line.x+b.line.width/2;
-  if(ax<=bx+.01)continue;
-  pairs.push({a,b,score:a.score+b.score-Math.abs(ay-by)*10});
+  const rightToLeft=ax>bx+.035;
+  const sameColumn=Math.abs(ax-bx)<=.035;
+  if(!rightToLeft&&!(sameColumn&&by>=ay-.006))continue;
+  const vertical=Math.abs(ay-by);
+  pairs.push({a,b,score:a.score+b.score-vertical*2+(rightToLeft?.25:0)});
  }
  if(!pairs.length)return null;
  pairs.sort((a,b)=>b.score-a.score);
  const {a,b}=pairs[0];
- const top=Math.min(a.line.y,b.line.y),bottom=Math.max(a.line.y+a.line.height,b.line.y+b.line.height);
- const left=Math.min(a.line.x,b.line.x),right=Math.max(a.line.x+a.line.width,b.line.x+b.line.width);
- // Select only Rivok word boxes on this row between the anchor groups.
- const chosen=words.filter(w=>{
-  const cy=w.y+w.height/2,cx=w.x+w.width/2;
-  return cy>=top-.006&&cy<=bottom+.006&&cx>=left-.006&&cx<=right+.006;
- });
+ // Use only the two anchored Rivok line groups, not every line in the
+ // rectangle between them. This prevents the unrelated-column cascade.
+ const ids=new Set([a.line.id,b.line.id]);
+ const chosen=words.filter(w=>ids.has(w.lineId));
  if(!chosen.length)return null;
  return chosen.map(w=>({highlightId:"HL-"+cue.cueId+"-"+w.id,
   lineId:w.lineId,wordId:w.id,cueId:cue.cueId,roleId:cue.role,
