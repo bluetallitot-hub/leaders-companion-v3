@@ -454,8 +454,13 @@ function wordCandidates(side,line){
  // OCR can split a Hebrew word at nikkud or between its letters.
  // Use OCR as a recognition aid, not as authoritative selection geometry.
  // Printed ink gaps below provide the selectable word extents.
- const canvas=$(side===0?"output-left":"output-right"),ctx=canvas.getContext("2d",{willReadFrequently:true});
- const w=canvas.width,h=canvas.height;
+ const canvas=$(side===0?"output-left":"output-right");
+ const hebrew=pageMetadata[side]?.source?.languageCode==="H";
+ // For Hebrew, use the same enhanced 2x analysis image as line detection.
+ // Geometry is normalized to the analysis canvas, so it maps to the original page.
+ const analysis=hebrew?enhancedAnalysisCanvas(canvas,2):canvas;
+ const ctx=analysis.getContext("2d",{willReadFrequently:true});
+ const w=analysis.width,h=analysis.height;
  const x0=Math.max(0,Math.floor(line.x*w)),x1=Math.min(w,Math.ceil((line.x+line.width)*w));
  const y0=Math.max(0,Math.floor(line.y*h)),y1=Math.min(h,Math.ceil((line.y+line.height)*h));
  if(x1-x0<8||y1-y0<3)return [];
@@ -475,20 +480,19 @@ function wordCandidates(side,line){
  // local median positive gap by a conservative margin.
  const gaps=bands.slice(1).map((b,i)=>b[0]-bands[i][1]-1).sort((a,b)=>a-b);
  const median=gaps.length?gaps[Math.floor(gaps.length/2)]:0;
- const hebrew=pageMetadata[side]?.source?.languageCode==="H";
  // For Hebrew, punctuation and vowel marks form small isolated ink bands.
  // Merge those fragments with their adjacent word before identifying spaces.
  // A period to the left of an RTL word belongs to that preceding word.
  let units=bands.map(b=>b.slice());
  if(hebrew&&units.length>1){
-  const small=Math.max(3,Math.round(image.height*.20));
+  const small=Math.max(3*(hebrew?2:1),Math.round(image.height*.20));
   for(let k=units.length-1;k>=0;k--){
    const width=units[k][1]-units[k][0]+1;
    if(width>small||units.length===1)continue;
    const leftGap=k>0?units[k][0]-units[k-1][1]-1:Infinity;
    const rightGap=k+1<units.length?units[k+1][0]-units[k][1]-1:Infinity;
    // Prefer attaching trailing RTL punctuation to the word on its right.
-   const neighbor=(k+1<units.length&&rightGap<=Math.max(12,leftGap*1.5))?k+1:k-1;
+   const neighbor=(k+1<units.length&&rightGap<=Math.max(12*(hebrew?2:1),leftGap*1.5))?k+1:k-1;
    if(neighbor<0)continue;
    units[neighbor][0]=Math.min(units[neighbor][0],units[k][0]);
    units[neighbor][1]=Math.max(units[neighbor][1],units[k][1]);
@@ -497,10 +501,11 @@ function wordCandidates(side,line){
  }
  const unitGaps=units.slice(1).map((b,i)=>b[0]-units[i][1]-1).filter(g=>g>=0).sort((a,b)=>a-b);
  const typical=unitGaps.length?unitGaps[Math.floor(unitGaps.length/2)]:median;
- const splitAt=Math.max(hebrew?8:5,Math.ceil(typical*(hebrew?2.5:2.5)));
+ const splitAt=Math.max(hebrew?16:5,Math.ceil(typical*2.5));
  const words=[];let start=units[0][0],end=units[0][1];
  const emit=()=>{if(end-start<2)return;
-  const xx=Math.max(x0,x0+start-3),right=Math.min(x1,x0+end+4);
+  const pad=hebrew?6:3;
+  const xx=Math.max(x0,x0+start-pad),right=Math.min(x1,x0+end+pad+1);
   words.push({id:line.id+"-word-"+words.length,lineId:line.id,column:line.column,
    x:xx/w,y:line.y,width:(right-xx)/w,height:line.height});
  };
