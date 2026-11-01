@@ -729,65 +729,39 @@ function isolatedHebrewCueMatch(side,cue,ocr){
    for(let j=1;j<=b.length;j++){const old=dp[j];dp[j]=Math.min(dp[j]+1,dp[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=old;}}
   return 1-dp[b.length]/Math.max(a.length,b.length,1);
  };
- const anchors=(phrase,begin)=>{
-  const indices=begin?[1,2]:[phrase.length-2,phrase.length-1];
-  if(indices[0]<0||indices[1]>=phrase.length)return [];
-  const hits=[];
-  for(const observation of ocr){
-   const line=lines.find(l=>l.id===observation.id);if(!line)continue;
-   const raw=tokenize(observation.text);
-   for(const seq of [raw,raw.slice().reverse()]){
-    for(let j=0;j+1<seq.length;j++){
-     const x=similarity(phrase[indices[0]],seq[j]),y=similarity(phrase[indices[1]],seq[j+1]);
-     if(x<.55||y<.55)continue;
-     hits.push({line,score:x+y,begin});
-    }
-   }
-  }
-  return hits.sort((a,b)=>b.score-a.score);
- };
- // Progressive single-word anchors: OCR fragments need not contain both words.
- const progressive=(phrase,begin)=>{
-  const hits=[];
+ // Reading order: right column top-to-bottom, then left column.
+ // The two Rivok groups on a shared row remain independent.
+ const ordered=lines.slice().sort((a,b)=>{
+  const ac=a.x+a.width/2,bc=b.x+b.width/2;
+  const acol=ac>=.5?0:1,bcol=bc>=.5?0:1;
+  return acol-bcol||a.y-b.y||bc-ac;
+ });
+ const rank=new Map(ordered.map((line,i)=>[line.id,i]));
+ // Same progressive algorithm for BOTH cues. Scan forward from a cursor;
+ // do not search the end cue before the beginning cue's location.
+ const findAnchor=(phrase,from)=>{
   for(let k=0;k<phrase.length-1;k++){
-   const idx=begin?k:phrase.length-1-k;
-   if(phrase[idx].length<3)continue;
-   for(const observation of ocr){
-    const line=lines.find(l=>l.id===observation.id);if(!line)continue;
-    for(const word of tokenize(observation.text)){
-     const score=similarity(phrase[idx],word);
-     if(score>=.67)hits.push({line,score:score+.12*(phrase[idx].length>=4),begin,anchorIndex:idx});
+   if(phrase[k].length<3)continue;
+   const found=[];
+   for(let i=from;i<ordered.length;i++){
+    const line=ordered[i],observations=ocr.filter(o=>o.id===line.id);
+    for(const observation of observations){
+     const source=tokenize(observation.text);
+     for(const token of source){
+      const score=similarity(phrase[k],token);
+      if(score>=.67)found.push({line,rank:i,score,anchorIndex:k});
+     }
     }
    }
-   if(hits.length)break;
+   if(found.length)return found.sort((a,b)=>b.score-a.score||a.rank-b.rank)[0];
   }
-  return hits.sort((a,b)=>b.score-a.score);
+  return null;
  };
- // Retain all V3.103 candidates; stronger evidence is a preference only.
- const beginnings=[...anchors(start,true),...progressive(start,true)];
- const endings=[...anchors(end,false),...progressive(end,false)];
- const pairs=[];
- for(const a of beginnings)for(const b of endings){
-  const ay=a.line.y+a.line.height/2,by=b.line.y+b.line.height/2;
-  // Right Hebrew column is read before the left column. Separate columns
-  // are not required to share a baseline; on one column, end follows start.
-  const ax=a.line.x+a.line.width/2,bx=b.line.x+b.line.width/2;
-  const rightToLeft=ax>bx+.035;
-  const sameColumn=Math.abs(ax-bx)<=.035;
-  if(!rightToLeft&&!(sameColumn&&by>=ay-.006))continue;
-  const vertical=Math.abs(ay-by);
-  const leftColumnBonus=rightToLeft&&bx<.49?.9:0;
-  const aligned=Math.abs(ay-by)<=Math.max(a.line.height,b.line.height)*1.8;
-  const endText=ocr.filter(o=>o.id===b.line.id).map(o=>tokenize(o.text)).flat();
-  const hasAmo=endText.some(w=>similarity("עמו",w)>=.65);
-  const hasBshalom=endText.some(w=>similarity("בשלום",w)>=.65);
-  pairs.push({a,b,score:a.score+b.score-vertical*2+leftColumnBonus+(aligned?.35:0)+(hasAmo?.6:0)+(hasBshalom?.6:0)});
- }
- if(!pairs.length)return null;
- pairs.sort((a,b)=>b.score-a.score);
- const {a,b}=pairs[0];
- // Use only the two anchored Rivok line groups, not every line in the
- // rectangle between them. This prevents the unrelated-column cascade.
+ const a=findAnchor(start,0);
+ if(!a)return null;
+ // Resume at the matched beginning, not the start of the page.
+ const b=findAnchor(end,a.rank);
+ if(!b||b.rank<a.rank)return null;
  const ids=new Set([a.line.id,b.line.id]);
  const chosen=words.filter(w=>ids.has(w.lineId));
  if(!chosen.length)return null;
