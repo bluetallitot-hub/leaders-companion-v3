@@ -15,19 +15,20 @@ function drawTemplate(page,side){
 }
 function drawKnownFrameworkFields(page,record,side,font){
  const source=record?.source||{},ident=record?.identification||{},cues=record?.leadership?.cues||[];
- const number=String(source.originalPageNumber||"").trim();
+ const number=String(downloadPageNumber(source.sourcePdfPage)||source.originalPageNumber||"").trim();
  const printable=t=>String(t||"").replace(/[^\\x20-\\x7e]/g,"").trim();
  const write=(value,x,y,maxWidth,size=10)=>{
   const str=printable(value);if(!str)return;
   let out=str;
   while(out&&font.widthOfTextAtSize(out,size)>maxWidth)out=out.slice(0,-1);
-  if(out!==str)out=out.slice(0,-3)+"...";
+  if(out!==str)out=out.length>4?out.slice(0,-3)+"...":out;
   if(out)page.drawText(out,{x,y,size,font,color:PDFLib.rgb(.12,.27,.32)});
  };
  const numberX=side===0?20.16:544.96;
- write(number,numberX+7,753,42,13);
+ write(number,numberX+4,753,46,12);
  const region=REGIONS[side];
- write(ident.prayerName||cues.find(c=>c.prayer)?.prayer||"",region.x+7,718,region.w-14,12);
+ const title=ident.prayerName||cues.find(c=>c.prayer)?.prayer||"";
+ if(title&&!/^P\\d+$/i.test(String(title)))write(title,region.x+7,718,region.w-14,12);
  const footer=cues.map(c=>[c.cueId,c.role,c.startCue,c.endCue].map(printable).filter(Boolean).join(" | "));
  footer.slice(0,3).forEach((line,i)=>write(line,region.x+6,77-i*11,region.w-12,8));
 }
@@ -1823,7 +1824,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null,serviceRoleOpacity=new Map();
 const spreadEdits=new Map();
 function saveCurrentSpreadEdits(){if(pageMetadata.length)spreadEdits.set(selectedSpreadFirst,pageMetadata.map(r=>r?JSON.parse(JSON.stringify(r.leadership.highlights||[])):[]));}
-function updateSpreadNavigation(){const total=Math.ceil(sourcePdfPages/2),current=Math.ceil(selectedSpreadFirst/2);$("spread-position").textContent="Spread "+current+" of "+(total||"—")+" · PDF pages "+selectedSpreadFirst+(selectedSpreadFirst+1<=sourcePdfPages?"–"+(selectedSpreadFirst+1):"");$("previous-spread").disabled=!sourcePdfBytes||current<=1;$("next-spread").disabled=!sourcePdfBytes||current>=total;}
+function updateSpreadNavigation(){const total=Math.ceil(sourcePdfPages/2),current=Math.ceil(selectedSpreadFirst/2),percent=Math.round(Math.min(sourcePdfPages,selectedSpreadFirst+1)/Math.max(1,sourcePdfPages)*100);$("spread-position").textContent="Spread "+current+" of "+(total||"—")+" · PDF pages "+selectedSpreadFirst+(selectedSpreadFirst+1<=sourcePdfPages?"–"+(selectedSpreadFirst+1):"")+" · "+percent+"% through service";const progress=$("review-progress");if(progress)progress.value=percent;$("previous-spread").disabled=!sourcePdfBytes||current<=1;$("next-spread").disabled=!sourcePdfBytes||current>=total;}
 async function navigateSpread(direction){if(!sourcePdfBytes)return;saveCurrentSpreadEdits();selectedSpreadFirst=Math.max(1,Math.min(2*Math.ceil(sourcePdfPages/2)-1,selectedSpreadFirst+direction*2));updateIntakeInventory();try{await loadSelectedSpread()}catch(e){console.error(e);status("Spread navigation failed: "+e.message)}}
 $("framework-boxes")?.addEventListener("change",async()=>{if(!sourcePdfBytes)return;saveCurrentSpreadEdits();try{await loadSelectedSpread()}catch(e){status("Framework style update failed: "+e.message)}});
 $("previous-spread").addEventListener("click",()=>navigateSpread(-1));
