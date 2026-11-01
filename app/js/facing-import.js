@@ -778,6 +778,34 @@ async function recognizeCueLines(side){
  lines.sort((a,b)=>(lang==="heb"?b.column-a.column:a.column-b.column)||a.y-b.y);
  return lines;
 }
+
+async function diagnoseHebrewWordCounts(){
+ const button=$("hebrew-ocr-diagnostic"),out=$("ocr-diagnostics");
+ button.disabled=true;
+ try{
+  const sides=pageMetadata.map((r,i)=>r?.source?.languageCode==="H"?i:-1).filter(i=>i>=0);
+  if(!sides.length){out.textContent="Load a Hebrew page first.";return}
+  out.textContent="Reading Hebrew OCR...";
+  const reports=[];
+  for(const side of sides){
+   const ocr=await recognizeCueLines(side);
+   const byId=new Map(ocr.map(l=>[l.id,l.text]));
+   const geometry=detectedLines[side]||[];
+   const rows=geometry.slice().sort((a,b)=>b.column-a.column||a.y-b.y).map((line,i)=>{
+    const text=byId.get(line.id)||"";
+    const count=text.trim()?text.trim().split(/\\s+/u).length:0;
+    return (i+1)+". col "+line.column+" | OCR words: "+(count||"unmapped")+
+     " | image candidates: "+wordCandidates(side,line).length+" | "+(text||"[no OCR mapping]");
+   });
+   reports.push("Hebrew page "+(pageMetadata[side].source.sourcePage||side+1)+
+    " | OCR mapped "+ocr.length+" of "+geometry.length+" detected lines\\n"+
+    rows.join("\\n")+"\\n\\nRAW OCR:\\n"+rawOcrDiagnostics[side]);
+  }
+  out.textContent=reports.join("\\n\\n");
+  out.closest("details").open=true;
+ }catch(e){out.textContent="Diagnostic error: "+e.message}
+ finally{button.disabled=false}
+}
 async function autoMatchCues(){
  if(!pageMetadata.length||!importedCues.length)return;
  let total=0;
@@ -940,6 +968,7 @@ $("cue-file").addEventListener("change",async()=>{
 $("highlight-view").addEventListener("change",()=>{highlightView=$("highlight-view").value;drawHighlights()});
 $("selection-mode").addEventListener("change",()=>{selectionMode=$("selection-mode").value;drawHighlights()});
 installHighlightSelection();
+$("hebrew-ocr-diagnostic").addEventListener("click",diagnoseHebrewWordCounts);
 $("download").addEventListener("click",async()=>{
  if(!output)return;
  try{await syncHighlightMetadata()}catch(e){status("Could not save highlight metadata: "+e.message);return}
