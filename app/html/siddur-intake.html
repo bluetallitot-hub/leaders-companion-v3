@@ -15,7 +15,7 @@
 </div><p class="hint">Cue rows are not pages. The final count requires a verified printed-to-physical page map, service page selection, and supplemental pages. No source files are altered.</p></section>
 <section class="panel"><h2>5. Printed page references in the CSV</h2><p id="csv-note" class="hint">Upload the CSV to see its printed-page references and cue counts.</p><div class="intake-table-wrap"><table class="intake-table"><thead><tr><th>Printed page</th><th>Language</th><th>Cues</th><th>Physical PDF page</th></tr></thead><tbody id="page-rows"></tbody></table></div></section>
 <section class="panel"><h2>6. Continue to the existing editor</h2><p>The existing editor remains the authority for facing-page alignment, Rivok Hebrew matching, and temporary cue highlights. Complete-service mapping and handoff are not yet wired to this intake inventory.</p><a href="facing-import.html">Open facing-page editor</a></section>
-<footer>Intake V3.117 · Original files stay on your device. No automatic assumptions about page offsets.</footer></main>
+<footer>Intake V3.118 · Original files stay on your device. No automatic assumptions about page offsets.</footer></main>
 <script>
 const $=id=>document.getElementById(id);let pdfCount=null,csvRows=null,rolesLocked=false;const roleOpacity=new Map(),roleAssignments=new Map();const canonicalColors=["#F5D03C","#75C56A","#74B9E7","#F3A65B","#DA88B8","#AE93DC"];
 function parseCsv(text){const rows=[];let row=[],field="",quoted=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(quoted&&text[i+1]==='"'){field+='"';i++}else quoted=!quoted}else if(c===','&&!quoted){row.push(field);field=""}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(field);if(row.some(x=>x.trim()))rows.push(row);row=[];field=""}else field+=c}row.push(field);if(row.some(x=>x.trim()))rows.push(row);if(!rows.length)return[];const headers=rows.shift().map(h=>h.trim().replace(/^\uFEFF/,"").toLowerCase());return rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()])));}
@@ -57,7 +57,7 @@ function renderRoles(){
   const percent=document.createElement("output");percent.textContent=value+"%";
   slider.addEventListener("input",()=>{const opacity=Number(slider.value);roleOpacity.set(key,opacity);percent.textContent=opacity+"%";mark.style.boxShadow="inset 0 0 0 100px "+hexToRgba(entry.color,opacity/100)});
   row.append(dropdown,sample,slider,percent);container.append(row);
-  const caption=document.createElement("p");caption.className="hint";caption.textContent="Cue color: "+entry.label+" ("+entry.color+")";container.append(caption);
+  const caption=document.createElement("p");caption.className="hint";caption.textContent="Cue color: "+entry.label;container.append(caption);
  }
  if(warnings.length){const note=document.createElement("p");note.className="warning";note.textContent=[...new Set(warnings)].join("; ");container.append(note);}
  $("lock-roles").disabled=rolesLocked||entries.length>6;
