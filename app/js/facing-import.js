@@ -240,12 +240,12 @@ function applyImportedCues(){
  if(!pageMetadata.length)return;
  for(const record of pageMetadata){
   const code=record.source.languageCode,number=record.source.originalPageNumber;
-  const matches=importedCues.filter(c=>String(c.printed_page)===String(number)&&c.language?.toUpperCase()===code);
+  const matches=importedCues.filter(c=>{const ref=String(c.source_page||c.printed_page||"").trim();const match=ref.match(/^(\\d+)(?:-(\\d+))?$/);const page=Number(number);const inRange=match&&page>=Number(match[1])&&page<=Number(match[2]||match[1]);const language=String(c.language||"").toUpperCase();return inRange&&(!language||language===code||language==="BOTH"||language==="E/H")});
   record.leadership.cues=matches.map((c,i)=>({
-   cueId:c.cue_id||c.test_id||"import-"+i,service:c.service||null,role:c.role||null,
-   style:c.style||null,styleSlot:null,startCue:c.begin_cue||"",endCue:c.end_cue||"",
+   cueId:c.cue_id||c.test_id||"import-"+i,service:c.service||null,role:c.role_name||c.role_code||c.role||null,
+   style:c.style||null,styleSlot:null,startCue:c.cue_left||c.begin_cue||"",endCue:c.cue_right||c.end_cue||"",
    startCueHebrew:c.begin_cue_hebrew||"",endCueHebrew:c.end_cue_hebrew||"",
-   prayer:c.prayer||null,sourceRow:c.leader_map_source_row||null,
+   prayer:c.prayer_action||c.prayer||null,sourceRow:c.leader_map_source_row||null,
    highlights:[],matchStatus:"unmatched-review-required"
   }));
   if(matches.length){record.identification.serviceCode=matches[0].service||null;
@@ -1670,7 +1670,7 @@ async function autoMatchCues(){
  }
  $("ocr-diagnostics").textContent=pageMetadata.map((r,i)=>"Page "+(r.source.sourcePage||i+1)+" OCR ("+(sourceTextLines[i]||[]).length+" mapped lines):\\n"+(sourceTextLines[i]||[]).map(l=>l.text).join("\\n")+"\\n\\nRAW OCR DIAGNOSTICS:\\n"+(rawOcrDiagnostics[i]||"Not run")).join("\\n\\n");
  cueMatchReport=total+" of "+pageMetadata.reduce((n,r)=>n+r.leadership.cues.length,0)+" cues automatically matched. "+pageMetadata.flatMap(r=>r.leadership.cues.map(c=>c.cueId+": "+c.matchStatus)).join("; ");
- refreshCueVisibilityPicker();drawHighlights();displayMetadata();status(cueMatchReport);
+ refreshCueVisibilityPicker();drawHighlights();displayMetadata();if($("cue-summary"))$("cue-summary").textContent=cueMatchReport;status(cueMatchReport);
 }
 async function syncHighlightMetadata(){
  if(!output)return;
@@ -1952,7 +1952,7 @@ async function restoreSiddurIntake(){
  const data=await new Promise((resolve,reject)=>{const tx=db.transaction("projects","readonly");const q=tx.objectStore("projects").get("handoff");q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});db.close();
  if(!data?.pdf||!data?.csv)throw Error("No saved PDF and cue CSV found. Return to Siddur Intake and save the project again.");
  const rows=parseCsv(data.csv);
- importedCues=rows.filter(c=>c.printed_page&&c.language&&(c.begin_cue||c.begin_cue_hebrew)&&(c.end_cue||c.end_cue_hebrew));
+ importedCues=rows.filter(c=>c.source_page||c.printed_page);
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  filename=(data.pdfName||"siddur.pdf").replace(/\.pdf$/i,"");
  sourcePdfBytes=new Uint8Array(data.pdf);
@@ -1960,6 +1960,10 @@ async function restoreSiddurIntake(){
  sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();
  updateIntakeInventory();
  await loadSelectedSpread();
- status("Restored "+data.pdfName+" and "+importedCues.length+" usable cues. The PDF contains only the verified selected bilingual spreads.");
+ status("Restored "+data.pdfName+" and "+importedCues.length+" cue rows. The PDF contains selected service pages.");
 }
 if(new URLSearchParams(location.search).get("intake")==="1")restoreSiddurIntake().catch(e=>status("Intake handoff failed: "+e.message));
+
+// V3.150 editor visibility controls
+const zoomControl=$("page-zoom");if(zoomControl){const applyZoom=()=>{$("spread-preview").querySelector(".pdf-spread").style.width=zoomControl.value+"%";$("zoom-value").textContent=zoomControl.value+"%"};zoomControl.addEventListener("input",applyZoom);applyZoom();}
+$("show-detection")?.addEventListener("click",()=>{highlightView=highlightView==="detection"?"highlights":"detection";$("highlight-view").value=highlightView;$("show-detection").textContent=highlightView==="detection"?"Hide selectable lines":"Show selectable lines";drawHighlights()});
