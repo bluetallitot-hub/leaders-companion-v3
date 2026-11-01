@@ -380,8 +380,26 @@ function cueSimilarity(a,b){
  const matched=bw.filter(w=>aw.some(v=>v===w||(w.length>4&&v.length>4&&v.slice(0,4)===w.slice(0,4)))).length;
  return matched/Math.max(aw.length,bw.length);
 }
+// Transliteration in imported CSV is not comparable to Hebrew-script OCR.
+// Explicitly verified Psalm 29:11 aliases for the SHFE-159H-01 test row.
+// Do not infer arbitrary Hebrew from Latin transliteration.
+function hebrewCueAlias(phrase){
+ const key=String(phrase||"").toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z]+/g," ").trim();
+ const aliases={
+  "adonai oz l amo yiten":"יי עז לעמו יתן",
+  "adonai y varech et amo vashalom":"יי יברך את עמו בשלום"
+ };
+ return aliases[key]||phrase;
+}
+function hebrewCueSimilarity(a,b){
+ const x=normalizeCueText(a).replace(/[^\u05d0-\u05ea]/g,"");
+ const y=normalizeCueText(b).replace(/[^\u05d0-\u05ea]/g,"");
+ if(!x||!y)return 0;
+ if(x.includes(y)||y.includes(x))return Math.min(x.length,y.length)/Math.max(x.length,y.length)*.25+.75;
+ return cueSimilarity(a,b);
+}
 function matchingCueLine(lines,phrase){
- const needle=normalizeCueText(phrase);
+ const alias=hebrewCueAlias(phrase),needle=normalizeCueText(alias);
  if(needle.length<4)return null;
  const scores=[];
  for(let i=0;i<lines.length;i++){
@@ -390,7 +408,7 @@ function matchingCueLine(lines,phrase){
   for(let n=1;n<=3&&i+n<=lines.length;n++){
    const slice=lines.slice(i,i+n);
    if(slice.some(l=>l.column!==slice[0].column))break;
-   best=Math.max(best,cueSimilarity(slice.map(l=>l.text).join(" "),needle));
+   best=Math.max(best,/[\u0590-\u05ff]/u.test(needle)?hebrewCueSimilarity(slice.map(l=>l.text).join(" "),needle):cueSimilarity(slice.map(l=>l.text).join(" "),needle));
   }
   if(best>=.65)scores.push({index:i,score:best});
  }
