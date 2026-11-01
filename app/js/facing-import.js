@@ -460,7 +460,9 @@ function matchingCueLine(lines,phrase){
  // Strip vowel marks and normalize printed divine-name variants. OCR sometimes
  // reports the words of a right-to-left line in reverse array order, so test
  // each consistent line orientation; never accept a partial phrase.
- const tokens=t=>normalizeCueText(t).replace(/יהוה|יי/g,"יי").replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
+ const tokens=t=>normalizeCueText(t)
+  .replace(/יהוה|י[\u05be\u05f3\u05f4"'׳״.\- ]*י/g,"יי")
+  .replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
  const target=tokens(needle);
  if(!target.length)return null;
  const found=[];
@@ -474,7 +476,7 @@ function matchingCueLine(lines,phrase){
    if(stream[i].word!==target[0])continue;
    let valid=true;
    for(let j=1;j<target.length;j++){
-    if(stream[i+j].word!==target[j]||stream[i+j].column!==stream[i].column){valid=false;break}
+    if(stream[i+j].word!==target[j]){valid=false;break}
    }
    if(valid)found.push(stream[i].line);
   }
