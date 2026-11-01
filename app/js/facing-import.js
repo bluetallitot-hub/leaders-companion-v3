@@ -742,7 +742,7 @@ async function recognizeCueLines(side){
   const closest=geometry.filter(g=>cx>=g.x-.04&&cx<=g.x+g.width+.04)
    .sort((a,b)=>Math.abs(cy-a.y-a.height/2)-Math.abs(cy-b.y-b.height/2))[0];
   if(closest&&Math.abs(cy-closest.y-closest.height/2)<.025){
-   mapped.push({id:closest.id,text:value,y:closest.y,column:closest.column});
+   mapped.push({id:closest.id,text:value,y:closest.y,column:closest.column,bbox:{y0:(y+box.y0/factor)/canvas.height,y1:(y+box.y1/factor)/canvas.height}});
   }
  }
  // Preserve actual OCR word bounding boxes for word-level selection.
@@ -779,6 +779,28 @@ async function recognizeCueLines(side){
  return lines;
 }
 
+// Diagnostic-only reconciliation. OCR lines are anchors; image fragments are
+// assigned by vertical overlap and column, without changing selection geometry.
+function reconcileHebrewLinesForReport(side,ocrLines){
+ const fragments=(detectedLines[side]||[]).slice();
+ const anchors=ocrLines.filter(l=>l.bbox&&Number.isFinite(l.bbox.y0));
+ const groups=anchors.map(a=>({anchor:a,fragments:[]}));
+ const unassigned=[];
+ for(const fragment of fragments){
+  const mid=fragment.y+fragment.height/2;
+  const candidates=groups.filter(g=>g.anchor.column===fragment.column)
+   .map(g=>{
+    const a=g.anchor,b=a.bbox;
+    const overlap=Math.max(0,Math.min(fragment.y+fragment.height,b.y1)-Math.max(fragment.y,b.y0));
+    const dist=Math.abs(mid-(b.y0+b.y1)/2);
+    return {g,overlap,dist};
+   }).sort((a,b)=>b.overlap-a.overlap||a.dist-b.dist);
+  const best=candidates[0];
+  if(best&&(best.overlap>fragment.height*.18||best.dist<.012))best.g.fragments.push(fragment);
+  else unassigned.push(fragment);
+ }
+ return {groups,unassigned};
+}
 async function diagnoseHebrewWordCounts(){
  const button=$("hebrew-ocr-diagnostic"),out=$("ocr-diagnostics");
  button.disabled=true;
@@ -791,12 +813,19 @@ async function diagnoseHebrewWordCounts(){
    const ocr=await recognizeCueLines(side);
    const byId=new Map(ocr.map(l=>[l.id,l.text]));
    const geometry=detectedLines[side]||[];
-   const rows=geometry.slice().sort((a,b)=>b.column-a.column||a.y-b.y).map((line,i)=>{
-    const text=byId.get(line.id)||"";
-    const count=text.trim()?text.trim().split(/\s+/u).length:0;
-    return (i+1)+". col "+line.column+" | OCR words: "+(count||"unmapped")+
-     " | image candidates: "+wordCandidates(side,line).length+" | "+(text||"[no OCR mapping]");
+   const reconciliation=reconcileHebrewLinesForReport(side,ocr);
+   const rows=reconciliation.groups.map((group,i)=>{
+    const line=group.anchor;
+    const text=line.text||"";
+    const count=text.trim()?text.trim().split(/\\s+/u).length:0;
+    const fragments=group.fragments;
+    return (i+1)+". col "+line.column+" | OCR words: "+count+
+     " | assigned image fragments: "+fragments.length+
+     " | image candidates across fragments: "+fragments.reduce((n,f)=>n+wordCandidates(side,f).length,0)+
+     " | "+text;
    });
+   rows.push("Unassigned image fragments: "+reconciliation.unassigned.length);
+   rows.push("NOTE: diagnostic-only grouping; selection rectangles remain unchanged.");
    reports.push("Hebrew page "+(pageMetadata[side].source.sourcePage||side+1)+
     " | OCR mapped "+ocr.length+" of "+geometry.length+" detected lines\\n"+
     rows.join("\n")+"\n\nRAW OCR:\n"+rawOcrDiagnostics[side]);
