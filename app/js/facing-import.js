@@ -484,14 +484,14 @@ function assignCueHighlights(side){
   if(rankA<0||rankB<0||rankB<rankA||rankB-rankA>1){
    cue.matchStatus="column-path-review-required";continue;
   }
-  const startY=first.y,endY=last.y;
+  const startY=first.y+((geometry.find(l=>l.id===first.id)?.height||0)/2),endY=last.y+((geometry.find(l=>l.id===last.id)?.height||0)/2);
   if(rankA===rankB&&endY+.008<startY){cue.matchStatus="reverse-anchor-review-required";continue}
   const selected=geometry.filter(l=>{
    const rank=columnRank(l.column),center=l.y+l.height/2;
    if(rank<rankA||rank>rankB)return false;
-   if(rankA===rankB)return center>=startY-.004&&center<=endY+.004;
-   if(rank===rankA)return center>=startY-.004;
-   if(rank===rankB)return center<=endY+.004;
+   if(rankA===rankB)return center>=startY-.012&&center<=endY+.012;
+   if(rank===rankA)return center>=startY-.012;
+   if(rank===rankB)return center<=endY+.012;
    return true;
   });
   if(!selected.length){
@@ -868,9 +868,19 @@ async function recognizeCueLines(side){
   const value=String(line.text||"").trim(),box=line.bbox;
   if(!value||!box)continue;
   const cy=(y+(box.y0+box.y1)/(2*factor))/canvas.height,cx=(x+(box.x0+box.x1)/(2*factor))/canvas.width;
-  const closest=geometry.filter(g=>cx>=g.x-.04&&cx<=g.x+g.width+.04)
-   .sort((a,b)=>Math.abs(cy-a.y-a.height/2)-Math.abs(cy-b.y-b.height/2))[0];
-  if(closest&&Math.abs(cy-closest.y-closest.height/2)<.025){
+  // Prefer the actual vertical overlap and horizontal intersection of OCR and ink.
+  // Center-only matching incorrectly assigns short centered text to adjacent lines.
+  const bx0=(x+box.x0/factor)/canvas.width,bx1=(x+box.x1/factor)/canvas.width;
+  const by0=(y+box.y0/factor)/canvas.height,by1=(y+box.y1/factor)/canvas.height;
+  const ranked=geometry.map(g=>{
+   const ox=Math.max(0,Math.min(bx1,g.x+g.width)-Math.max(bx0,g.x));
+   const oy=Math.max(0,Math.min(by1,g.y+g.height)-Math.max(by0,g.y));
+   const vertical=oy/Math.max(.001,Math.min(by1-by0,g.height));
+   const horizontal=ox/Math.max(.001,Math.min(bx1-bx0,g.width));
+   return {g,score:vertical*2+horizontal-.2*Math.abs(cy-g.y-g.height/2)};
+  }).filter(v=>v.score>1.05).sort((a,b)=>b.score-a.score);
+  const closest=ranked[0]?.g;
+  if(closest){
    mapped.push({id:closest.id,text:value,y:closest.y,column:closest.column,bbox:{y0:(y+box.y0/factor)/canvas.height,y1:(y+box.y1/factor)/canvas.height}});
   }
  }
