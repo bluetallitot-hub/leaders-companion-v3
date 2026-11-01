@@ -424,6 +424,7 @@ function assignCueHighlights(side){
  const record=pageMetadata[side],ocr=sourceTextLines[side]||[],geometry=detectedLines[side]||[];
  if(!record||!ocr.length){if(record)for(const cue of record.leadership.cues)cue.matchStatus="ocr-lines-unavailable";return 0;}
  let matches=0;
+ const hebrew=record.source.languageCode==="H";
  for(const cue of record.leadership.cues){
   // Never convert ambiguous OCR into a guessed selection.
   const begin=matchingCueLine(ocr,hebrew?(cue.startCueHebrew||cue.startCue):cue.startCue),
@@ -435,7 +436,6 @@ function assignCueHighlights(side){
   // from image geometry, including lines OCR could not read.
   // Follow printed reading order: Hebrew right-to-left columns, English left-to-right.
   // Only traverse a column boundary in the forward reading direction.
-  const hebrew=record.source.languageCode==="H";
   const columns=[...new Set(geometry.map(l=>l.column))].sort((a,b)=>hebrew?((a===2?2:a===1?0:1)-(b===2?2:b===1?0:1)):a-b);
   const columnRank=c=>columns.indexOf(c);
   const rankA=columnRank(first.column),rankB=columnRank(last.column);
