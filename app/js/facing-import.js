@@ -573,12 +573,23 @@ function wordCandidates(side,line){
 function getWordGeometry(side){
  return detectedLines[side].flatMap(l=>wordCandidates(side,l));
 }
+let rivokOverlay=null;
 function drawHighlights(){
  for(let i=0;i<2;i++){
   const overlay=$("highlight-"+i),base=$(i===0?"output-left":"output-right");
   if(!overlay||!base)return;
   overlay.width=base.width;overlay.height=base.height;
   const ctx=overlay.getContext("2d");ctx.clearRect(0,0,overlay.width,overlay.height);
+  if(rivokOverlay&&i===rivokOverlay.side){
+   ctx.save();
+   for(const word of rivokOverlay.words){
+    const [x0,y0,x1,y1]=word.bbox;
+    ctx.strokeStyle="#8a32bf";ctx.lineWidth=1.5;
+    ctx.strokeRect(x0/rivokOverlay.width*overlay.width,y0/rivokOverlay.height*overlay.height,
+      (x1-x0)/rivokOverlay.width*overlay.width,(y1-y0)/rivokOverlay.height*overlay.height);
+   }
+   ctx.restore();
+  }
   const selected=pageMetadata[i]?.leadership?.highlights||[];
   for(const line of detectedLines[i]){
    const lineHighlight=selected.find(h=>!h.wordId&&h.lineId===line.id);
@@ -1104,6 +1115,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 $("source").addEventListener("change",async()=>{
  const file=$("source").files[0];if(!file)return;
  $("download").disabled=true;output=null;baseOutput=null;pageMetadata=[];ocrWordGeometry=[new Map(),new Map()];$("spread-preview").hidden=true;
+ rivokOverlay=null;
  filename=file.name.replace(/\.pdf$/i,"")||"siddur";
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  try{
@@ -1128,6 +1140,36 @@ $("cue-file").addEventListener("change",async()=>{
 $("highlight-view").addEventListener("change",()=>{highlightView=$("highlight-view").value;drawHighlights()});
 $("selection-mode").addEventListener("change",()=>{selectionMode=$("selection-mode").value;drawHighlights()});
 installHighlightSelection();
+$("rivok-export").addEventListener("click",()=>{
+ const side=pageMetadata.findIndex(p=>p?.source?.languageCode==="H");
+ if(side<0){$("rivok-status").textContent="Upload a Hebrew page first.";return;}
+ const canvas=$(side===0?"output-left":"output-right");
+ canvas.toBlob(blob=>{
+  if(!blob)return;
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download="leaders-companion-hebrew-preview.png";a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
+  $("rivok-status").textContent="PNG exported. Run tools/rivok_ocr.py on this exact image; then import its JSON.";
+ },"image/png");
+});
+$("rivok-json").addEventListener("change",async e=>{
+ try{
+  const file=e.target.files[0];if(!file)return;
+  const result=JSON.parse(await file.text());
+  const side=pageMetadata.findIndex(p=>p?.source?.languageCode==="H");
+  if(side<0)throw Error("Upload a Hebrew page first.");
+  const canvas=$(side===0?"output-left":"output-right");
+  if(!Number.isFinite(result.imageWidth)||!Number.isFinite(result.imageHeight)||
+     result.imageWidth!==canvas.width||result.imageHeight!==canvas.height)
+   throw Error("Image dimensions do not match current Hebrew preview. Export and process this exact PNG.");
+  if(!Array.isArray(result.words)||!result.words.every(w=>Array.isArray(w.bbox)&&w.bbox.length===4&&
+    w.bbox.every(Number.isFinite)))throw Error("Invalid Rivok word boxes.");
+  rivokOverlay={side,width:result.imageWidth,height:result.imageHeight,words:result.words};
+  $("rivok-status").textContent="Rivok: "+result.words.length+" word rectangles (purple). Diagnostic only; verify Yitbarach.";
+  drawHighlights();
+ }catch(error){$("rivok-status").textContent="Rivok import failed: "+error.message;}
+});
+$("rivok-clear").addEventListener("click",()=>{rivokOverlay=null;drawHighlights();$("rivok-status").textContent="Rivok overlay cleared.";});
 $("hebrew-ocr-diagnostic").addEventListener("click",diagnoseHebrewWordCounts);
 $("download").addEventListener("click",async()=>{
  if(!output)return;
