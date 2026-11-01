@@ -928,6 +928,30 @@ function installHighlightSelection(){
   layer.addEventListener("pointercancel",()=>{start=null});
  }
 }
+// V3.87: Tesseract.js 5 may omit legacy data.lines/data.words.
+// Explicit TSV output supplies word bounding boxes regardless of legacy object shape.
+function parseOcrTsv(tsv){
+ const rows=String(tsv||"").trim().split(/\r?\n/),words=[],lines=new Map();
+ if(rows.length<2)return {words,lines:[]};
+ const keys=rows.shift().split("\t");
+ for(const row of rows){
+  const cells=row.split("\t"),get=k=>cells[keys.indexOf(k)]||"";
+  if(Number(get("level"))!==5)continue;
+  const text=get("text").trim(),left=Number(get("left")),top=Number(get("top")),
+   width=Number(get("width")),height=Number(get("height"));
+  if(!text||![left,top,width,height].every(Number.isFinite)||width<=0||height<=0)continue;
+  const word={text,confidence:Number(get("conf"))||0,bbox:{x0:left,y0:top,x1:left+width,y1:top+height}};
+  words.push(word);
+  const id=[get("page_num"),get("block_num"),get("par_num"),get("line_num")].join("-");
+  if(!lines.has(id))lines.set(id,[]);
+  lines.get(id).push(word);
+ }
+ return {words,lines:[...lines.values()].map(group=>({
+  text:group.map(w=>w.text).join(" "),
+  bbox:{x0:Math.min(...group.map(w=>w.bbox.x0)),y0:Math.min(...group.map(w=>w.bbox.y0)),
+   x1:Math.max(...group.map(w=>w.bbox.x1)),y1:Math.max(...group.map(w=>w.bbox.y1))}
+ }))};
+}
 async function recognizeCueLines(side){
  const canvas=$(side===0?"output-left":"output-right"),record=pageMetadata[side];
  if(!canvas||!record||!window.Tesseract){rawOcrDiagnostics[side]="OCR unavailable: missing canvas, page record or Tesseract.";return [];}
@@ -936,8 +960,10 @@ async function recognizeCueLines(side){
  const analysis=enhancedAnalysisCanvas(canvas,2);
  const factor=analysis.width/canvas.width;
  const crop=canvasCrop(analysis,{left:x*factor,top:y*factor,right:Math.round((region.x+region.w)*factor),bottom:Math.round((H-region.y)*factor)});
- const result=await Tesseract.recognize(crop,lang);
- const data=result.data||{},raw=Array.isArray(data.lines)?data.lines:[];
+ const result=await Tesseract.recognize(crop,lang,{},{tsv:true,blocks:true});
+ const data=result.data||{},parsed=parseOcrTsv(data.tsv);
+ if(!Array.isArray(data.words)||!data.words.length)data.words=parsed.words;
+ const raw=Array.isArray(data.lines)&&data.lines.length?data.lines:parsed.lines;
  // Tesseract builds differ in whether they expose lines or words.
  const candidates=raw.length?raw:(Array.isArray(data.words)?data.words:[]);
  const geometry=detectedLines[side]||[],mapped=[];
