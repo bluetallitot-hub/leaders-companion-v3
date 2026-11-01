@@ -456,21 +456,31 @@ function matchingCueLine(lines,phrase){
   }
   return found.length===1?found[0]:null;
  }
- const scores=[];
- for(let i=0;i<lines.length;i++){
-  let best=0;
-  for(let n=1;n<=3&&i+n<=lines.length;n++){
-   const slice=lines.slice(i,i+n);
-   if(slice.some(l=>l.column!==slice[0].column))break;
-   best=Math.max(best,hebrewCueSimilarity(slice.map(l=>l.text).join(" "),needle),hebrewAnchorScore(slice.map(l=>l.text).join(" "),needle));
+ // Hebrew: match consecutive Hebrew words in reading order, just as English does.
+ // Strip vowel marks and normalize printed divine-name variants. OCR sometimes
+ // reports the words of a right-to-left line in reverse array order, so test
+ // each consistent line orientation; never accept a partial phrase.
+ const tokens=t=>normalizeCueText(t).replace(/יהוה|יי/g,"יי").replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
+ const target=tokens(needle);
+ if(!target.length)return null;
+ const found=[];
+ for(const reversed of [false,true]){
+  const stream=[];
+  for(let i=0;i<lines.length;i++){
+   const words=tokens(lines[i].text);
+   for(const word of (reversed?words.reverse():words))stream.push({word,line:i,column:lines[i].column});
   }
-  if(best>=.78)scores.push({index:i,score:best});
+  for(let i=0;i+target.length<=stream.length;i++){
+   if(stream[i].word!==target[0])continue;
+   let valid=true;
+   for(let j=1;j<target.length;j++){
+    if(stream[i+j].word!==target[j]||stream[i+j].column!==stream[i].column){valid=false;break}
+   }
+   if(valid)found.push(stream[i].line);
+  }
  }
- scores.sort((a,b)=>b.score-a.score);
- if(!scores.length)return null;
- const runner=scores.find(c=>Math.abs(c.index-scores[0].index)>2);
- if(runner&&scores[0].score-runner.score<.10)return null;
- return scores[0].index;
+ const unique=[...new Set(found)];
+ return unique.length===1?unique[0]:null;
 }
 function cueCandidateDiagnostics(lines,phrase){
  const needle=normalizeCueText(hebrewCueAlias(phrase));
