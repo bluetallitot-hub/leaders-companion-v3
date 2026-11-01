@@ -658,6 +658,30 @@ function tentativeHebrewHighlights(side,cue,ocr,geometry){
   cueId:cue.cueId,roleId:cue.role,x:line.x,y:line.y,width:line.width,height:line.height,
   coordinateSystem:"normalized-top-left",visibleInPdf:false,tentative:true}));
 }
+// English proposal when exact multiword OCR matching fails.
+function tentativeEnglishHighlights(side,cue,ocr,geometry){
+ if(!geometry.length)return null;
+ const words=t=>normalizeCueText(t).replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(w=>w.length>1);
+ const candidates=phrase=>{
+  const target=words(phrase);
+  return ocr.map(l=>{
+   const observed=words(l.text);
+   const overlap=target.filter(w=>observed.some(v=>v===w||(w.length>=5&&v.length>=5&&w.slice(0,4)===v.slice(0,4)))).length;
+   return {line:geometry.find(g=>g.id===l.id),score:target.length?overlap/target.length:0};
+  }).filter(v=>v.line&&v.score>0).sort((a,b)=>b.score-a.score);
+ };
+ const starts=candidates(cue.startCue),ends=candidates(cue.endCue);
+ const order=l=>(l.column||0)*100000+l.y*10000;
+ const a=starts[0]?.line,b=ends.find(v=>!a||order(v.line)>=order(a))?.line||ends[0]?.line;
+ if(!a&&!b)return null;
+ const first=a||b,last=b||a;
+ const low=Math.min(order(first),order(last)),high=Math.max(order(first),order(last));
+ return geometry.filter(l=>order(l)>=low-.001&&order(l)<=high+.001).map(line=>({
+  highlightId:"HL-"+cue.cueId+"-"+line.id,lineId:line.id,cueId:cue.cueId,
+  roleId:cue.role,x:line.x,y:line.y,width:line.width,height:line.height,
+  coordinateSystem:"normalized-top-left",visibleInPdf:false,tentative:true
+ }));
+}
 function assignCueHighlights(side){
  const record=pageMetadata[side],ocr=sourceTextLines[side]||[],geometry=detectedLines[side]||[];
  if(!record)return 0;
@@ -676,6 +700,8 @@ function assignCueHighlights(side){
   if(begin===null||end===null){
    cue.matchStatus="anchor-review-required ("+(begin===null?"START ":"")+(end===null?"END":"")+")";
    rawOcrDiagnostics[side]+="\\nCUE "+cue.cueId+" START ["+cueCandidateDiagnostics(ocr,hebrew?(cue.startCueHebrew||cue.startCue):cue.startCue)+"] END ["+cueCandidateDiagnostics(ocr,hebrew?(cue.endCueHebrew||cue.endCue):cue.endCue)+"]";
+   const guess=tentativeEnglishHighlights(side,cue,ocr,geometry);
+   if(guess?.length){record.leadership.highlights.push(...guess);cue.matchStatus="tentative-English-review-required";matches++;}
    continue;
   }
   const first=ocr[begin],last=ocr[end];
