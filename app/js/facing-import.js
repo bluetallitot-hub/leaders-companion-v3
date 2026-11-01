@@ -482,6 +482,39 @@ function matchingCueLine(lines,phrase){
    if(count>=required)found.push({line:segment[0].line,count});
   }
  }
+ // V3.86: V2-style consonantal edit alignment only when strict token matching fails.
+ // Require a unique location, at least three readable words and a clear runner-up gap.
+ if(!found.length&&target.length>=3){
+  const distance=(a,b)=>{
+   const prev=Array.from({length:b.length+1},(_,i)=>i);
+   for(let i=1;i<=a.length;i++){
+    const row=[i];
+    for(let j=1;j<=b.length;j++)row[j]=Math.min(row[j-1]+1,prev[j]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));
+    for(let j=0;j<row.length;j++)prev[j]=row[j];
+   }
+   return prev[b.length];
+  };
+  const wordScore=(a,b)=>1-distance(a,b)/Math.max(a.length,b.length,1);
+  const candidates=[];
+  for(const reversed of [false,true]){
+   const stream=[];
+   for(let i=0;i<lines.length;i++)for(const word of (reversed?tokens(lines[i].text).reverse():tokens(lines[i].text)))
+    stream.push({word,line:i,column:lines[i].column});
+   for(let i=0;i+target.length<=stream.length;i++){
+    const segment=stream.slice(i,i+target.length);
+    if(segment.some(w=>w.column!==segment[0].column))continue;
+    const scores=target.map((word,k)=>wordScore(word,segment[k].word));
+    const strong=scores.filter(v=>v>=.60).length;
+    const avg=scores.reduce((a,b)=>a+b,0)/scores.length;
+    if(strong>=Math.ceil(target.length*.75)&&avg>=.70)
+     candidates.push({line:segment[0].line,score:avg,strong});
+   }
+  }
+  const perLine=new Map();
+  for(const c of candidates)if(!perLine.has(c.line)||perLine.get(c.line).score<c.score)perLine.set(c.line,c);
+  const ranked=[...perLine.values()].sort((a,b)=>b.score-a.score);
+  if(ranked.length&&(!ranked[1]||ranked[0].score-ranked[1].score>=.12))return ranked[0].line;
+ }
  if(!found.length)return null;
  const best=Math.max(...found.map(f=>f.count));
  const unique=[...new Set(found.filter(f=>f.count===best).map(f=>f.line))];
