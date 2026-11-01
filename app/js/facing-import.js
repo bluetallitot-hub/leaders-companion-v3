@@ -619,33 +619,46 @@ function hebrewRangeHighlights(side,cue,ocr,geometry){
   }
   return results.sort((a,b)=>b.score-a.score).slice(0,30);
  };
- const starts=[...phraseAnchors(startWords,"start"),...candidates(startWords)];
- const ends=[...phraseAnchors(endWords,"end"),...candidates(endWords)];
+
+ // Evaluate OCR in both directions: Tesseract may emit RTL words reversed.
+ const anchorCandidates=(phrase,which)=>{
+  const indices=which==="start"?[1,2]:[phrase.length-2,phrase.length-1];
+  const results=[];
+  for(const observed of ocr){
+   const line=geometry.find(g=>g.id===observed.id);if(!line)continue;
+   const raw=tokenize(observed.text);
+   for(const source of [raw,raw.slice().reverse()]){
+    for(let j=0;j<source.length-1;j++){
+     const x=approximate(phrase[indices[0]],source[j]);
+     const y=approximate(phrase[indices[1]],source[j+1]);
+     if(x<.58||y<.58)continue;
+     results.push({line,score:x+y,which});
+    }
+   }
+  }
+  return results.sort((a,b)=>b.score-a.score);
+ };
+ const starts=anchorCandidates(startWords,"start"),ends=anchorCandidates(endWords,"end");
  const pairs=[];
  for(const a of starts)for(const b of ends){
-  const span=b.order-a.order;
-  if(span<0||span>3)continue;
-  if(span===0&&(b.anchorPair?b.ocrEnd:b.to)<(a.anchorPair?a.ocrStart:a.from))continue;
-  // Phrase evidence dominates; favor nearby endpoints as a tie breaker.
-  pairs.push({a,b,score:a.score+b.score-span*.8+(span===0?.6:0)+(a.anchorPair&&b.anchorPair?2:0)});
+  // Two halves of the same printed Hebrew row may be separate line detections.
+  // Begin must be physically to the RIGHT of end, at approximately same height.
+  const ay=a.line.y+a.line.height/2,by=b.line.y+b.line.height/2;
+  const vertical=Math.abs(ay-by);
+  const right=a.line.x+a.line.width/2,left=b.line.x+b.line.width/2;
+  if(vertical>Math.max(a.line.height,b.line.height)*1.4)continue;
+  if(right<=left+.015)continue;
+  pairs.push({a,b,score:a.score+b.score-vertical*8});
  }
  if(!pairs.length)return null;
  pairs.sort((a,b)=>b.score-a.score);
- const {a,b}=pairs[0],selected=[];
- for(let p=a.order;p<=b.order;p++){
-  const line=ordered[p],words=wordCandidates(side,line).slice().sort((x,y)=>y.x-x.x);
-  // When OCR and ink segmentation disagree, cover the whole source line.
-  // Do not project seven OCR tokens onto four image fragments.
-  const from=p===a.order?(a.anchorPair?0:a.from):0;
-  const to=p===b.order?(b.anchorPair?words.length-1:b.to):words.length-1;
-  for(let k=from;k<=to;k++){
-   const word=words[k];if(!word)continue;
-   selected.push({highlightId:"HL-"+cue.cueId+"-"+word.id,lineId:line.id,wordId:word.id,
-    cueId:cue.cueId,roleId:cue.role,x:word.x,y:word.y,width:word.width,height:word.height,
-    coordinateSystem:"normalized-top-left",visibleInPdf:false,tentative:true});
-  }
- }
- return selected.length?selected:null;
+ const {a,b}=pairs[0];
+ const top=Math.min(a.line.y,b.line.y),bottom=Math.max(a.line.y+a.line.height,b.line.y+b.line.height);
+ const left=Math.min(a.line.x,b.line.x),right=Math.max(a.line.x+a.line.width,b.line.x+b.line.width);
+ // Only the selected row: never include earlier unrelated lines or columns.
+ return [{highlightId:"HL-"+cue.cueId+"-rtl-passage",cueId:cue.cueId,
+  roleId:cue.role,x:left,y:top,width:right-left,height:bottom-top,
+  coordinateSystem:"normalized-top-left",visibleInPdf:false,tentative:true}];
 }
 
 // Best-effort Hebrew proposal: score ANY matching cue words against OCR lines.
