@@ -1184,9 +1184,9 @@ function hebrewWordQuality(text){
 // Evaluate Hebrew letter coverage, recognized horizontal span and confidence.
 // Never use cue anchors to choose OCR text; preserve source artwork and Rivok geometry.
 function hebrewOcrCandidate(data,mode,variant){
- const text=String(data?.text||"").replace(/\\s+/g," ").trim();
- const letters=(normalizeCueText(text).match(/[\\u05d0-\\u05ea]/g)||[]).length;
- const words=(data?.words||[]).filter(w=>/[\\u05d0-\\u05ea]/u.test(normalizeCueText(w.text||"")));
+ const text=String(data?.text||"").replace(/\s+/g," ").trim();
+ const letters=(normalizeCueText(text).match(/[\u05d0-\u05ea]/g)||[]).length;
+ const words=(data?.words||[]).filter(w=>/[\u05d0-\u05ea]/u.test(normalizeCueText(w.text||"")));
  const confidence=words.length?words.reduce((sum,w)=>sum+(Number(w.confidence)||0),0)/words.length:Number(data?.confidence)||0;
  let span=0;
  if(words.length){
@@ -1244,7 +1244,7 @@ async function secondPassHebrewLines(side,firstPass){
     if(!best)continue;
     const previous=recovered.get(line.id);
     // Keep existing full-page OCR when the localized reading has poor letter coverage.
-    const prevLetters=(normalizeCueText(previous?.text||"").match(/[\\u05d0-\\u05ea]/g)||[]).length;
+    const prevLetters=(normalizeCueText(previous?.text||"").match(/[\u05d0-\u05ea]/g)||[]).length;
     if(previous&&prevLetters>best.letters*1.35&&best.span<.45)continue;
     if(previous&&hebrewWordQuality(previous.text)>hebrewWordQuality(best.text)+.30&&best.confidence<65)continue;
     recovered.set(line.id,{id:line.id,text:best.text,y:line.y,column:line.column,
@@ -1253,7 +1253,7 @@ async function secondPassHebrewLines(side,firstPass){
    }catch(e){failed++;console.warn("Hebrew band recovery",line.id,e)}
   }
  }finally{await worker.terminate()}
- rawOcrDiagnostics[side]+="\\nV2-derived Hebrew band OCR (PSM 7/6/11/13, grayscale/consonant/binary): "+
+ rawOcrDiagnostics[side]+="\nV2-derived Hebrew band OCR (PSM 7/6/11/13, grayscale/consonant/binary): "+
   read+" bands, "+attempts+" recognition trials, "+replaced+" new/replaced lines, "+failed+
   " errors. Source-image span, confidence and Hebrew letter coverage ranked independently of cues.";
  return [...recovered.values()].sort((a,b)=>((a.column===1?0:a.column===0?1:2)-(b.column===1?0:b.column===0?1:2))||a.y-b.y);
