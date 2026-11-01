@@ -399,6 +399,27 @@ function hebrewCueSimilarity(a,b){
  if(x.includes(y)||y.includes(x))return Math.min(x.length,y.length)/Math.max(x.length,y.length)*.25+.75;
  return cueSimilarity(a,b);
 }
+// Compare Hebrew cue phrases against short windows inside longer printed lines.
+// Normalize common divine-name print forms and tolerate minor OCR letter errors.
+function hebrewAnchorScore(text,phrase){
+ const clean=v=>normalizeCueText(v).replace(/יהוה|יְיָ|יי/g,"יי").replace(/[^\u05d0-\u05ea ]/g," ").replace(/\s+/g," ").trim();
+ const a=clean(text),b=clean(phrase);
+ if(!a||!b)return 0;
+ const target=b.replace(/ /g,""),words=a.split(" ").filter(Boolean);
+ if(!target||!words.length)return 0;
+ let best=0;
+ for(let i=0;i<words.length;i++)for(let n=1;n<=Math.min(words.length-i,b.split(" ").length+2);n++){
+  const candidate=words.slice(i,i+n).join("");
+  if(Math.abs(candidate.length-target.length)>Math.max(3,Math.floor(target.length*.25)))continue;
+  const prev=Array.from({length:target.length+1},(_,k)=>k);
+  let row=prev;
+  for(let j=1;j<=candidate.length;j++){
+   const next=[j];for(let k=1;k<=target.length;k++)next[k]=Math.min(next[k-1]+1,row[k]+1,row[k-1]+(candidate[j-1]===target[k-1]?0:1));row=next;
+  }
+  best=Math.max(best,1-row[target.length]/Math.max(candidate.length,target.length));
+ }
+ return best;
+}
 function matchingCueLine(lines,phrase){
  const alias=hebrewCueAlias(phrase),needle=normalizeCueText(alias);
  if(needle.length<4)return null;
@@ -409,9 +430,9 @@ function matchingCueLine(lines,phrase){
   for(let n=1;n<=3&&i+n<=lines.length;n++){
    const slice=lines.slice(i,i+n);
    if(slice.some(l=>l.column!==slice[0].column))break;
-   best=Math.max(best,/[\u0590-\u05ff]/u.test(needle)?hebrewCueSimilarity(slice.map(l=>l.text).join(" "),needle):cueSimilarity(slice.map(l=>l.text).join(" "),needle));
+   best=Math.max(best,/[\u0590-\u05ff]/u.test(needle)?Math.max(hebrewCueSimilarity(slice.map(l=>l.text).join(" "),needle),hebrewAnchorScore(slice.map(l=>l.text).join(" "),needle)):cueSimilarity(slice.map(l=>l.text).join(" "),needle));
   }
-  if(best>=.65)scores.push({index:i,score:best});
+  if(best>=(/[\u0590-\u05ff]/u.test(needle)?.78:.65))scores.push({index:i,score:best});
  }
  scores.sort((a,b)=>b.score-a.score);
  if(!scores.length)return null;
