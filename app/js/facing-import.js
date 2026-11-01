@@ -260,6 +260,23 @@ function applyImportedCues(){
 let detectedLines=[[],[]];
 let highlightView="highlights";
 let selectionMode="line";
+let visibleCueId="";
+function installCueVisibilityPicker(){
+ const anchor=$("highlight-view");if(!anchor||$("visible-cue"))return;
+ const select=document.createElement("select");select.id="visible-cue";select.setAttribute("aria-label","Visible leader cue");
+ anchor.insertAdjacentElement("afterend",select);
+ select.addEventListener("change",()=>{visibleCueId=select.value;drawHighlights()});
+}
+function refreshCueVisibilityPicker(){
+ installCueVisibilityPicker();const select=$("visible-cue");if(!select)return;
+ const cues=pageMetadata.flatMap(p=>p?.leadership?.cues||[]);
+ const ids=[...new Set(cues.map(c=>c.cueId).filter(Boolean))];
+ const previous=visibleCueId;select.replaceChildren();
+ const blank=document.createElement("option");blank.value="";blank.textContent="No cue selected — clean pages";select.append(blank);
+ for(const id of ids){const cue=cues.find(c=>c.cueId===id);const option=document.createElement("option");option.value=id;option.textContent=(cue?.role||"Leader")+" — "+id;select.append(option)}
+ visibleCueId=ids.includes(previous)?previous:"";select.value=visibleCueId;
+}
+
 // Analysis-only enhancement: original PDF and visible preview remain unchanged.
 function enhancedAnalysisCanvas(source,scale=2){
  const out=document.createElement("canvas");out.width=source.width*scale;out.height=source.height*scale;
@@ -856,7 +873,7 @@ function drawHighlights(){
    }
    ctx.restore();
   }
-  const selected=pageMetadata[i]?.leadership?.highlights||[];
+  const selected=(pageMetadata[i]?.leadership?.highlights||[]).filter(h=>visibleCueId&&h.cueId===visibleCueId);
   for(const line of detectedLines[i]){
    const lineHighlight=selected.find(h=>!h.wordId&&h.lineId===line.id);
    const wordOverrides=selected.filter(h=>h.wordId&&h.lineId===line.id);
@@ -1447,7 +1464,7 @@ async function autoMatchCues(){
  }
  $("ocr-diagnostics").textContent=pageMetadata.map((r,i)=>"Page "+(r.source.sourcePage||i+1)+" OCR ("+(sourceTextLines[i]||[]).length+" mapped lines):\\n"+(sourceTextLines[i]||[]).map(l=>l.text).join("\\n")+"\\n\\nRAW OCR DIAGNOSTICS:\\n"+(rawOcrDiagnostics[i]||"Not run")).join("\\n\\n");
  cueMatchReport=total+" of "+pageMetadata.reduce((n,r)=>n+r.leadership.cues.length,0)+" cues automatically matched. "+pageMetadata.flatMap(r=>r.leadership.cues.map(c=>c.cueId+": "+c.matchStatus)).join("; ");
- drawHighlights();displayMetadata();status(cueMatchReport);
+ refreshCueVisibilityPicker();drawHighlights();displayMetadata();status(cueMatchReport);
 }
 async function syncHighlightMetadata(){
  if(!output)return;
@@ -1455,21 +1472,9 @@ async function syncHighlightMetadata(){
  storeMasterRoles(doc);
  doc.getPages().forEach((page,i)=>{
   const record=pageMetadata[i];if(!record)return;
-  // Render the same approved line/word selection geometry into the actual PDF.
-  // Page metadata remains editable; artwork remains untouched.
-  const lines=detectedLines[i]||[],highlights=record.leadership.highlights||[];
-  const pageW=page.getWidth(),pageH=page.getHeight();
-  for(const line of lines){
-   const full=highlights.find(h=>h.lineId===line.id&&!h.wordId);
-   const overrides=highlights.filter(h=>h.lineId===line.id&&h.wordId);
-   const selections=overrides.length?wordCandidates(i,line).map(w=>({box:w,highlight:overrides.find(h=>h.wordId===w.id)})).filter(x=>x.highlight):full?[{box:line,highlight:full}]:[];
-   for(const item of selections){
-    const b=item.box,color=roleColor(item.highlight.roleId);
-    const rgb=PDFLib.rgb(parseInt(color.slice(1,3),16)/255,parseInt(color.slice(3,5),16)/255,parseInt(color.slice(5,7),16)/255);
-    page.drawRectangle({x:b.x*pageW,y:(1-b.y-b.height)*pageH,width:b.width*pageW,height:b.height*pageH,color:rgb,opacity:.34,blendMode:PDFLib.BlendMode.Multiply});
-   }
-  }
-  for(const h of highlights)h.visibleInPdf=true;
+  // Store cue geometry in the page dictionary only. Never draw permanent
+  // rectangles or PDF annotations: the web viewer controls visibility.
+  for(const h of record.leadership.highlights||[])h.visibleInPdf=false;
   storePageMetadata(page,record);
  });
  output=new Uint8Array(await doc.save());
@@ -1579,7 +1584,7 @@ $("source").addEventListener("change",async()=>{
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  try{
   if(!window.PDFLib||!window.pdfjsLib)throw Error("PDF libraries unavailable.");
-  output=await createPdf(new Uint8Array(await file.arrayBuffer()));
+  visibleCueId="";output=await createPdf(new Uint8Array(await file.arrayBuffer()));
   baseOutput=output.slice();
   await preview(output);$("download").disabled=false;
   status(cueMatchReport);
@@ -1593,7 +1598,7 @@ $("cue-file").addEventListener("change",async()=>{
     (c.begin_cue||c.begin_cue_hebrew)&&(c.end_cue||c.end_cue_hebrew)))
     throw Error("CSV needs printed_page, language, and beginning/ending cues (begin_cue/end_cue or Hebrew equivalents).");
   importedCues=rows;
-  applyImportedCues();
+  applyImportedCues();refreshCueVisibilityPicker();
   if(pageMetadata.length)await autoMatchCues();
   status(pageMetadata.length?cueMatchReport:"Loaded "+rows.length+" cue rows. Now upload the test PDF.");
  }catch(e){status("Cue import failed: "+e.message)}
