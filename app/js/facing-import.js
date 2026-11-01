@@ -276,7 +276,8 @@ function enhancedAnalysisCanvas(source,scale=2){
  return out;
 }
 function detectPrintedLines(canvas,side){
- const enhanced=pageMetadata[side]?.source?.languageCode==="E"?enhancedAnalysisCanvas(canvas,2):canvas;
+ // Both languages use an enhanced analysis image; original PDF artwork is untouched.
+ const enhanced=enhancedAnalysisCanvas(canvas,2);
  const factor=enhanced.width/canvas.width;
  const ctx=enhanced.getContext("2d",{willReadFrequently:true}),w=enhanced.width,h=enhanced.height;
  const pixels=ctx.getImageData(0,0,w,h).data,region=REGIONS[side],result=[];
@@ -319,7 +320,7 @@ function detectPrintedLines(canvas,side){
   // density valleys so every line has a chance to survive.
   const splitBand=(from,to,depth=0)=>{
    const height=to-from+1;
-   if(!english||height<=17*factor||depth>=12){emitBand(from,to);return}
+   if(height<=17*factor||depth>=12){emitBand(from,to);return}
    const peak=Math.max(...rows.slice(from,to+1));
    const candidates=[];
    const margin=Math.max(3,Math.round(5*factor));
@@ -341,7 +342,7 @@ function detectPrintedLines(canvas,side){
    if(start<0)return;
    const from=start,to=last;start=-1;
    if(to-from<factor)return;
-   if(english){splitBand(from,to);return}
+   if(english||pageMetadata[side]?.source?.languageCode==="H"){splitBand(from,to);return}
    // Preserve the existing Hebrew behavior.
    if(to-from>17*factor){
     const values=rows.slice(from,to+1),peak=Math.max(...values);
@@ -652,7 +653,7 @@ async function recognizeCueLines(side){
  if(!canvas||!record||!window.Tesseract){rawOcrDiagnostics[side]="OCR unavailable: missing canvas, page record or Tesseract.";return [];}
  const lang=record.source.languageCode==="H"?"heb":"eng";
  const region=REGIONS[side],x=Math.round(region.x),y=Math.round(H-region.y-region.h);
- const analysis=lang==="eng"?enhancedAnalysisCanvas(canvas,2):canvas;
+ const analysis=enhancedAnalysisCanvas(canvas,2);
  const factor=analysis.width/canvas.width;
  const crop=canvasCrop(analysis,{left:x*factor,top:y*factor,right:Math.round((region.x+region.w)*factor),bottom:Math.round((H-region.y)*factor)});
  const result=await Tesseract.recognize(crop,lang);
