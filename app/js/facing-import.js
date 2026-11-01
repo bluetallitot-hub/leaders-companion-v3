@@ -12,6 +12,24 @@ function drawTemplate(page,side){
  boxes.push([numberX,746,48,24],[colorX,746,18,24],[side===0?colorX+18:min,746,max-min-66,24]);
  for(const [x,y,w,h] of boxes)page.drawRectangle({x,y,width:w,height:h,borderColor:PDFLib.rgb(.26,.44,.54),borderWidth:.75});
 }
+function drawKnownFrameworkFields(page,record,side,font){
+ const source=record?.source||{},ident=record?.identification||{},cues=record?.leadership?.cues||[];
+ const number=String(source.originalPageNumber||"").trim();
+ const printable=t=>String(t||"").replace(/[^\\x20-\\x7e]/g,"").trim();
+ const write=(value,x,y,maxWidth,size=10)=>{
+  const str=printable(value);if(!str)return;
+  let out=str;
+  while(out&&font.widthOfTextAtSize(out,size)>maxWidth)out=out.slice(0,-1);
+  if(out!==str)out=out.slice(0,-3)+"...";
+  if(out)page.drawText(out,{x,y,size,font,color:PDFLib.rgb(.12,.27,.32)});
+ };
+ const numberX=side===0?20.16:544.96;
+ write(number,numberX+7,753,42,13);
+ const region=REGIONS[side];
+ write(ident.prayerName||cues.find(c=>c.prayer)?.prayer||"",region.x+7,718,region.w-14,12);
+ const footer=cues.map(c=>[c.cueId,c.role,c.startCue,c.endCue].map(printable).filter(Boolean).join(" | "));
+ footer.slice(0,3).forEach((line,i)=>write(line,region.x+6,77-i*11,region.w-12,8));
+}
 function inkBands(rows,threshold,gap){
  const bands=[];
  for(let y=0;y<rows.length;y++)if(rows[y]>=threshold){
@@ -1725,12 +1743,12 @@ async function createPdf(bytes){
  if(records.length===2&&records[0].meta.language==="Hebrew"&&records[1].meta.language==="English")records.reverse();
  pageMetadata=records.map(r=>makeIntakeRecord(r.meta,r.sourceIndex));
  pageMetadata.forEach(r=>{r.leadership.highlights=[];r.leadership.role=roleConfig.id});
- if(serviceManifest?.pages){for(let i=0;i<pageMetadata.length;i++){const sourcePage=selectedSpreadFirst+i,entry=serviceManifest.pages.find(p=>p.outputPage===sourcePage);if(!entry)continue;const record=pageMetadata[i];record.source.serviceReference=entry.reference;record.source.originalPageNumber=entry.kind==="printed"?String(entry.reference):record.source.originalPageNumber;const original=entry.sourcePage;const pair=servicePageMapping?.[String(entry.reference)];if(pair&&original){const language=Number(pair.e)===original?"English":Number(pair.h)===original?"Hebrew":null;if(language){record.source.language=language;record.source.languageCode=language==="English"?"E":"H";}}}}
+ if(serviceManifest?.pages){for(let i=0;i<pageMetadata.length;i++){const sourcePage=records[i].sourceIndex+1,entry=serviceManifest.pages.find(p=>p.outputPage===sourcePage);if(!entry)continue;const record=pageMetadata[i];record.source.serviceReference=entry.reference;record.source.originalPageNumber=entry.kind==="printed"?String(entry.reference):"SUP";record.identification.binderOrder=sourcePage;record.source.sourceId=entry.reference;const original=entry.sourcePage;const pair=servicePageMapping?.[String(entry.reference).split("-")[0]];if(pair&&original){const language=Number(pair.e)===original?"English":Number(pair.h)===original?"Hebrew":null;if(language){record.source.language=language;record.source.languageCode=language==="English"?"E":"H";}}}}
  applyImportedCues();
  storeMasterRoles(out);
  for(let i=0;i<records.length;i++){
   const {meta,png}=records[i],page=out.addPage([W,H]);
-  drawTemplate(page,i);storePageMetadata(page,pageMetadata[i]);
+  drawTemplate(page,i);drawKnownFrameworkFields(page,pageMetadata[i],i,font);storePageMetadata(page,pageMetadata[i]);
   const r=REGIONS[i],pad=6,scale=Math.min((r.w-2*pad)/png.width,(r.h-2*pad)/png.height);
   const dw=png.width*scale,dh=png.height*scale;
   page.drawImage(png,{x:r.x+(r.w-dw)/2,y:r.y+(r.h-dh)/2,width:dw,height:dh});
