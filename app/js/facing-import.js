@@ -600,6 +600,15 @@ function drawHighlights(){
     }
    }
   }
+  // V3.59 reconstructed Hebrew lines: diagnostic overlay only.
+  if(highlightView==="detection"&&pageMetadata[i]?.source?.languageCode==="H"&&hebrewReconstructionPreview[i]?.length){
+   ctx.save();ctx.lineWidth=2;
+   for(const line of hebrewReconstructionPreview[i]){
+    ctx.strokeStyle=line.kind==="ocr"?"rgba(0,150,70,.95)":"rgba(240,135,0,.9)";
+    ctx.strokeRect(line.x*overlay.width,line.y*overlay.height,line.width*overlay.width,line.height*overlay.height);
+   }
+   ctx.restore();
+  }
   // Diagnostic: in Detection + Word mode, outline the actual word candidates.
   // This is preview-only and does not modify selection metadata or PDF export.
   if(highlightView==="detection"&&selectionMode==="word"&&pageMetadata[i]?.source?.languageCode==="H"){
@@ -801,6 +810,23 @@ function reconcileHebrewLinesForReport(side,ocrLines){
  }
  return {groups,unassigned};
 }
+// V3.59 preview geometry: union fragments assigned to the same OCR line.
+// Unassigned fragments remain separate; never guess across vertical gaps.
+let hebrewReconstructionPreview=[[],[]];
+function reconstructedHebrewPreview(reconciliation){
+ const result=[];
+ const union=fragments=>{
+  const x=Math.min(...fragments.map(f=>f.x)),y=Math.min(...fragments.map(f=>f.y));
+  const right=Math.max(...fragments.map(f=>f.x+f.width));
+  const bottom=Math.max(...fragments.map(f=>f.y+f.height));
+  return {x,y,width:right-x,height:bottom-y,column:fragments[0].column};
+ };
+ for(const group of reconciliation.groups){
+  if(group.fragments.length)result.push({...union(group.fragments),kind:"ocr",count:group.fragments.length});
+ }
+ for(const fragment of reconciliation.unassigned)result.push({...fragment,kind:"unassigned",count:1});
+ return result.sort((a,b)=>b.column-a.column||a.y-b.y);
+}
 async function diagnoseHebrewWordCounts(){
  const button=$("hebrew-ocr-diagnostic"),out=$("ocr-diagnostics");
  button.disabled=true;
@@ -814,6 +840,7 @@ async function diagnoseHebrewWordCounts(){
    const byId=new Map(ocr.map(l=>[l.id,l.text]));
    const geometry=detectedLines[side]||[];
    const reconciliation=reconcileHebrewLinesForReport(side,ocr);
+   hebrewReconstructionPreview[side]=reconstructedHebrewPreview(reconciliation);
    const rows=reconciliation.groups.map((group,i)=>{
     const line=group.anchor;
     const text=line.text||"";
@@ -825,6 +852,7 @@ async function diagnoseHebrewWordCounts(){
      " | "+text;
    });
    rows.push("Unassigned image fragments: "+reconciliation.unassigned.length);
+   rows.push("Preview reconstructed rectangles: "+hebrewReconstructionPreview[side].length+" (green=OCR anchored, orange=unassigned)");
    rows.push("NOTE: diagnostic-only grouping; selection rectangles remain unchanged.");
    reports.push("Hebrew page "+(pageMetadata[side].source.sourcePage||side+1)+
     " | OCR mapped "+ocr.length+" of "+geometry.length+" detected lines\n"+
@@ -832,6 +860,7 @@ async function diagnoseHebrewWordCounts(){
   }
   out.textContent=reports.join("\n\n");
   out.closest("details").open=true;
+  drawHighlights();
  }catch(e){out.textContent="Diagnostic error: "+e.message}
  finally{button.disabled=false}
 }
