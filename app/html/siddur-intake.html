@@ -3,7 +3,7 @@
 <title>Leader's Companion — Siddur Intake</title><link rel="stylesheet" href="../css/facing-import.css">
 <script defer src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <style>.intake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.intake-stat{border:1px solid #aebdb8;border-radius:8px;padding:14px}.intake-stat strong{display:block;font-size:1.6rem}.intake-table{width:100%;border-collapse:collapse}.intake-table th,.intake-table td{padding:7px;border-bottom:1px solid #ddd;text-align:left} .intake-table-wrap{max-height:420px;overflow:auto} .warning{color:#8b4c0d}.role-row{display:grid;grid-template-columns:minmax(130px,1fr) 110px minmax(160px,1fr) 60px;gap:12px;align-items:center;padding:9px;border-bottom:1px solid #ddd}.swatch{display:inline-block;width:28px;height:24px;border:1px solid #666;vertical-align:middle;margin-right:8px}.role-row input[type=range]{width:100%} .role-locked{opacity:.85}.role-row{grid-template-columns:minmax(150px,1fr) minmax(230px,1.4fr) minmax(130px,1fr) 55px}.role-row select{width:100%;padding:7px}.writing-sample{font-family:Georgia,serif;font-size:17px;line-height:1.8;color:#18251f;white-space:nowrap}.writing-sample mark{color:inherit;padding:3px 5px;border-radius:2px}.role-header{font-size:.85rem;font-weight:700;color:#456;display:grid;grid-template-columns:minmax(150px,1fr) minmax(230px,1.4fr) minmax(130px,1fr) 55px;gap:12px;padding:8px 9px}.outlier{border:1px solid #d2a56a;border-radius:8px;padding:12px;margin:10px 0}.cue-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.cue-form label{display:flex;flex-direction:column;gap:4px}.cue-form input,.cue-form select{width:100%}.cue-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}</style></head>
-<body><span aria-label="Page version" style="position:absolute;right:18px;top:14px;font-size:13px;font-weight:700;color:#276b52;background:#f1f6f2;border:1px solid #b8ccc1;border-radius:6px;padding:5px 9px;z-index:10">V3.129</span><main><header><p class="eyebrow">Leader's Companion V3</p><h1>Complete Siddur intake</h1><p>Load the complete original siddur and the service cue CSV. This intake inventories the source before any page alignment or highlighting.</p></header>
+<body><span aria-label="Page version" style="position:absolute;right:18px;top:14px;font-size:13px;font-weight:700;color:#276b52;background:#f1f6f2;border:1px solid #b8ccc1;border-radius:6px;padding:5px 9px;z-index:10">V3.130</span><main><header><p class="eyebrow">Leader's Companion V3</p><h1>Complete Siddur intake</h1><p>Load the complete original siddur and the service cue CSV. This intake inventories the source before any page alignment or highlighting.</p></header>
 <section class="panel"><h2>1. Original source files</h2><label for="siddur">Complete original siddur PDF</label><input id="siddur" type="file" accept=".pdf,application/pdf"><label for="cues">Service cue CSV (from Leader's Companion Database v2.0)</label><input id="cues" type="file" accept=".csv,text/csv"><p id="status" role="status" aria-live="polite">Choose the two files to calculate the intake inventory.</p></section>
 <section class="panel"><h2>2. Page selection method</h2><label for="selection-method">Include pages by</label><select id="selection-method"><option value="span">Entire service span (first through last referenced printed page)</option><option value="cues">Cue-based pages only (distinct referenced printed pages)</option></select><p class="hint">Both methods select bilingual facing pairs. Every Hebrew page must have its matching English page and vice versa. Missing counterparts require review; no page is silently substituted.</p><p id="selection-estimate" aria-live="polite">Upload a CSV to estimate the selected printed pages.</p></section><section class="panel"><h2>3. Highlight roles and opacity</h2><p class="hint">Colors and roles are read from the cue sheet. Choose which imported role belongs to each color, then adjust opacity against the writing sample. Up to six colors are supported. The colors themselves cannot be changed.</p><div id="roles" aria-live="polite"><p class="hint">Upload a cue CSV to load its roles.</p></div><div id="outlier-cues" aria-live="polite"></div><div class="cue-actions"><button id="export-csv" type="button" disabled>Download edited cue CSV</button><button id="export-pdf" type="button" disabled>Download new PDF with edited cues attached</button></div><p class="hint">The new PDF preserves the original pages and embeds the edited CSV as a PDF attachment. Highlighting and page mapping are not yet applied by intake.</p><button id="lock-roles" type="button" disabled>Fix opacity for this siddur</button><p id="role-status" class="hint">Set opacity before starting page editing. Once fixed, it applies throughout the siddur.</p></section><section class="panel"><h2>4. Page and spread inventory</h2><div class="intake-grid">
 <div class="intake-stat">Original PDF pages<strong id="pdf-pages">—</strong></div>
@@ -13,11 +13,11 @@
 <div class="intake-stat">Expected output spreads<strong id="spread-count">Pending mapping</strong></div>
 <div class="intake-stat">Supplemental pages<strong id="supplement-count">Not identified</strong></div>
 </div><p class="hint">Cue rows are not pages. The final count requires a verified printed-to-physical page map, service page selection, and supplemental pages. No source files are altered.</p></section>
-<section class="panel"><h2>5. Map printed pages to PDF spreads</h2><p>Enter the English and Hebrew physical PDF pages for one printed page; the remaining numeric pages will be filled automatically using consecutive facing pairs. You can also scan selectable PDF text for page-number candidates. For scanned pages without selectable text, enter the physical pages manually. Unresolved pairs cannot be exported.</p><button id="scan-map" type="button">Automatically scan page numbers</button><p id="map-status" role="status">Enter one English/Hebrew pair to populate the remaining pages, then verify the results.</p><div class="intake-table-wrap"><table class="intake-table"><thead><tr><th>Printed page</th><th>English PDF page</th><th>Hebrew PDF page</th><th>Verification</th></tr></thead><tbody id="mapping-rows"></tbody></table></div><div id="mapping-preview"></div></section><section class="panel"><h2>6. Printed page references in the CSV</h2><p id="csv-note" class="hint">Upload the CSV to see its printed-page references and cue counts.</p><div class="intake-table-wrap"><table class="intake-table"><thead><tr><th>Printed page</th><th>Language</th><th>Cues</th><th>Physical PDF page</th></tr></thead><tbody id="page-rows"></tbody></table></div></section>
-<section class="panel"><h2>7. Continue to the facing-page editor</h2><p>Only verified, cue-selected bilingual spreads will be transferred to the editor. Your full original PDF remains saved for corrections.</p><button id="download-reduced" type="button">Download selected service PDF</button><button id="open-facing" type="button">Save project and open facing-page editor</button><p id="handoff-status" role="status"></p></section>
-<footer>Intake V3.129 · Original files stay on your device. No automatic assumptions about page offsets.</footer></main>
+<section class="panel"><h2>5. Map printed pages to PDF spreads</h2><p>Enter the English and Hebrew physical PDF pages for one printed page; the remaining numeric pages will be filled automatically using consecutive facing pairs. You can also scan selectable PDF text for page-number candidates. For scanned pages without selectable text, enter the physical pages manually. Unresolved pairs cannot be exported.</p><button id="scan-map" type="button">Automatically scan page numbers</button><p id="map-status" role="status">Enter one English/Hebrew pair to populate the remaining pages, then verify the results.</p><div class="intake-table-wrap"><table class="intake-table"><thead><tr><th>Printed page</th><th>English PDF page</th><th>Hebrew PDF page</th><th>Verification</th></tr></thead><tbody id="mapping-rows"></tbody></table></div><div id="mapping-preview"></div></section><section class="panel"><h2>6. Supplements and out-of-range pages</h2><p>Pages far outside the main siddur sequence are flagged as supplement candidates. Confirm the classification. If a supplement is not in the siddur PDF, upload its PDF here. Supplemental pages are appended to the selected service PDF.</p><div id="supplement-rows"></div></section><section class="panel"><h2>7. Printed page references in the CSV</h2><p id="csv-note" class="hint">Upload the CSV to see its printed-page references and cue counts.</p><div class="intake-table-wrap"><table class="intake-table"><thead><tr><th>Printed page</th><th>Language</th><th>Cues</th><th>Physical PDF page</th></tr></thead><tbody id="page-rows"></tbody></table></div></section>
+<section class="panel"><h2>8. Continue to the facing-page editor</h2><p>Only verified, cue-selected bilingual spreads will be transferred to the editor. Your full original PDF remains saved for corrections.</p><button id="download-reduced" type="button">Download selected service PDF</button><button id="open-facing" type="button">Save project and open facing-page editor</button><p id="handoff-status" role="status"></p></section>
+<footer>Intake V3.130 · Original files stay on your device. No automatic assumptions about page offsets.</footer></main>
 <script>
-const $=id=>document.getElementById(id);let pdfCount=null,csvRows=null,rolesLocked=false,sourcePdfBytes=null,sourcePdfName="siddur.pdf",csvHeaders=[],pageMapping={},reducedPdfBytes=null;const roleOpacity=new Map(),roleAssignments=new Map();const canonicalColors=["#F5D03C","#75C56A","#74B9E7","#F3A65B","#DA88B8","#AE93DC"];
+const $=id=>document.getElementById(id);let pdfCount=null,csvRows=null,rolesLocked=false,sourcePdfBytes=null,sourcePdfName="siddur.pdf",csvHeaders=[],pageMapping={},supplements={},reducedPdfBytes=null;const roleOpacity=new Map(),roleAssignments=new Map();const canonicalColors=["#F5D03C","#75C56A","#74B9E7","#F3A65B","#DA88B8","#AE93DC"];
 function parseCsv(text){const rows=[];let row=[],field="",quoted=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(quoted&&text[i+1]==='"'){field+='"';i++}else quoted=!quoted}else if(c===','&&!quoted){row.push(field);field=""}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(field);if(row.some(x=>x.trim()))rows.push(row);row=[];field=""}else field+=c}row.push(field);if(row.some(x=>x.trim()))rows.push(row);if(!rows.length)return[];const headers=rows.shift().map(h=>h.trim().replace(/^\uFEFF/,"").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,""));csvHeaders=headers;return rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()])));}
 function roleName(r){return String(r.highlight_role||r.role||r.role_name||r.assigned_role||r.leader_role||"").trim();}
 function roleColor(r){return String(r.highlight_color||r.color||r.role_color||r.colour||"").trim();}
@@ -96,7 +96,7 @@ function renderOutliers(outliers,names){
  }
 }
 function csvText(){
- const headers=[...new Set([...csvHeaders,"highlight_role","highlight_color","cue_left","cue_right","printed_page","leader_notes"])];
+ const headers=[...new Set([...csvHeaders,"page_type","supplement_file","highlight_role","highlight_color","cue_left","cue_right","printed_page","leader_notes"])];
  const quote=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
  return [headers.map(quote).join(","),...csvRows.map(row=>headers.map(h=>quote(row[h])).join(","))].join("\r\n")+"\r\n";
 }
@@ -111,6 +111,47 @@ $("export-pdf").addEventListener("click",async()=>{
  }catch(err){$("status").textContent="PDF export failed: "+err.message}
 });
 
+
+function supplementCandidates(){
+ const nums=[...new Set((csvRows||[]).map(r=>String(r.printed_page||r.siddur_page_label||r.source_page||"").trim()))];
+ const numeric=nums.filter(x=>/^\d+$/.test(x)).map(Number).sort((a,b)=>a-b);
+ // A separate island at least 20 printed pages from the nearest other
+ // reference is a candidate, not an automatic final classification.
+ const distant=new Set(numeric.filter(n=>numeric.length>2&&Math.min(...numeric.filter(m=>m!==n).map(m=>Math.abs(m-n)))>=20).map(String));
+ return nums.filter(x=>x&&!/^\d+$/.test(x)||distant.has(x));
+}
+function isSupplement(p){return supplements[p]?.isSupplement===true}
+function siddurPages(){return selectedPages().filter(p=>!isSupplement(p))}
+function syncSupplementCsv(){
+ for(const r of csvRows||[]){
+  const p=String(r.printed_page||r.siddur_page_label||r.source_page||"").trim();
+  r.page_type=isSupplement(p)?"supplement":"siddur";
+  r.supplement_file=isSupplement(p)?(supplements[p]?.name||""):"";
+ }
+}
+function renderSupplements(){
+ const root=$("supplement-rows");root.replaceChildren();
+ if(!csvRows)return;
+ const candidates=new Set(supplementCandidates());
+ for(const [p,data] of Object.entries(supplements))if(data.isSupplement)candidates.add(p);
+ for(const p of candidates){
+  const entry=supplements[p]||{},line=document.createElement("div");line.className="outlier";
+  const check=document.createElement("input");check.type="checkbox";check.checked=!!entry.isSupplement;
+  const label=document.createElement("label");label.append(check,document.createTextNode(" "+p+" — Supplement"));
+  check.addEventListener("change",()=>{supplements[p]={...entry,isSupplement:check.checked};syncSupplementCsv();renderSupplements();renderMapping();refresh();saveIntakeProject().catch(console.error)});
+  line.append(label);
+  if(entry.isSupplement){
+   const info=document.createElement("p");info.textContent=entry.bytes?"Uploaded: "+entry.name:"No separate PDF uploaded. If this page is not in the siddur, upload its PDF.";line.append(info);
+   const file=document.createElement("input");file.type="file";file.accept=".pdf,application/pdf";file.setAttribute("aria-label","Upload supplement PDF for "+p);
+   file.addEventListener("change",async()=>{const f=file.files[0];if(!f)return;try{const bytes=new Uint8Array(await f.arrayBuffer());const pdf=await PDFLib.PDFDocument.load(bytes.slice());if(!pdf.getPageCount())throw Error("PDF has no pages");supplements[p]={...supplements[p],bytes,name:f.name};syncSupplementCsv();renderSupplements();renderMapping();refresh();await saveIntakeProject()}catch(e){$("map-status").textContent="Supplement upload failed: "+e.message}});
+   line.append(file);
+   const inBook=document.createElement("label");const cb=document.createElement("input");cb.type="checkbox";cb.checked=!!entry.inSiddur;inBook.append(cb,document.createTextNode(" Supplement is already in original siddur PDF"));cb.addEventListener("change",()=>{supplements[p].inSiddur=cb.checked;renderSupplements();renderMapping();saveIntakeProject().catch(console.error)});line.append(inBook);
+  }
+  root.append(line);
+ }
+ const total=Object.values(supplements).filter(x=>x.isSupplement).length;
+ $("supplement-count").textContent=String(total);
+}
 function selectedPages(){
  const nums=[...new Set((csvRows||[]).map(r=>String(r.printed_page||r.printed_page_number||r.page||"").trim()))].filter(Boolean);
  if($("selection-method").value==="span"&&nums.length&&nums.every(n=>/^\d+$/.test(n))){const values=nums.map(Number);return Array.from({length:Math.max(...values)-Math.min(...values)+1},(_,i)=>String(Math.min(...values)+i))}
@@ -118,7 +159,7 @@ function selectedPages(){
 }
 function mapValid(p){return p&&Number.isInteger(Number(p.e))&&Number.isInteger(Number(p.h))&&Number(p.e)>=1&&Number(p.h)>=1&&Number(p.e)<=pdfCount&&Number(p.h)<=pdfCount&&Number(p.e)!==Number(p.h)&&p.verified===true}
 function propagatePairFrom(printed){
- const pages=selectedPages(),anchor=pageMapping[printed];if(!anchor||!/^\d+$/.test(printed))return 0;
+ const pages=siddurPages(),anchor=pageMapping[printed];if(!anchor||!/^\d+$/.test(printed))return 0;
  const e=Number(anchor.e),h=Number(anchor.h);
  if(!Number.isInteger(e)||!Number.isInteger(h)||e<1||h<1||e>pdfCount||h>pdfCount||e===h)return 0;
  // Printed pages are consecutive bilingual spreads. Advance by two physical pages
@@ -144,9 +185,9 @@ function renderMapping(){
   for(const key of ["e","h"]){const td=document.createElement("td"),input=document.createElement("input");input.type="number";input.min="1";input.max=String(pdfCount||99999);input.style.width="95px";input.value=mapping[key]||"";input.setAttribute("aria-label",printed+" "+(key==="e"?"English":"Hebrew")+" physical PDF page");input.addEventListener("change",()=>{const entry=pageMapping[printed]||{e:"",h:"",verified:false};entry[key]=input.value;entry.verified=false;entry.manual=true;entry.auto=false;pageMapping[printed]=entry;const filled=propagatePairFrom(printed);renderMapping();if(filled)$("map-status").textContent="Filled "+filled+" candidate pairs from printed page "+printed+". Preview and verify each pair before export.";saveIntakeProject().catch(console.error)});td.append(input);tr.append(td)}
   const td=document.createElement("td"),check=document.createElement("input");check.type="checkbox";check.checked=!!mapping.verified;check.disabled=!(Number(mapping.e)>=1&&Number(mapping.h)>=1&&Number(mapping.e)!==Number(mapping.h)&&Number(mapping.e)<=pdfCount&&Number(mapping.h)<=pdfCount);check.setAttribute("aria-label","Verify printed page "+printed);check.addEventListener("change",()=>{pageMapping[printed].verified=check.checked;renderMapping();saveIntakeProject().catch(console.error)});td.append(check);const preview=document.createElement("button");preview.type="button";preview.textContent="Preview pair";preview.disabled=!mapping.e||!mapping.h;preview.addEventListener("click",()=>previewMappedPair(printed));td.append(preview);tr.append(td);body.append(tr);
  }
- const valid=pages.filter(p=>mapValid(pageMapping[p])).length;
+ const valid=pages.filter(p=>mapValid(pageMapping[p])).length;const supplementReady=Object.entries(supplements).filter(([p,x])=>x.isSupplement).every(([p,x])=>x.bytes?.length||x.inSiddur&&mapValid(pageMapping[p]));
  $("map-status").textContent=valid+" of "+pages.length+" printed pages verified. All selected pairs must be verified before export.";
- $("open-facing").disabled=!pages.length||valid!==pages.length||!sourcePdfBytes;
+ $("open-facing").disabled=!pages.length||valid!==pages.length||!supplementReady||!sourcePdfBytes;
  $("download-reduced").disabled=$("open-facing").disabled;
 }
 async function previewMappedPair(printed){
@@ -197,7 +238,7 @@ async function autoMapPages(){
 }
 $("scan-map").addEventListener("click",autoMapPages);
 async function buildReducedPdf(){
- const pages=selectedPages();if(!pages.length||pages.some(p=>!mapValid(pageMapping[p])))throw Error("Verify every selected printed page and both language pages first.");
+ const pages=siddurPages();if(!pages.length||pages.some(p=>!mapValid(pageMapping[p])))throw Error("Verify every selected printed page and both language pages first.");
  const original=await PDFLib.PDFDocument.load(sourcePdfBytes.slice()),out=await PDFLib.PDFDocument.create();
  for(const p of pages){for(const index of [Number(pageMapping[p].e)-1,Number(pageMapping[p].h)-1]){const [copy]=await out.copyPages(original,[index]);out.addPage(copy)}}
  await out.attach(new TextEncoder().encode("\uFEFF"+csvText()),"edited-cues.csv",{mimeType:"text/csv",description:"Verified service cue metadata"});
@@ -207,8 +248,8 @@ async function buildReducedPdf(){
 }
 $("download-reduced").addEventListener("click",async()=>{try{downloadBytes(await buildReducedPdf(),sourcePdfName.replace(/\.pdf$/i,"")+"_selected_service.pdf","application/pdf")}catch(e){$("map-status").textContent=e.message}});
 function projectDb(){return new Promise((resolve,reject)=>{const request=indexedDB.open("leaders-companion-siddur-v3",1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains("projects"))request.result.createObjectStore("projects")};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})}
-async function saveIntakeProject(){const db=await projectDb();const data={pdf:sourcePdfBytes?sourcePdfBytes.slice():null,pdfName:sourcePdfName,csv:csvRows?csvText():null,roleOpacity:[...roleOpacity],roleAssignments:[...roleAssignments],rolesLocked,selectionMethod:$("selection-method").value,pageMapping,updated:new Date().toISOString()};await new Promise((resolve,reject)=>{const tx=db.transaction("projects","readwrite");tx.objectStore("projects").put(data,"active");tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}
-async function restoreIntakeProject(){const db=await projectDb();const data=await new Promise((resolve,reject)=>{const tx=db.transaction("projects","readonly");const q=tx.objectStore("projects").get("active");q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});db.close();if(!data)return;sourcePdfBytes=data.pdf?new Uint8Array(data.pdf):null;sourcePdfName=data.pdfName||"siddur.pdf";csvRows=data.csv?parseCsv(data.csv):null;roleOpacity.clear();for(const [k,v] of data.roleOpacity||[])roleOpacity.set(k,v);roleAssignments.clear();for(const [k,v] of data.roleAssignments||[])roleAssignments.set(k,v);rolesLocked=!!data.rolesLocked;pageMapping=data.pageMapping||{};$("selection-method").value=data.selectionMethod||"span";if(sourcePdfBytes){const doc=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;pdfCount=doc.numPages}renderRoles();refresh();renderMapping();$("handoff-status").textContent="Saved siddur project restored from this browser."}
+async function saveIntakeProject(){const db=await projectDb();const data={pdf:sourcePdfBytes?sourcePdfBytes.slice():null,pdfName:sourcePdfName,csv:csvRows?csvText():null,roleOpacity:[...roleOpacity],roleAssignments:[...roleAssignments],rolesLocked,selectionMethod:$("selection-method").value,pageMapping,supplements,updated:new Date().toISOString()};await new Promise((resolve,reject)=>{const tx=db.transaction("projects","readwrite");tx.objectStore("projects").put(data,"active");tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close()}
+async function restoreIntakeProject(){const db=await projectDb();const data=await new Promise((resolve,reject)=>{const tx=db.transaction("projects","readonly");const q=tx.objectStore("projects").get("active");q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});db.close();if(!data)return;sourcePdfBytes=data.pdf?new Uint8Array(data.pdf):null;sourcePdfName=data.pdfName||"siddur.pdf";csvRows=data.csv?parseCsv(data.csv):null;roleOpacity.clear();for(const [k,v] of data.roleOpacity||[])roleOpacity.set(k,v);roleAssignments.clear();for(const [k,v] of data.roleAssignments||[])roleAssignments.set(k,v);rolesLocked=!!data.rolesLocked;pageMapping=data.pageMapping||{};supplements=data.supplements||{};$("selection-method").value=data.selectionMethod||"span";if(sourcePdfBytes){const doc=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;pdfCount=doc.numPages}renderRoles();refresh();renderSupplements();renderMapping();$("handoff-status").textContent="Saved siddur project restored from this browser."}
 $("open-facing").addEventListener("click",async()=>{if(!sourcePdfBytes||!csvRows){$("handoff-status").textContent="Upload both the siddur PDF and cue CSV first.";return}try{const reduced=await buildReducedPdf();await saveIntakeProject();const db=await projectDb();await new Promise((resolve,reject)=>{const tx=db.transaction("projects","readwrite");tx.objectStore("projects").put({pdf:reduced,csv:csvText(),pdfName:sourcePdfName.replace(/\\.pdf$/i,"")+"_selected_service.pdf",roleOpacity:[...roleOpacity],roleAssignments:[...roleAssignments]},"handoff");tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});db.close();$("handoff-status").textContent="Selected service PDF saved. Opening editor…";location.href="facing-import.html?intake=1"}catch(e){$("handoff-status").textContent="Could not save project: "+e.message}});
 window.addEventListener("pagehide",()=>{if(sourcePdfBytes||csvRows)saveIntakeProject().catch(console.error)});
 window.addEventListener("load",()=>restoreIntakeProject().catch(e=>{$("handoff-status").textContent="Saved project could not be restored: "+e.message}));
@@ -227,7 +268,7 @@ for(const g of grouped.values()){const tr=document.createElement("tr");for(const
 $("csv-note").textContent=csvRows?grouped.size+" page/language references found. Mapping to physical PDF pages remains unverified.":"Upload the CSV to see its printed-page references and cue counts.";
 $("export-csv").disabled=!csvRows;$("export-pdf").disabled=!csvRows||!sourcePdfBytes;
 $("status").textContent=(pdfCount===null?"Waiting for PDF. ":"PDF loaded. ")+(csvRows===null?"Waiting for CSV.":"CSV loaded. Review the inventory below.");}
-$("selection-method").addEventListener("change",()=>{refresh();renderMapping();saveIntakeProject().catch(console.error)});
-$("siddur").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{const bytes=new Uint8Array(await file.arrayBuffer());sourcePdfBytes=bytes.slice();sourcePdfName=file.name;const doc=await pdfjsLib.getDocument({data:bytes}).promise;pdfCount=doc.numPages;pageMapping={};refresh();renderMapping();await saveIntakeProject()}catch(err){$("status").textContent="PDF intake failed: "+err.message}});
-$("cues").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{csvRows=parseCsv(await file.text());rolesLocked=false;roleOpacity.clear();roleAssignments.clear();renderRoles();refresh();renderMapping();await saveIntakeProject()}catch(err){$("status").textContent="CSV intake failed: "+err.message}});
+$("selection-method").addEventListener("change",()=>{refresh();renderSupplements();renderMapping();saveIntakeProject().catch(console.error)});
+$("siddur").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{const bytes=new Uint8Array(await file.arrayBuffer());sourcePdfBytes=bytes.slice();sourcePdfName=file.name;const doc=await pdfjsLib.getDocument({data:bytes}).promise;pdfCount=doc.numPages;pageMapping={};refresh();renderSupplements();renderMapping();await saveIntakeProject()}catch(err){$("status").textContent="PDF intake failed: "+err.message}});
+$("cues").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{csvRows=parseCsv(await file.text());rolesLocked=false;roleOpacity.clear();roleAssignments.clear();renderRoles();refresh();renderSupplements();renderMapping();await saveIntakeProject()}catch(err){$("status").textContent="CSV intake failed: "+err.message}});
 </script></body></html>
