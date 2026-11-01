@@ -331,7 +331,7 @@ function cueSimilarity(a,b){
 }
 function matchingCueLine(lines,phrase){
  const needle=normalizeCueText(phrase);
- if(needle.length<6)return null;
+ if(needle.length<4)return null;
  const scores=[];
  for(let i=0;i<lines.length;i++){
   // Score contiguous OCR lines. Never allow a loose match to select a passage.
@@ -341,13 +341,13 @@ function matchingCueLine(lines,phrase){
    if(slice.some(l=>l.column!==slice[0].column))break;
    best=Math.max(best,cueSimilarity(slice.map(l=>l.text).join(" "),needle));
   }
-  if(best>=.78)scores.push({index:i,score:best});
+  if(best>=.65)scores.push({index:i,score:best});
  }
  scores.sort((a,b)=>b.score-a.score);
  if(!scores.length)return null;
  // Neighboring windows of the same phrase are not separate occurrences.
  const runner=scores.find(c=>Math.abs(c.index-scores[0].index)>2);
- if(runner&&scores[0].score-runner.score<.12)return null;
+ if(runner&&scores[0].score-runner.score<.10)return null;
  return scores[0].index;
 }
 function assignCueHighlights(side){
@@ -588,7 +588,7 @@ async function recognizeCueLines(side){
   const cy=(y+(box.y0+box.y1)/2)/canvas.height,cx=(x+(box.x0+box.x1)/2)/canvas.width;
   const closest=geometry.filter(g=>cx>=g.x-.04&&cx<=g.x+g.width+.04)
    .sort((a,b)=>Math.abs(cy-a.y-a.height/2)-Math.abs(cy-b.y-b.height/2))[0];
-  if(closest&&Math.abs(cy-closest.y-closest.height/2)<.018){
+  if(closest&&Math.abs(cy-closest.y-closest.height/2)<.025){
    mapped.push({id:closest.id,text:value,y:closest.y,column:closest.column});
   }
  }
@@ -600,7 +600,7 @@ async function recognizeCueLines(side){
  }
  const lines=[...groups.values()].map(l=>({...l,text:l.text.join(" ")}));
  rawOcrDiagnostics[side]+="\nMapped candidates: "+mapped.length+"; mapped printed lines: "+lines.length;
- lines.sort((a,b)=>a.column-b.column||a.y-b.y);
+ lines.sort((a,b)=>(lang==="heb"?b.column-a.column:a.column-b.column)||a.y-b.y);
  return lines;
 }
 async function autoMatchCues(){
