@@ -244,6 +244,7 @@ function applyImportedCues(){
   record.leadership.cues=matches.map((c,i)=>({
    cueId:c.cue_id||c.test_id||"import-"+i,service:c.service||null,role:c.role||null,
    style:c.style||null,styleSlot:null,startCue:c.begin_cue||"",endCue:c.end_cue||"",
+   startCueHebrew:c.begin_cue_hebrew||"",endCueHebrew:c.end_cue_hebrew||"",
    prayer:c.prayer||null,sourceRow:c.leader_map_source_row||null,
    highlights:[],matchStatus:"unmatched-review-required"
   }));
@@ -425,7 +426,8 @@ function assignCueHighlights(side){
  let matches=0;
  for(const cue of record.leadership.cues){
   // Never convert ambiguous OCR into a guessed selection.
-  const begin=matchingCueLine(ocr,cue.startCue),end=matchingCueLine(ocr,cue.endCue);
+  const begin=matchingCueLine(ocr,hebrew?(cue.startCueHebrew||cue.startCue):cue.startCue),
+        end=matchingCueLine(ocr,hebrew?(cue.endCueHebrew||cue.endCue):cue.endCue);
   if(begin===null||end===null){cue.matchStatus="anchor-review-required ("+(begin===null?"START ":"")+(end===null?"END":"")+")";continue}
   const first=ocr[begin],last=ocr[end];
   if(!first||!last){cue.matchStatus="anchor-review-required";continue}
@@ -1190,7 +1192,9 @@ $("cue-file").addEventListener("change",async()=>{
  const file=$("cue-file").files[0];if(!file)return;
  try{
   const rows=parseCsv(await file.text());
-  if(!rows.length||!rows.every(c=>c.printed_page&&c.language&&c.begin_cue&&c.end_cue))throw Error("CSV needs printed_page, language, begin_cue, end_cue columns.");
+  if(!rows.length||!rows.every(c=>c.printed_page&&c.language&&
+    (c.begin_cue||c.begin_cue_hebrew)&&(c.end_cue||c.end_cue_hebrew)))
+    throw Error("CSV needs printed_page, language, and beginning/ending cues (begin_cue/end_cue or Hebrew equivalents).");
   importedCues=rows;
   applyImportedCues();
   if(pageMetadata.length)await autoMatchCues();
