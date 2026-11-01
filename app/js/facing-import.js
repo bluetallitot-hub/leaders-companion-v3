@@ -1180,17 +1180,42 @@ function hebrewWordQuality(text){
 // Hebrew second recognition pass: read every detected printed line independently.
 // This is deliberately cue-agnostic: recognition completes before any anchor matching.
 // Rivok/ink geometry remains authoritative; this pass supplies text, not coordinates.
+// V2-derived recovery: full-page PSM 6 first, then line-band PSM alternatives.
+// Evaluate Hebrew letter coverage, recognized horizontal span and confidence.
+// Never use cue anchors to choose OCR text; preserve source artwork and Rivok geometry.
+function hebrewOcrCandidate(data,mode,variant){
+ const text=String(data?.text||"").replace(/\\s+/g," ").trim();
+ const letters=(normalizeCueText(text).match(/[\\u05d0-\\u05ea]/g)||[]).length;
+ const words=(data?.words||[]).filter(w=>/[\\u05d0-\\u05ea]/u.test(normalizeCueText(w.text||"")));
+ const confidence=words.length?words.reduce((sum,w)=>sum+(Number(w.confidence)||0),0)/words.length:Number(data?.confidence)||0;
+ let span=0;
+ if(words.length){
+  const left=Math.min(...words.map(w=>w.bbox?.x0??Infinity));
+  const right=Math.max(...words.map(w=>w.bbox?.x1??-Infinity));
+  const width=Number(data?.imageWidth)||0;
+  if(Number.isFinite(left)&&Number.isFinite(right)&&width>0)span=Math.max(0,Math.min(1,(right-left)/width));
+ }
+ // A large quantity of Hebrew characters is useful only when OCR covers the printed band.
+ const score=Math.min(1,letters/22)*.40+Math.max(0,Math.min(1,confidence/100))*.25+
+  span*.25+hebrewWordQuality(text)*.10+(mode===7&&letters>=5?.025:0);
+ return {text,letters,confidence,span,score,mode,variant};
+}
+function hebrewBinaryCanvas(source,threshold=200){
+ const out=document.createElement("canvas");out.width=source.width;out.height=source.height;
+ const ctx=out.getContext("2d",{willReadFrequently:true});ctx.drawImage(source,0,0);
+ const image=ctx.getImageData(0,0,out.width,out.height);
+ for(let i=0;i<image.data.length;i+=4){const v=image.data[i]<threshold?0:255;image.data[i]=image.data[i+1]=image.data[i+2]=v;}
+ ctx.putImageData(image,0,0);return out;
+}
 async function secondPassHebrewLines(side,firstPass){
  const canvas=$(side===0?"output-left":"output-right");
  const geometry=detectedLines[side]||[];
  if(!window.Tesseract||!geometry.length)return firstPass;
  const worker=await Tesseract.createWorker("heb");
  const recovered=new Map(firstPass.map(l=>[l.id,{...l,recognitionPass:1}]));
- let read=0,improved=0,failed=0;
+ let read=0,replaced=0,failed=0,attempts=0;
  try{
-  await worker.setParameters({tessedit_pageseg_mode:"7",preserve_interword_spaces:"1"});
-  const analysis=enhancedAnalysisCanvas(canvas,3),scale=analysis.width/canvas.width;
-  // Read in printed order, including lines missed by the first page-wide pass.
+  const analysis=enhancedAnalysisCanvas(canvas,2),scale=analysis.width/canvas.width;
   const ordered=geometry.slice().sort((a,b)=>a.column-b.column||a.y-b.y);
   for(const line of ordered){
    const padX=Math.max(5,Math.round(line.height*canvas.height*.20));
@@ -1200,22 +1225,37 @@ async function secondPassHebrewLines(side,firstPass){
    const right=Math.min(analysis.width,Math.ceil(((line.x+line.width)*canvas.width+padX)*scale));
    const bottom=Math.min(analysis.height,Math.ceil(((line.y+line.height)*canvas.height+padY)*scale));
    if(right-left<12||bottom-top<8)continue;
+   const crop=canvasCrop(analysis,{left,top,right,bottom});
+   const variants=[{name:"original",canvas:crop},{name:"consonants",canvas:consonantOnlyOcrCanvas(crop)}];
+   let best=null;
    try{
-    const crop=consonantOnlyOcrCanvas(canvasCrop(analysis,{left,top,right,bottom}));
-    const result=await worker.recognize(crop);
-    const recognized=String(result.data?.text||"").replace(/\s+/g," ").trim();
+    // PSM 7 is the natural single-line baseline. Escalate weak or partial results
+    // to the modes used by V2: 6, 11, 13, and binary PSM 7.
+    for(const trial of [{mode:7,v:0},{mode:7,v:1},{mode:6,v:0},{mode:11,v:0},{mode:13,v:0},{mode:7,v:2}]){
+     if(trial.v===2&&variants.length===2)variants.push({name:"binary200",canvas:hebrewBinaryCanvas(crop,200)});
+     await worker.setParameters({tessedit_pageseg_mode:String(trial.mode),preserve_interword_spaces:"1"});
+     const result=await worker.recognize(variants[trial.v].canvas);
+     attempts++;
+     const candidate=hebrewOcrCandidate({...result.data,imageWidth:variants[trial.v].canvas.width},trial.mode,variants[trial.v].name);
+     if(candidate.letters>0&&(!best||candidate.score>best.score))best=candidate;
+     if(best&&best.letters>=15&&best.span>=.62&&best.confidence>=75)break;
+    }
     read++;
-    // A line must contain Hebrew letters. Never replace good OCR with empty output.
-    if(!/[\u05d0-\u05ea]/u.test(recognized))continue;
+    if(!best)continue;
     const previous=recovered.get(line.id);
-    if(previous&&hebrewWordQuality(previous.text)>hebrewWordQuality(recognized)+.12)continue;
-    recovered.set(line.id,{id:line.id,text:recognized,y:line.y,column:line.column,
-     bbox:{y0:line.y,y1:line.y+line.height},recognitionPass:2});
-    if(!previous||previous.text!==recognized)improved++;
-   }catch(e){failed++;console.warn("Hebrew line OCR retry",line.id,e)}
+    // Keep existing full-page OCR when the localized reading has poor letter coverage.
+    const prevLetters=(normalizeCueText(previous?.text||"").match(/[\\u05d0-\\u05ea]/g)||[]).length;
+    if(previous&&prevLetters>best.letters*1.35&&best.span<.45)continue;
+    if(previous&&hebrewWordQuality(previous.text)>hebrewWordQuality(best.text)+.30&&best.confidence<65)continue;
+    recovered.set(line.id,{id:line.id,text:best.text,y:line.y,column:line.column,
+     bbox:{y0:line.y,y1:line.y+line.height},recognitionPass:2,ocrMode:best.mode,ocrVariant:best.variant});
+    if(!previous||previous.text!==best.text)replaced++;
+   }catch(e){failed++;console.warn("Hebrew band recovery",line.id,e)}
   }
  }finally{await worker.terminate()}
- rawOcrDiagnostics[side]+="\nHebrew independent line OCR (PSM 7): "+read+" lines; "+improved+" new/replaced transcriptions; "+failed+" errors. No cue filtering applied.";
+ rawOcrDiagnostics[side]+="\\nV2-derived Hebrew band OCR (PSM 7/6/11/13, grayscale/consonant/binary): "+
+  read+" bands, "+attempts+" recognition trials, "+replaced+" new/replaced lines, "+failed+
+  " errors. Source-image span, confidence and Hebrew letter coverage ranked independently of cues.";
  return [...recovered.values()].sort((a,b)=>((a.column===1?0:a.column===0?1:2)-(b.column===1?0:b.column===0?1:2))||a.y-b.y);
 }
 // V3.84 independent word OCR diagnostic. Does not alter cue matches or highlights.
