@@ -1704,20 +1704,20 @@ function storePageMetadata(page,record){
 }
 async function createPdf(bytes){
  const source=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
- const out=await PDFLib.PDFDocument.create(),count=Math.min(2,source.numPages);
+ const out=await PDFLib.PDFDocument.create(),first=Math.max(0,Math.min(source.numPages-1,selectedSpreadFirst-1)),count=Math.min(2,source.numPages-first);
  if(!count)throw Error("No PDF pages found.");
  const font=await out.embedFont(PDFLib.StandardFonts.Helvetica),records=[];
  for(let i=0;i<count;i++){
   status("Processing source page "+(i+1)+" of "+count+"...");
-  const src=await source.getPage(i+1),v=src.getViewport({scale:2});
+  const src=await source.getPage(first+i+1),v=src.getViewport({scale:2});
   const canvas=document.createElement("canvas");canvas.width=Math.ceil(v.width);canvas.height=Math.ceil(v.height);
   const ctx=canvas.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
   await src.render({canvasContext:ctx,viewport:v}).promise;
-  const meta=await readMetadata(source,i,canvas);
+  const meta=await readMetadata(source,first+i,canvas);
   const crop=detectCrop(canvas,meta),cleaned=canvasCrop(canvas,crop);
   cleanPixels(cleaned);
   const png=await out.embedPng(await (await fetch(cleaned.toDataURL("image/png"))).arrayBuffer());
-  records.push({meta,png,sourceIndex:i});
+  records.push({meta,png,sourceIndex:first+i});
  }
  // English is the left facing page; Hebrew is the right facing page.
  if(records.length===2&&records[0].meta.language==="Hebrew"&&records[1].meta.language==="English")records.reverse();
@@ -1782,18 +1782,49 @@ async function preview(bytes){
  await autoMatchCues();
 }
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
+let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0;
+function updateIntakeInventory(){
+ const inventory=$("intake-inventory"),summary=$("intake-summary");
+ inventory.hidden=!sourcePdfPages;
+ if(!sourcePdfPages)return;
+ const relevant=importedCues||[];
+ const printed=[...new Set(relevant.map(c=>String(c.printed_page||"").trim()).filter(Boolean))];
+ const languages=[...new Set(relevant.map(c=>String(c.language||"").trim()).filter(Boolean))];
+ const spreads=Math.ceil(sourcePdfPages/2);
+ summary.textContent="Original PDF: "+sourcePdfPages+" physical pages; "+spreads+" possible facing pairs. CSV: "+relevant.length+" cue rows; "+printed.length+" distinct printed page references; languages: "+(languages.join(", ")||"not supplied")+". Service-page selection and supplemental-page counts require a verified page mapping; they are not inferred from these totals.";
+ $("spread-first").max=String(sourcePdfPages);
+ $("spread-first").value=String(selectedSpreadFirst);
+}
+async function loadSelectedSpread(){
+ if(!sourcePdfBytes)return;
+ $("download").disabled=true;output=null;baseOutput=null;pageMetadata=[];
+ ocrWordGeometry=[new Map(),new Map()];$("spread-preview").hidden=true;
+ rivokOverlay=null;rivokWordsBySide=[null,null];
+ visibleCueId="";
+ output=await createPdf(sourcePdfBytes.slice());
+ baseOutput=output.slice();
+ await preview(output);
+ $("download").disabled=false;
+ status(cueMatchReport);
+}
+$("load-spread").addEventListener("click",async()=>{
+ if(!sourcePdfBytes)return;
+ selectedSpreadFirst=Math.max(1,Math.min(sourcePdfPages,Number($("spread-first").value)||1));
+ updateIntakeInventory();
+ try{await loadSelectedSpread()}catch(e){console.error(e);status("Spread load failed: "+e.message)}
+});
+
 $("source").addEventListener("change",async()=>{
  const file=$("source").files[0];if(!file)return;
- $("download").disabled=true;output=null;baseOutput=null;pageMetadata=[];ocrWordGeometry=[new Map(),new Map()];$("spread-preview").hidden=true;
- rivokOverlay=null;rivokWordsBySide=[null,null];
- filename=file.name.replace(/\.pdf$/i,"")||"siddur";
+ filename=file.name.replace(/\\.pdf$/i,"")||"siddur";
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  try{
   if(!window.PDFLib||!window.pdfjsLib)throw Error("PDF libraries unavailable.");
-  visibleCueId="";output=await createPdf(new Uint8Array(await file.arrayBuffer()));
-  baseOutput=output.slice();
-  await preview(output);$("download").disabled=false;
-  status(cueMatchReport);
+  sourcePdfBytes=new Uint8Array(await file.arrayBuffer());
+  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
+  sourcePdfPages=source.numPages;selectedSpreadFirst=1;
+  updateIntakeInventory();
+  await loadSelectedSpread();
  }catch(e){console.error(e);status("Import failed: "+e.message)}
 });
 $("cue-file").addEventListener("change",async()=>{
@@ -1804,6 +1835,7 @@ $("cue-file").addEventListener("change",async()=>{
     (c.begin_cue||c.begin_cue_hebrew)&&(c.end_cue||c.end_cue_hebrew)))
     throw Error("CSV needs printed_page, language, and beginning/ending cues (begin_cue/end_cue or Hebrew equivalents).");
   importedCues=rows;
+  updateIntakeInventory();
   applyImportedCues();refreshCueVisibilityPicker();
   if(pageMetadata.length)await autoMatchCues();
   status(pageMetadata.length?cueMatchReport:"Loaded "+rows.length+" cue rows. Now upload the test PDF.");
