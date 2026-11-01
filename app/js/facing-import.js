@@ -273,15 +273,18 @@ function detectPrintedLines(canvas,side){
    for(let x=left;x<right;x+=2){const j=(y*w+x)*4;if(pixels[j]<145)n++}
    rows.push(n);
   }
-  const threshold=Math.max(3,Math.floor((right-left)/95));
+  // English prose has narrow, lightly printed lines that the old density threshold missed.
+  // Require a little real ink, but do not require a full-width dense line.
+  const english=pageMetadata[side]?.source?.languageCode==="E";
+  const threshold=english?2:Math.max(3,Math.floor((right-left)/95));
   let start=-1,last=-1;
   const emitBand=(fromRow,toRow)=>{
-   if(toRow-fromRow<2||toRow-fromRow>30)return;
+   if(toRow-fromRow<1||toRow-fromRow>30)return;
    let minX=right,maxX=left;
    for(let y=y0+fromRow;y<=y0+toRow;y++)for(let x=left;x<right;x++){
     const j=(y*w+x)*4;if(pixels[j]<145){minX=Math.min(minX,x);maxX=Math.max(maxX,x)}
    }
-   if(maxX-minX<=18)return;
+   if(maxX-minX<=(english?12:18))return;
    const pad=2;
    const top=Math.max(0,y0+fromRow-1),bottom=Math.min(h,y0+toRow+2);
    result.push({id:"line-"+column+"-"+fromRow,column,
@@ -291,7 +294,7 @@ function detectPrintedLines(canvas,side){
   const emit=()=>{
    if(start<0)return;
    const from=start,to=last;start=-1;
-   if(to-from<2)return;
+   if(to-from<1)return;
    // A tall ink band can contain two touching printed lines. Split only
    // at a pronounced interior horizontal valley, never at arbitrary halves.
    if(to-from>17){
