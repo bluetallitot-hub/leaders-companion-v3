@@ -362,10 +362,26 @@ function assignCueHighlights(side){
   if(!first||!last){cue.matchStatus="anchor-review-required";continue}
   // The OCR endpoints are anchors only. Fill all intervening printed lines
   // from image geometry, including lines OCR could not read.
-  // Cross-column Hebrew paths are not yet safe to infer.
-  if(first.column!==last.column){cue.matchStatus="column-path-review-required";continue}
-  const lo=Math.min(first.y,last.y)-.004,hi=Math.max(first.y,last.y)+.004;
-  const selected=geometry.filter(l=>l.column===first.column&&l.y+l.height/2>=lo&&l.y+l.height/2<=hi);
+  // Follow printed reading order: Hebrew right-to-left columns, English left-to-right.
+  // Only traverse a column boundary in the forward reading direction.
+  const hebrew=record.source.languageCode==="H";
+  const columns=[...new Set(geometry.map(l=>l.column))].sort((a,b)=>a-b);
+  if(hebrew)columns.reverse();
+  const columnRank=c=>columns.indexOf(c);
+  const rankA=columnRank(first.column),rankB=columnRank(last.column);
+  if(rankA<0||rankB<0||rankB<rankA||rankB-rankA>1){
+   cue.matchStatus="column-path-review-required";continue;
+  }
+  const startY=first.y,endY=last.y;
+  if(rankA===rankB&&endY+.008<startY){cue.matchStatus="reverse-anchor-review-required";continue}
+  const selected=geometry.filter(l=>{
+   const rank=columnRank(l.column),center=l.y+l.height/2;
+   if(rank<rankA||rank>rankB)return false;
+   if(rankA===rankB)return center>=startY-.004&&center<=endY+.004;
+   if(rank===rankA)return center>=startY-.004;
+   if(rank===rankB)return center<=endY+.004;
+   return true;
+  });
   if(!selected.length){cue.matchStatus="geometry-review-required";continue}
   for(const line of selected){
    if(!record.leadership.highlights.some(h=>h.lineId===line.id)){
@@ -556,7 +572,7 @@ function installHighlightSelection(){
 }
 async function recognizeCueLines(side){
  const canvas=$(side===0?"output-left":"output-right"),record=pageMetadata[side];
- if(!canvas||!record||!window.Tesseract)return [];
+ if(!canvas||!record||!window.Tesseract){rawOcrDiagnostics[side]="OCR unavailable: missing canvas, page record or Tesseract.";return [];}
  const lang=record.source.languageCode==="H"?"heb":"eng";
  const region=REGIONS[side],x=Math.round(region.x),y=Math.round(H-region.y-region.h);
  const crop=canvasCrop(canvas,{left:x,top:y,right:Math.round(region.x+region.w),bottom:Math.round(H-region.y)});
@@ -584,7 +600,7 @@ async function recognizeCueLines(side){
  }
  const lines=[...groups.values()].map(l=>({...l,text:l.text.join(" ")}));
  rawOcrDiagnostics[side]+="\nMapped candidates: "+mapped.length+"; mapped printed lines: "+lines.length;
- lines.sort((a,b)=>a.y-b.y||a.column-b.column);
+ lines.sort((a,b)=>a.column-b.column||a.y-b.y);
  return lines;
 }
 async function autoMatchCues(){
