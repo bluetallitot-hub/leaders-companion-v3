@@ -2,7 +2,7 @@
 window.LCV3Templates=Object.freeze({
  base:new URL("../../templates/pdf/",document.baseURI).href,
  files:Object.freeze({
-  siddur:"Leaders_Companion_V3_Master_Template_v1.4_Highlight_Metadata.pdf",
+  siddur:"Leaders_Companion_V3_Master_Template_v1.3_Blank.pdf",
   cover:"Leaders_Companion_V3_Master_Cover_Template_v1.2_BW_Bordered.pdf",
   sectionTitle:"Leaders_Companion_V3_Section_Title_Master_v1.0.pdf",
   sectionContents:"Leaders_Companion_V3_Section_Contents_Master_v1.0.pdf"
