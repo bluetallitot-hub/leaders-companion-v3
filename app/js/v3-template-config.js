@@ -1,6 +1,6 @@
 /* V3 PDF masters live at repository root /templates/. */
 window.LCV3Templates=Object.freeze({
- base:new URL("../../templates/",document.baseURI).href,
+ base:new URL("../../templates/pdf/",document.baseURI).href,
  files:Object.freeze({
   siddur:"Leaders_Companion_V3_Master_Template_v1.3_Blank.pdf",
   cover:"Leaders_Companion_V3_Master_Cover_Template_v1.2_BW_Bordered.pdf",
