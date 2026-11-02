@@ -5,7 +5,7 @@
 <script defer src="../js/v3-template-config.js"></script>
 <script defer src="../js/v3-master-check.js"></script>
 <style>.intake-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.intake-stat{border:1px solid #aebdb8;border-radius:8px;padding:14px}.intake-stat strong{display:block;font-size:1.6rem}.intake-table{width:100%;border-collapse:collapse}.intake-table th,.intake-table td{padding:7px;border-bottom:1px solid #ddd;text-align:left} .intake-table-wrap{max-height:420px;overflow:auto} .warning{color:#8b4c0d}.role-row{display:grid;grid-template-columns:minmax(130px,1fr) 110px minmax(160px,1fr) 60px;gap:12px;align-items:center;padding:9px;border-bottom:1px solid #ddd}.swatch{display:inline-block;width:28px;height:24px;border:1px solid #666;vertical-align:middle;margin-right:8px}.role-row input[type=range]{width:100%} .role-locked{opacity:.85}.role-row{grid-template-columns:minmax(150px,1fr) minmax(230px,1.4fr) minmax(130px,1fr) 55px}.role-row select{width:100%;padding:7px}.writing-sample{font-family:Georgia,serif;font-size:17px;line-height:1.8;color:#18251f;white-space:nowrap}.writing-sample mark{color:inherit;padding:3px 5px;border-radius:2px}.role-header{font-size:.85rem;font-weight:700;color:#456;display:grid;grid-template-columns:minmax(150px,1fr) minmax(230px,1.4fr) minmax(130px,1fr) 55px;gap:12px;padding:8px 9px}.outlier{border:1px solid #d2a56a;border-radius:8px;padding:12px;margin:10px 0}.cue-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}.cue-form label{display:flex;flex-direction:column;gap:4px}.cue-form input,.cue-form select{width:100%}.cue-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}</style><script defer src="https://cdn.jsdelivr.net/npm/mammoth@1.9.1/mammoth.browser.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script></head>
-<body><span aria-label="Page version" style="position:absolute;right:18px;top:14px;font-size:13px;font-weight:700;color:#276b52;background:#f1f6f2;border:1px solid #b8ccc1;border-radius:6px;padding:5px 9px;z-index:10">V3.158 · Intake</span><main><header><p class="eyebrow">Leader's Companion V3</p><h1>Complete Siddur intake</h1><p>Load the complete original siddur and the service cue CSV. This intake inventories the source before any page alignment or highlighting.</p></header>
+<body><span aria-label="Page version" style="position:absolute;right:18px;top:14px;font-size:13px;font-weight:700;color:#276b52;background:#f1f6f2;border:1px solid #b8ccc1;border-radius:6px;padding:5px 9px;z-index:10">V3.159 · Intake</span><main><header><p class="eyebrow">Leader's Companion V3</p><h1>Complete Siddur intake</h1><p>Load the complete original siddur and the service cue CSV. This intake inventories the source before any page alignment or highlighting.</p></header>
 <section class="panel"><h2>1. Original source files</h2><label for="siddur">Complete original siddur PDF</label><input id="siddur" type="file" accept=".pdf,application/pdf"><label for="cues">Service cue CSV (from Leader's Companion Database v2.0)</label><input id="cues" type="file" accept=".csv,text/csv"><p id="status" role="status" aria-live="polite">Choose the two files to calculate the intake inventory.</p></section>
 <section class="panel"><h2>2. Page selection method</h2><label for="selection-method">Include pages by</label><select id="selection-method"><option value="span">Entire service span (first through last referenced printed page)</option><option value="cues">Cue-based pages only (distinct referenced printed pages)</option></select><p class="hint">Both methods select bilingual facing pairs. Every Hebrew page must have its matching English page and vice versa. Missing counterparts require review; no page is silently substituted.</p><p id="selection-estimate" aria-live="polite">Upload a CSV to estimate the selected printed pages.</p></section><section class="panel"><h2>3. Highlight roles and opacity</h2><p class="hint">Highlighting is independent of page numbers. Assign colors to imported leader roles and adjust opacity. Highlight placement on scanned pages must be reviewed in the page editor.</p><div id="roles" aria-live="polite"><p class="hint">Upload a cue CSV to load its roles.</p></div><div id="outlier-cues" aria-live="polite"></div><div class="cue-actions"><button id="export-csv" type="button" disabled>Download edited cue CSV</button><button id="export-pdf" type="button" disabled>Download new PDF with edited cues attached</button></div><button id="lock-roles" type="button" disabled>Fix opacity for this siddur</button><p id="role-status" class="hint">Set opacity before starting page editing. Once fixed, it applies throughout the siddur.</p></section><section class="panel"><h2>4. Page and spread inventory</h2><div class="intake-grid">
 <div class="intake-stat">Original PDF pages<strong id="pdf-pages">—</strong></div>
@@ -17,7 +17,7 @@
 </div><p class="hint">Cue rows are not pages. The final count requires a verified printed-to-physical page map, service page selection, and supplemental pages. No source files are altered.</p></section>
 <section class="panel"><h2>5. Map printed pages to PDF spreads</h2><p>Enter the English and Hebrew physical PDF pages for one printed page; the remaining numeric pages will be filled automatically using consecutive facing pairs. You can also scan selectable PDF text for page-number candidates. For scanned pages without selectable text, enter the physical pages manually. Unresolved pairs cannot be exported.</p><button id="scan-map" type="button">Scan printed numbers with image OCR</button> <button id="verify-all" type="button">Check all valid pairs</button> <button id="clear-verification" type="button">Uncheck all</button><p id="map-status" role="status">Enter one English/Hebrew pair to populate the remaining pages, then verify the results.</p><div class="intake-table-wrap"><table class="intake-table"><thead><tr><th>Printed page</th><th>English PDF page</th><th>Hebrew PDF page</th><th>Verification</th></tr></thead><tbody id="mapping-rows"></tbody></table></div><div id="mapping-preview"></div></section><section class="panel"><h2>6. Supplements and out-of-range pages</h2><p>For each SUP reference, upload a document now or reserve a blank placeholder page and upload later. Reserved pages appear in the service PDF in cue order. I- references use the original PDF.</p><div id="supplement-rows"></div></section><section class="panel"><h2>7. Printed page references in the CSV</h2><p id="csv-note" class="hint">Upload the CSV to see its printed-page references and cue counts.</p><div class="intake-table-wrap"><table class="intake-table"><thead><tr><th>Printed page</th><th>Language</th><th>Cues</th><th>Physical PDF page</th></tr></thead><tbody id="page-rows"></tbody></table></div></section>
 <section class="panel"><h2>8. Continue to the facing-page editor</h2><p>Only verified, cue-selected bilingual spreads will be transferred to the editor. Your full original PDF remains saved for corrections.</p><button id="download-reduced" type="button">Download selected service PDF</button><button id="open-facing" type="button">Save project and open facing-page editor</button><p id="handoff-status" role="status"></p><p id="handoff-blockers" class="warning" aria-live="polite"></p></section>
-<footer>Intake V3.158 · Original files stay on your device. No automatic assumptions about page offsets.</footer></main>
+<footer>Intake V3.159 · Original files stay on your device. No automatic assumptions about page offsets.</footer></main>
 <script>
 const $=id=>document.getElementById(id);let pdfCount=null,csvRows=null,rolesLocked=false,sourcePdfBytes=null,sourcePdfName="siddur.pdf",csvHeaders=[],intakePageRecords=[],pageMapping={},supplements={},reducedPdfBytes=null;const roleOpacity=new Map(),roleAssignments=new Map();const canonicalColors=["#F5D03C","#75C56A","#74B9E7","#F3A65B","#DA88B8","#AE93DC"];
 function parseCsv(text){const rows=[];let row=[],field="",quoted=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(quoted&&text[i+1]==='"'){field+='"';i++}else quoted=!quoted}else if(c===','&&!quoted){row.push(field);field=""}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(field);if(row.some(x=>x.trim()))rows.push(row);row=[];field=""}else field+=c}row.push(field);if(row.some(x=>x.trim()))rows.push(row);if(!rows.length)return[];const headers=rows.shift().map(h=>h.trim().replace(/^\uFEFF/,"").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,""));csvHeaders=headers;const parsed=rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()])));if(headers.includes("record_type")){intakePageRecords=parsed.filter(r=>r.record_type.toUpperCase()==="PAGE");return parsed.filter(r=>r.record_type.toUpperCase()==="CUE");}intakePageRecords=[];return parsed;}
@@ -112,7 +112,7 @@ function renderOutliers(outliers,names){
  }
 }
 function csvText(){
- const headers=[...new Set([...csvHeaders,"page_type","supplement_file","highlight_role","highlight_color","cue_left","cue_right","printed_page","leader_notes","highlight_opacity"])];
+ const headers=[...new Set([...csvHeaders,"page_type","supplement_file","highlight_role","highlight_color","cue_left","cue_right","printed_page","leader_notes","highlight_style_id"])];
  const quote=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
  return [headers.map(quote).join(","),...[...csvRows,...intakePageRecords].map(row=>headers.map(h=>quote(row[h])).join(","))].join("\r\n")+"\r\n";
 }
@@ -290,12 +290,12 @@ function attachPageRecord(page,entry,language){
   outputPage:entry.outputPage,sourceReference:entry.reference,sourceKind:entry.kind,sourcePdfPage:entry.sourcePage||null,
   printedPage:entry.kind==="printed"?String(entry.printedPage||entry.reference).split("-")[0]:"SUP",
   language:language||null,prayerTitle:title,fields,cues,
-  leadership:{cues,roles:[...roleAssignments],opacity:[...roleOpacity],highlights:[],reviewStatus:"unreviewed"},
+  leadership:{cues,highlightStyleIds:cues.map(c=>c.highlight_style_id).filter(Boolean),highlights:[],reviewStatus:"unreviewed"},
   identification:{prayerTitle:title,serviceCodes:fields.service_code||[],sectionIds:fields.section_id||[],
    cueIds:cues.map(c=>c.cue_id).filter(Boolean),sequence:fields.sequence||[]},
   production:{frameworkBoxes:true,enhancement:"pending",pageStatus:"assembled",notes:fields.leader_notes||[]},
   content:{heading:null,instructions:null,ocr:null},
-  highlights:[],roles:[...roleAssignments],opacity:[...roleOpacity]};
+  highlights:[]};
  page.node.set(PDFLib.PDFName.of("LCPageRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(record)));
  entry.cueIds=cues.map(c=>c.cue_id).filter(Boolean);entry.language=language||null;
  return record;
@@ -333,16 +333,15 @@ function hexToRgba(hex,alpha){let h=hex.replace("#","");if(h.length===3)h=[...h]
 $("lock-roles").addEventListener("click",()=>{
  rolesLocked=!rolesLocked;
  if(rolesLocked && csvRows){
-  // Persist confirmed palette mapping into each cue so facing editor receives colors.
+  // Store stable style IDs on cues. Actual color/opacity live in a central style registry.
+  const slots=[...roleAssignments.entries()];
   for(const cue of csvRows){
    const role=roleName(cue);if(!role)continue;
-   for(const [hex,assigned] of roleAssignments){
-    if(assigned.toLowerCase()===role.toLowerCase()){
-     cue.highlight_role=role;cue.highlight_color=hex;
-     cue.highlight_opacity=String(roleOpacity.get(hex)??40);
-     break;
-    }
-   }
+   const slot=slots.findIndex(([,assigned])=>assigned.toLowerCase()===role.toLowerCase());
+   if(slot<0)continue;
+   cue.highlight_role=role;
+   cue.highlight_style_id="HL-"+String(slot+1).padStart(2,"0");
+   delete cue.highlight_color;delete cue.highlight_opacity;
   }
  }
  renderRoles();saveIntakeProject().catch(console.error)
