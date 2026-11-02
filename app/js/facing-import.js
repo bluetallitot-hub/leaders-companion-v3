@@ -13,24 +13,46 @@ function drawTemplate(page,side){
  boxes.push([numberX,746,48,24],[colorX,746,18,24],[side===0?colorX+18:min,746,max-min-66,24]);
  for(const [x,y,w,h] of boxes)page.drawRectangle({x,y,width:w,height:h,borderColor:PDFLib.rgb(.26,.44,.54),borderWidth:.75});
 }
-function drawKnownFrameworkFields(page,record,side,font){
- const source=record?.source||{},ident=record?.identification||{},cues=record?.leadership?.cues||[];
- const number=String(downloadPageNumber(source.sourcePdfPage)||source.originalPageNumber||"").trim();
- const printable=t=>String(t||"").replace(/[^\\x20-\\x7e]/g,"").trim();
- const write=(value,x,y,maxWidth,size=10)=>{
-  const str=printable(value);if(!str)return;
-  let out=str;
-  while(out&&font.widthOfTextAtSize(out,size)>maxWidth)out=out.slice(0,-1);
-  if(out!==str)out=out.length>4?out.slice(0,-3)+"...":out;
-  if(out)page.drawText(out,{x,y,size,font,color:PDFLib.rgb(.12,.27,.32)});
+function drawKnownFrameworkFields(page,record,side,font,boldFont=font,embedded=null){
+ const source=record?.source||{},ident=record?.identification||{};
+ const cues=embedded?.cues||record?.leadership?.cues||[];
+ const number=String(embedded?.printedPage||source.originalPageNumber||downloadPageNumber(source.sourcePdfPage)||"").split("-")[0].trim();
+ const service=embedded?.serviceName||embedded?.service_name||ident.serviceName||"";
+ const title=embedded?.prayerName||embedded?.prayerTitle||ident.prayerName||"";
+ const instruction=embedded?.instructionText||record?.instructionText||"";
+ const colorCode=String(embedded?.pageColor||record?.pageColor||"W").toUpperCase().slice(0,1);
+ const palette={W:[.975,.975,.975],N:[.7,1,.15],B:[.14,.36,.83],R:[.86,.16,.18],O:[.98,.54,.1],G:[.18,.65,.29]};
+ const rgb=palette[colorCode]||palette.W;
+ const textX=side===0?171.36:59.76,numberX=side===0?20.16:544.96;
+ const colorX=side===0?numberX+48:numberX-18;
+ const serviceX=side===0?colorX+18:59.76;
+ const safe=v=>String(v??"").replace(/[^\\x20-\\x7e]/g,"").trim();
+ const fit=(value,x,y,width,size,f=font,color=PDFLib.rgb(.12,.23,.27))=>{
+  let t=safe(value);if(!t)return;
+  while(t&&f.widthOfTextAtSize(t,size)>width)t=t.slice(0,-1);
+  if(t)page.drawText(t,{x,y,size,font:f,color});
  };
- const numberX=side===0?20.16:544.96;
- write(number,numberX+4,753,46,12);
- const region=REGIONS[side];
- const title=ident.prayerName||cues.find(c=>c.prayer)?.prayer||"";
- if(title&&!/^P\\d+$/i.test(String(title)))write(title,region.x+7,718,region.w-14,12);
- const footer=cues.map(c=>[c.cueId,c.role,c.startCue,c.endCue].map(printable).filter(Boolean).join(" | "));
- footer.slice(0,3).forEach((line,i)=>write(line,region.x+6,77-i*11,region.w-12,8));
+ if(number){const n=safe(number),w=boldFont.widthOfTextAtSize(n,18);if(w<=42)page.drawText(n,{x:numberX+24-w/2,y:750,size:18,font:boldFont,color:PDFLib.rgb(.82,.12,.16)});}
+ page.drawRectangle({x:colorX+1,y:749,width:16,height:18,color:PDFLib.rgb(...rgb)});
+ fit(service,serviceX+4,751,458,18,boldFont);
+ fit(title,textX+4,714,372.8,20,boldFont);
+ // Instruction text is explicitly sourced; an ID alone is not the instruction text.
+ if(instruction){
+  const words=safe(instruction).split(/\\s+/),lines=[];let line="";
+  for(const word of words){const test=line?line+" "+word:word;
+   if(font.widthOfTextAtSize(test,12)>372.8&&line){lines.push(line);line=word;}else line=test;}
+  if(line)lines.push(line);
+  lines.slice(0,3).forEach((l,i)=>fit(l,textX+4,688-i*14,372.8,12));
+ }
+ // The bottom strip is a compact overview; full four-field cue layout awaits
+ // approved placement. Never discard extra cues from embedded metadata.
+ const labels=cues.slice(0,3).map(c=>[
+  c.beginCue??c.begin_cue??c.cue_left??c.startCue,
+  c.endCue??c.end_cue??c.cue_right??c.endCue,
+  c.leaderRole??c.role_name??c.role_code??c.role,
+  c.performanceStyle??c.style
+ ].map(safe).filter(Boolean).join(" | "));
+ labels.forEach((line,i)=>fit(line,textX+4,80-i*11,372.8,8));
 }
 function inkBands(rows,threshold,gap){
  const bands=[];
@@ -1728,7 +1750,7 @@ async function createPdf(bytes){
  const source=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
  const out=await PDFLib.PDFDocument.create(),first=Math.max(0,Math.min(source.numPages-1,selectedSpreadFirst-1)),count=Math.min(2,source.numPages-first);
  if(!count)throw Error("No PDF pages found.");
- const font=await out.embedFont(PDFLib.StandardFonts.Helvetica),records=[];
+ const font=await out.embedFont(PDFLib.StandardFonts.Helvetica),boldFont=await out.embedFont(PDFLib.StandardFonts.HelveticaBold),records=[];
  for(let i=0;i<count;i++){
   status("Processing source page "+(i+1)+" of "+count+"...");
   const src=await source.getPage(first+i+1),v=src.getViewport({scale:2});
@@ -1764,14 +1786,11 @@ async function createPdf(bytes){
  storeMasterRoles(out);
  for(let i=0;i<records.length;i++){
   const {meta,png}=records[i],page=out.addPage([W,H]);
-  drawTemplate(page,i);drawKnownFrameworkFields(page,pageMetadata[i],i,font);storePageMetadata(page,pageMetadata[i]);
+  drawTemplate(page,i);drawKnownFrameworkFields(page,pageMetadata[i],i,font,boldFont,embeddedPageRecords[records[i].sourceIndex]);storePageMetadata(page,pageMetadata[i]);
   const r=REGIONS[i],pad=6,scale=Math.min((r.w-2*pad)/png.width,(r.h-2*pad)/png.height);
   const dw=png.width*scale,dh=png.height*scale;
   page.drawImage(png,{x:r.x+(r.w-dw)/2,y:r.y+(r.h-dh)/2,width:dw,height:dh});
-  if(meta.number){
-   const x=i===0?20.16:544.96,tw=font.widthOfTextAtSize(meta.number,18);
-   page.drawText(meta.number,{x:x+24-tw/2,y:751,font,size:18,color:PDFLib.rgb(.75,.12,.16)});
-  }
+
  }
  return new Uint8Array(await out.save());
 }
@@ -2046,7 +2065,7 @@ async function exportEntireService(){
    page.drawRectangle({x:mark.x*width,y:(1-mark.y-mark.height)*height,width:mark.width*width,height:mark.height*height,color:PDFLib.rgb(((value>>16)&255)/255,((value>>8)&255)/255,(value&255)/255),opacity:highlightAlpha(mark),blendMode:"Multiply"});
    highlighted++;
   }
-  const number=downloadPageNumber(i+1),title=printable(cues.find(c=>c.prayer_action)?.prayer_action||"");
+  const embedded=embeddedPageRecords[i]||{};\n  const number=String(embedded.printedPage||downloadPageNumber(i+1)||"").split("-")[0],title=printable(embedded.prayerTitle||embedded.prayerName||"");
   // Header/footer are drawn over a white strip, outside the main text wherever possible.
   if(number){
    const size=12,tw=bold.widthOfTextAtSize(number,size);
@@ -2064,7 +2083,7 @@ async function exportEntireService(){
    page.drawRectangle({x:8,y:4,width:width-16,height:maxLines*lineHeight+8,color:PDFLib.rgb(1,1,1),opacity:.96});
    cueText.slice(0,maxLines).forEach((line,k)=>page.drawText(line.slice(0,105),{x:12,y:8+(maxLines-1-k)*lineHeight,size:8,font,color:PDFLib.rgb(.15,.2,.22)}));
   }
-  const pageInfo={...(embeddedPageRecords[i]||{}),outputPage:i+1,printedPage:number,manifest:entry,cues,prayerTitle:embeddedPageRecords[i]?.prayerTitle||null,highlights:edits,leadership:{...(embeddedPageRecords[i]?.leadership||{}),cues,highlights:edits}};
+  const pageInfo={...embedded,outputPage:i+1,printedPage:number,manifest:entry,cues,prayerTitle:embedded.prayerTitle||embedded.prayerName||null,pageColor:embedded.pageColor||"W",highlights:edits,leadership:{...(embedded.leadership||{}),cues,highlights:edits}};
   metadata.pages.push(pageInfo);
   page.node.set(PDFLib.PDFName.of("LCPageRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(pageInfo)));
   page.node.set(PDFLib.PDFName.of("LCIntakeRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(pageInfo)));
