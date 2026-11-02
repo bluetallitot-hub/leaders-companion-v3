@@ -2065,7 +2065,8 @@ async function exportEntireService(){
    page.drawRectangle({x:mark.x*width,y:(1-mark.y-mark.height)*height,width:mark.width*width,height:mark.height*height,color:PDFLib.rgb(((value>>16)&255)/255,((value>>8)&255)/255,(value&255)/255),opacity:highlightAlpha(mark),blendMode:"Multiply"});
    highlighted++;
   }
-  const embedded=embeddedPageRecords[i]||{};\n  const number=String(embedded.printedPage||downloadPageNumber(i+1)||"").split("-")[0],title=printable(embedded.prayerTitle||embedded.prayerName||"");
+  const embedded=embeddedPageRecords[i]||{};
+  const number=String(embedded.printedPage||downloadPageNumber(i+1)||"").split("-")[0],title=printable(embedded.prayerTitle||embedded.prayerName||"");
   // Header/footer are drawn over a white strip, outside the main text wherever possible.
   if(number){
    const size=12,tw=bold.widthOfTextAtSize(number,size);
