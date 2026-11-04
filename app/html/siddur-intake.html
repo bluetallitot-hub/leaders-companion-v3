@@ -315,11 +315,6 @@ async function autoMapPages(){
   worker=await Tesseract.createWorker("eng",1,{logger:m=>{if(m.status==="loading language traineddata")$("map-status").textContent="Downloading English page-number recognition model…"}});
   await worker.setParameters({tessedit_char_whitelist:"0123456789",tessedit_pageseg_mode:Tesseract.PSM.SPARSE_TEXT});
   const anchors=targets.filter(p=>{const m=pageMapping[String(p)];return m&&(m.verified||m.manual)&&Number(m.e)>0&&Number(m.h)>0});
-  if(anchors.length){
-   let projected=0;for(const p of anchors)projected+=propagatePairFrom(String(p));
-   renderMapping();$("map-status").textContent="Used "+anchors.length+" existing confirmed page mappings to project "+projected+" pairs. No full-book OCR needed. Preview any unverified pairs before checking them.";
-   await saveIntakeProject();return;
-  }
   const scanSet=new Set();
   // Sample across the volume, beginning at physical PDF page 45, not its front matter.
   // Two physical language pages generally represent one printed folio.
