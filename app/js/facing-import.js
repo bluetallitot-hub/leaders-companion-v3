@@ -1130,7 +1130,7 @@ function drawHighlights(){
    // A line without word edits is rendered once. After the first word edit,
    // individual word selections replace the full-line rectangle.
    if(!wordOverrides.length){
-    if(lineHighlight||highlightView==="detection"){
+    if((lineHighlight&&!(Number.isFinite(lineHighlight.x)&&Number.isFinite(lineHighlight.y)))||highlightView==="detection"){
      ctx.fillStyle=lineHighlight?highlightFill(lineHighlight):"rgba(24,105,160,.19)";
      ctx.fillRect(line.x*overlay.width,line.y*overlay.height,line.width*overlay.width,line.height*overlay.height);
     }
@@ -1789,7 +1789,13 @@ async function createPdf(bytes){
   record.source.originalPageNumber=embedded.printedPage||record.source.originalPageNumber;
   record.source.serviceReference=embedded.sourceReference||record.source.serviceReference;
   record.source.languageCode=embedded.language||record.source.languageCode;
-  record.identification.prayerName=embedded.prayerTitle||embedded.prayerName||record.identification.prayerName||null;record.identification.serviceName=embedded.serviceName||embedded.service_name||record.identification.serviceName||null;record.identification.serviceCode=(embedded.identification?.serviceCodes||[])[0]||null;record.identification.binderOrder=embedded.outputPage;
+  record.identification.prayerName=embedded.prayerTitle||embedded.prayerName||record.identification.prayerName||null;
+  record.identification.serviceName=embedded.serviceName||embedded.service_name||record.identification.serviceName||null;
+  if(!record.identification.prayerName||!record.identification.serviceName){
+   const ref=String(record.source.serviceReference||"");
+   const matching=importedCues.find(c=>String(c.source_page||c.printed_page||"")===ref);
+   if(matching){record.identification.prayerName ||= matching.prayer_name||null;record.identification.serviceName ||= matching.service_name||null}
+  }record.identification.serviceCode=(embedded.identification?.serviceCodes||[])[0]||null;record.identification.binderOrder=embedded.outputPage;
   record.leadership.cues=(embedded.cues||[]).map((c,k)=>({
    cueId:c.cue_id||"cue-"+k,role:c.leaderRole||c.leader_role||c.role_name||c.role_code||"",prayer:c.prayer_name||c.prayer_title||null,
    startCue:c.beginCue||c.begin_cue||c.cue_left||"",endCue:c.endCue||c.end_cue||c.cue_right||"",style:c.performanceStyle||c.performance_style||c.style||"",matchStatus:"embedded-page-record",
