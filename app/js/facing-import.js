@@ -600,8 +600,8 @@ function cueCandidateDiagnostics(lines,phrase){
 function hebrewRangeHighlights(side,cue,ocr,geometry){
  const tokenize=t=>normalizeCueText(hebrewCueAlias(t)).replace(/יהוה/g,"יי")
   .replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
- const startWords=tokenize(cue.startCueHebrew||cue.startCue);
- const endWords=tokenize(cue.endCueHebrew||cue.endCue);
+ const startWords=tokenize(cue.startCueHebrew);
+ const endWords=tokenize(cue.endCueHebrew);
  const columns=[...new Set(geometry.map(l=>l.column))].sort((a,b)=>b-a);
  const ordered=geometry.slice().sort((a,b)=>columns.indexOf(a.column)-columns.indexOf(b.column)||a.y-b.y);
  const edit=(a,b)=>{
@@ -716,7 +716,7 @@ function tentativeHebrewHighlights(side,cue,ocr,geometry){
  };
  const ranked=phrase=>ocr.map(l=>({line:geometry.find(g=>g.id===l.id),score:score(phrase,l)}))
   .filter(v=>v.line&&v.score>0).sort((a,b)=>b.score-a.score);
- const starts=ranked(cue.startCueHebrew||cue.startCue),ends=ranked(cue.endCueHebrew||cue.endCue);
+ const starts=ranked(cue.startCueHebrew),ends=ranked(cue.endCueHebrew);
  const columns=[...new Set(geometry.map(l=>l.column))].sort((a,b)=>b-a);
  const order=l=>columns.indexOf(l.column)*100000+l.y*10000;
  let start=starts[0]?.line,end=ends[0]?.line;
@@ -765,7 +765,7 @@ function isolatedHebrewCueMatch(side,cue,ocr){
  if(!words?.length||!lines?.length)return null;
  const tokenize=t=>normalizeCueText(hebrewCueAlias(t)).replace(/יהוה/g,"יי")
   .replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
- const start=tokenize(cue.startCueHebrew||cue.startCue),end=tokenize(cue.endCueHebrew||cue.endCue);
+ const start=tokenize(cue.startCueHebrew),end=tokenize(cue.endCueHebrew);
  const similarity=(a,b)=>{
   const dp=Array.from({length:b.length+1},(_,i)=>i);
   for(let i=1;i<=a.length;i++){let prev=dp[0];dp[0]=i;
@@ -866,17 +866,21 @@ function assignCueHighlights(side){
  const hebrew=record.source.languageCode==="H";
  for(const cue of record.leadership.cues){
   if(hebrew){
+   if(!String(cue.startCueHebrew||"").trim()||!String(cue.endCueHebrew||"").trim()){
+    cue.matchStatus="missing-Hebrew-cue-review-required";
+    continue;
+   }
    const highlights=isolatedHebrewCueMatch(side,cue,ocr);
    if(highlights?.length){record.leadership.highlights.push(...highlights);cue.matchStatus="isolated-rivok-candidate-review-required";matches++;}
    else cue.matchStatus=rivokWordsBySide[side]?.length?"rivok-anchor-pair-not-found":"rivok-unavailable";
    continue;
   }
   // Never convert ambiguous OCR into a guessed selection.
-  const begin=matchingCueLine(ocr,hebrew?(cue.startCueHebrew||cue.startCue):cue.startCue),
-        end=matchingCueLine(ocr,hebrew?(cue.endCueHebrew||cue.endCue):cue.endCue);
+  const begin=matchingCueLine(ocr,hebrew?(cue.startCueHebrew):cue.startCue),
+        end=matchingCueLine(ocr,hebrew?(cue.endCueHebrew):cue.endCue);
   if(begin===null||end===null){
    cue.matchStatus="anchor-review-required ("+(begin===null?"START ":"")+(end===null?"END":"")+")";
-   rawOcrDiagnostics[side]+="\\nCUE "+cue.cueId+" START ["+cueCandidateDiagnostics(ocr,hebrew?(cue.startCueHebrew||cue.startCue):cue.startCue)+"] END ["+cueCandidateDiagnostics(ocr,hebrew?(cue.endCueHebrew||cue.endCue):cue.endCue)+"]";
+   rawOcrDiagnostics[side]+="\\nCUE "+cue.cueId+" START ["+cueCandidateDiagnostics(ocr,hebrew?(cue.startCueHebrew):cue.startCue)+"] END ["+cueCandidateDiagnostics(ocr,hebrew?(cue.endCueHebrew):cue.endCue)+"]";
    const guess=tentativeEnglishHighlights(side,cue,ocr,geometry);
    if(guess?.length){record.leadership.highlights.push(...guess);cue.matchStatus="tentative-English-review-required";matches++;}
    continue;
