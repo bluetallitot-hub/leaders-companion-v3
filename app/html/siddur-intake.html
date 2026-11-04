@@ -406,16 +406,63 @@ async function autoMapPages(){
    $("map-status").textContent="Offset "+offset+" found from "+best[1].length+" folios, but English/Hebrew order could not be confirmed independently. No mappings changed; enter one verified pair.";
    return;
   }
-  let mapped=0;
+  // An offset is a search hint, never evidence that a particular folio exists
+  // at that physical position. Confirm the printed number on BOTH pages.
+  const folioCache=new Map([...byPhysical].map(([n,values])=>[n,new Set(values)]));
+  async function foliosOnPage(n){
+   if(folioCache.has(n))return folioCache.get(n);
+   const page=await doc.getPage(n),viewport=page.getViewport({scale:1.6});
+   const canvas=document.createElement("canvas");
+   canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+   await page.render({canvasContext:canvas.getContext("2d"),viewport}).promise;
+   const height=Math.max(65,Math.round(canvas.height*.16)),found=new Set();
+   const content=await page.getTextContent();
+   for(const item of content.items){
+    const y=item.transform?.[5]||0;
+    if(y>page.view[3]*.16&&y<page.view[3]*.84)continue;
+    for(const match of String(item.str||"").matchAll(/\\b(\\d{1,4})\\b/g))found.add(Number(match[1]));
+   }
+   for(const y of [0,canvas.height-height]){
+    const crop=document.createElement("canvas");crop.width=canvas.width;crop.height=height;
+    crop.getContext("2d").drawImage(canvas,0,y,canvas.width,height,0,0,canvas.width,height);
+    const result=await worker.recognize(crop);
+    for(const match of String(result.data.text||"").matchAll(/\\b(\\d{2,4})\\b/g))found.add(Number(match[1]));
+   }
+   folioCache.set(n,found);return found;
+  }
+  let mapped=0,unresolved=0,displaced=0;
   for(const printed of targets){
    const key=String(printed),existing=pageMapping[key];
    if(existing?.verified||existing?.manual)continue;
-   const first=2*printed+offset,second=first+1;
-   if(first<1||second>doc.numPages)continue;
-   pageMapping[key]={e:String(firstLanguage==="E"?first:second),h:String(firstLanguage==="H"?first:second),verified:false,auto:true};mapped++;
+   const predicted=2*printed+offset;
+   // Check neighboring pairs as well: inserted/omitted sheets change the
+   // offset partway through a book. Never assign a pair from arithmetic alone.
+   const candidates=[];
+   for(let shift=-8;shift<=8;shift+=2){
+    const first=predicted+shift;
+    if(first<1||first+1>doc.numPages)continue;
+    const a=await foliosOnPage(first),b=await foliosOnPage(first+1);
+    if(a.has(printed)&&b.has(printed))candidates.push(first);
+   }
+   if(candidates.length!==1){
+    // Ambiguous or absent OCR is not a verified page mapping.
+    if(existing?.auto)delete pageMapping[key];
+    unresolved++;continue;
+   }
+   const first=candidates[0],second=first+1;
+   // Do not assume language order stays constant after a discontinuity.
+   const languageA=await identifyLanguage(first),languageB=await identifyLanguage(second);
+   if(!languageA||!languageB||languageA===languageB){
+    if(existing?.auto)delete pageMapping[key];
+    unresolved++;continue;
+   }
+   pageMapping[key]={e:String(languageA==="E"?first:second),h:String(languageA==="H"?first:second),verified:false,auto:true};
+   if(first!==predicted)displaced++;
+   mapped++;
+   $("map-status").textContent="Checking actual printed folios: "+mapped+" matched, "+unresolved+" unresolved…";
   }
   renderMapping();
-  $("map-status").textContent="Offset "+offset+" confirmed by "+best[1].length+" separate folios; "+firstLanguage+"/"+secondLanguage+" language order identified; "+mapped+" candidate pairs mapped. Preview and verify before export.";
+  $("map-status").textContent="OCR-confirmed "+mapped+" bilingual folio pairs; "+displaced+" differ from the initial offset; "+unresolved+" unresolved. No unobserved pairs were assigned. Preview before verification.";
   await saveIntakeProject();
   return;
   renderMapping();
