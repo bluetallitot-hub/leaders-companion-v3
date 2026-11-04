@@ -2,7 +2,7 @@
 const $=id=>document.getElementById(id);
 const W=612,H=792,REGIONS=[{x:171.36,y:98,w:380.88,h:540},{x:59.76,y:98,w:380.88,h:540}];
 let output=null,baseOutput=null,filename="siddur",pageMetadata=[],roleConfig=null,highlightDraft=null,importedCues=[];
-function status(s){$("status").textContent=s}
+function status(s){if($("status"))$("status").textContent=s;if($("editor-status"))$("editor-status").textContent=s}
 const workerURL="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
 function drawTemplate(page,side){
  if($("framework-boxes")?.value==="none")return;
@@ -17,8 +17,8 @@ function drawKnownFrameworkFields(page,record,side,font,boldFont=font,embedded=n
  const source=record?.source||{},ident=record?.identification||{};
  const cues=embedded?.cues||record?.leadership?.cues||[];
  const number=String(embedded?.printedPage||source.originalPageNumber||downloadPageNumber(source.sourcePdfPage)||"").split("-")[0].trim();
- const service=embedded?.serviceName||embedded?.service_name||ident.serviceName||"";
- const title=embedded?.prayerName||embedded?.prayerTitle||ident.prayerName||"";
+ const service=embedded?.serviceName||embedded?.service_name||record?.identification?.serviceName||ident.serviceName||"";
+ const title=embedded?.prayerName||embedded?.prayerTitle||record?.identification?.prayerName||ident.prayerName||"";
  const instruction=embedded?.instructionText||record?.instructionText||"";
  const colorCode=String(embedded?.pageColor||record?.pageColor||"W").toUpperCase().slice(0,1);
  const palette={W:[.975,.975,.975],N:[.7,1,.15],B:[.14,.36,.83],R:[.86,.16,.18],O:[.98,.54,.1],G:[.18,.65,.29]};
@@ -26,7 +26,7 @@ function drawKnownFrameworkFields(page,record,side,font,boldFont=font,embedded=n
  const textX=side===0?171.36:59.76,numberX=side===0?20.16:544.96;
  const colorX=side===0?numberX+48:numberX-18;
  const serviceX=side===0?colorX+18:59.76;
- const safe=v=>String(v??"").replace(/[^\\x20-\\x7e]/g,"").trim();
+ const safe=v=>String(v??"").replace(/[^\x20-\x7e]/g,"").trim();
  const fit=(value,x,y,width,size,f=font,color=PDFLib.rgb(.12,.23,.27))=>{
   let t=safe(value);if(!t)return;
   while(t&&f.widthOfTextAtSize(t,size)>width)t=t.slice(0,-1);
@@ -284,14 +284,14 @@ function applyImportedCues(){
   const code=record.source.languageCode,number=record.source.originalPageNumber;
   const matches=importedCues.filter(c=>{const ref=String(c.source_page||c.printed_page||"").trim();const manifestRef=record.source.serviceReference;const sameReference=manifestRef&&(ref===manifestRef||(/^(\\d+)(?:-(\\d+))?$/.test(ref)&&/^(\\d+)(?:-(\\d+))?$/.test(manifestRef)&&Number(manifestRef)>=Number(ref.split("-")[0])&&Number(manifestRef)<=Number(ref.split("-").at(-1))));const match=ref.match(/^(\\d+)(?:-(\\d+))?$/);const page=Number(number);const inRange=match&&page>=Number(match[1])&&page<=Number(match[2]||match[1]);const language=String(c.language||"").toUpperCase();return (sameReference||(!manifestRef&&inRange))&&(!language||language===code||language==="BOTH"||language==="E/H"||language==="H+E")});
   record.leadership.cues=matches.map((c,i)=>({
-   cueId:c.cue_id||c.test_id||"import-"+i,service:c.service||null,role:c.role_name||c.role_code||c.role||null,
-   style:c.style||null,styleSlot:null,startCue:c.cue_left||c.begin_cue||"",endCue:c.cue_right||c.end_cue||"",
+   cueId:c.cue_id||c.test_id||"import-"+i,service:c.service_name||c.service||null,role:c.leader_role||c.role_name||c.role_code||c.role||null,
+   style:c.performance_style||c.style||null,styleSlot:null,startCue:c.cue_left||c.begin_cue||"",endCue:c.cue_right||c.end_cue||"",
    startCueHebrew:c.begin_cue_hebrew||"",endCueHebrew:c.end_cue_hebrew||"",
-   prayer:c.prayer_action||c.prayer||null,sourceRow:c.leader_map_source_row||null,
+   prayer:c.prayer_name||c.prayer_action||c.prayer||null,sourceRow:c.leader_map_source_row||null,
    highlights:[],matchStatus:"unmatched-review-required"
   }));
   if(matches.length){record.identification.serviceCode=matches[0].service||null;
-   record.identification.prayerName=matches[0].prayer||null;
+   record.identification.prayerName=matches[0].prayer_name||matches[0].prayer||null;record.identification.serviceName=matches[0].service_name||null;
    record.identification.cueId=matches[0].cue_id||matches[0].test_id||null;}
  }
  displayMetadata();
@@ -921,8 +921,13 @@ function assignCueHighlights(side){
  return matches;
 }
 function roleColor(role){
- const r=String(role||"").toUpperCase();
- return r.includes("RABBI")?"#F5D03C":r.includes("PRESIDENT")?"#5C9CE8":r.includes("READER")?"#66C78B":r.includes("SOLO")?"#F0A2CA":"#F5D03C";
+ const key=String(role||"").trim().toUpperCase();
+ const assigned=serviceRoleAssignments.get(key)||serviceRoleAssignments.get(String(role||""));
+ const index=Number(assigned);
+ if(Number.isInteger(index)&&index>=0&&index<serviceHighlightColors.length)return serviceHighlightColors[index];
+ const direct=String(assigned||"");if(/^#[0-9a-f]{6}$/i.test(direct))return direct;
+ const fallback={R:"#F5D03C",P:"#75C56A",S1:"#74B9E7",S2:"#F3A65B"};
+ return fallback[key]||"#F5D03C";
 }
 // Word candidates are derived from actual ink gaps, never equal-width divisions.
 // Ambiguous spacing may merge adjacent words; manual line mode remains available.
@@ -1092,7 +1097,12 @@ function installRivokSelectionGeometry(side,result){
  detectedLines[side]=lines;
 }
 let rivokOverlay=null;
-function highlightAlpha(h){const cue=importedCues.find(c=>String(c.cue_id||"")===String(h.cueId||""));const color=String(cue?.highlight_color||"").trim().toLowerCase();const raw=serviceRoleOpacity.get(color);const opacity=raw==null?40:Number(raw);return Math.max(.1,Math.min(1,opacity/100));}
+function highlightAlpha(h){
+ const role=String(h.roleId||"").trim();
+ const raw=serviceRoleOpacity.get(role)??serviceRoleOpacity.get(role.toUpperCase())??serviceRoleOpacity.get(role.toLowerCase());
+ const opacity=raw==null?40:Number(raw);
+ return Math.max(0,Math.min(1,(Number.isFinite(opacity)?opacity:40)/100));
+}
 function highlightFill(h){const hex=roleColor(h.roleId);const v=hex.replace("#","");const n=parseInt(v,16);return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+highlightAlpha(h)+")";}
 function drawHighlights(){
  for(let i=0;i<2;i++){
@@ -1234,7 +1244,7 @@ function installHighlightSelection(){
    const chosen=from===to?[start]:ordered.slice(Math.min(from,to),Math.max(from,to)+1).filter(l=>l.column===start.column);
    const highlights=pageMetadata[i].leadership.highlights;
    for(const item of chosen){
-    const role=pageMetadata[i].leadership.cues[0]?.role||roleConfig.id;
+    const role=$("active-highlight-role")?.value||pageMetadata[i].leadership.cues[0]?.role||roleConfig.id;
     if(selectionMode==="word"){
      const lineId=item.lineId;
      const lineIndex=highlights.findIndex(h=>!h.wordId&&h.lineId===lineId);
@@ -1776,10 +1786,10 @@ async function createPdf(bytes){
   record.source.originalPageNumber=embedded.printedPage||record.source.originalPageNumber;
   record.source.serviceReference=embedded.sourceReference||record.source.serviceReference;
   record.source.languageCode=embedded.language||record.source.languageCode;
-  record.identification.prayerName=embedded.prayerTitle||null;record.identification.serviceCode=(embedded.identification?.serviceCodes||[])[0]||null;record.identification.binderOrder=embedded.outputPage;
+  record.identification.prayerName=embedded.prayerTitle||embedded.prayerName||record.identification.prayerName||null;record.identification.serviceName=embedded.serviceName||embedded.service_name||record.identification.serviceName||null;record.identification.serviceCode=(embedded.identification?.serviceCodes||[])[0]||null;record.identification.binderOrder=embedded.outputPage;
   record.leadership.cues=(embedded.cues||[]).map((c,k)=>({
-   cueId:c.cue_id||"cue-"+k,role:c.role_name||c.role_code||"",prayer:c.prayer_title||null,
-   startCue:c.cue_left||"",endCue:c.cue_right||"",style:c.style||"",matchStatus:"embedded-page-record",
+   cueId:c.cue_id||"cue-"+k,role:c.leaderRole||c.leader_role||c.role_name||c.role_code||"",prayer:c.prayer_name||c.prayer_title||null,
+   startCue:c.beginCue||c.begin_cue||c.cue_left||"",endCue:c.endCue||c.end_cue||c.cue_right||"",style:c.performanceStyle||c.performance_style||c.style||"",matchStatus:"embedded-page-record",
    highlights:[]
   }));
  }
@@ -1854,7 +1864,7 @@ async function preview(bytes){
  await autoMatchCues();
 }
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
-let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null,serviceRoleOpacity=new Map(),embeddedPageRecords=[];
+let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null,serviceRoleOpacity=new Map(),serviceRoleAssignments=new Map(),serviceHighlightColors=["#F5D03C","#75C56A","#74B9E7","#F3A65B","#DA88B8","#AE93DC"],embeddedPageRecords=[];
 const spreadEdits=new Map();
 function saveCurrentSpreadEdits(){if(pageMetadata.length)spreadEdits.set(selectedSpreadFirst,pageMetadata.map(r=>r?JSON.parse(JSON.stringify(r.leadership.highlights||[])):[]));}
 function updateSpreadNavigation(){const total=Math.ceil(sourcePdfPages/2),current=Math.ceil(selectedSpreadFirst/2),percent=Math.round(Math.min(sourcePdfPages,selectedSpreadFirst+1)/Math.max(1,sourcePdfPages)*100);$("spread-position").textContent="Spread "+current+" of "+(total||"—")+" · PDF pages "+selectedSpreadFirst+(selectedSpreadFirst+1<=sourcePdfPages?"–"+(selectedSpreadFirst+1):"")+" · "+percent+"% through service";const progress=$("review-progress");if(progress)progress.value=percent;$("previous-spread").disabled=!sourcePdfBytes||current<=1;$("next-spread").disabled=!sourcePdfBytes||current>=total;}
@@ -2126,7 +2136,7 @@ async function restoreSiddurIntake(){
  importedCues=rows.filter(c=>c.source_page||c.printed_page);
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  filename=(data.pdfName||"siddur.pdf").replace(/\.pdf$/i,"");
- serviceManifest=data.manifest||null;servicePageMapping=data.pageMapping||null;serviceRoleOpacity=new Map(data.roleOpacity||serviceManifest?.opacity||[]);
+ serviceManifest=data.manifest||null;servicePageMapping=data.pageMapping||null;serviceRoleOpacity=new Map(data.roleOpacity||serviceManifest?.opacity||[]);serviceRoleAssignments=new Map(data.roleAssignments||[]);
  sourcePdfBytes=new Uint8Array(data.pdf);embeddedPageRecords=await readEmbeddedPageRecords(sourcePdfBytes);
  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
  sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();
