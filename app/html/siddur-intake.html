@@ -438,7 +438,7 @@ async function autoMapPages(){
    // Check neighboring pairs as well: inserted/omitted sheets change the
    // offset partway through a book. Never assign a pair from arithmetic alone.
    const candidates=[];
-   for(let shift=-8;shift<=8;shift+=2){
+   for(let shift=-8;shift<=8;shift++){
     const first=predicted+shift;
     if(first<1||first+1>doc.numPages)continue;
     const a=await foliosOnPage(first),b=await foliosOnPage(first+1);
@@ -630,4 +630,6 @@ $("load-test-case").addEventListener("click",async()=>{
 });
 $("siddur").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{const bytes=new Uint8Array(await file.arrayBuffer());sourcePdfBytes=bytes.slice();sourcePdfName=file.name;const doc=await pdfjsLib.getDocument({data:bytes}).promise;pdfCount=doc.numPages;pageMapping={};renderRoles();refresh();renderSupplements();renderMapping();await saveIntakeProject();$("handoff-status").textContent="PDF loaded: "+sourcePdfName+" ("+pdfCount+" pages); "+(csvRows?csvRows.length+" cues loaded":"CSV still missing")+". Saved in browser."}catch(err){$("status").textContent="PDF intake failed: "+err.message}});
 $("cues").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{csvRows=parseCsv(await file.text());if(!csvRows.length)throw Error("CSV contains no cue rows; check the file format.");rolesLocked=false;roleOpacity.clear();roleAssignments.clear();renderRoles();refresh();renderSupplements();renderMapping();await saveIntakeProject();$("handoff-status").textContent="CSV loaded: "+csvRows.length+" cues; "+(sourcePdfBytes?sourcePdfName+" ("+pdfCount+" PDF pages)":"PDF still missing")+". Saved in browser."}catch(err){$("status").textContent="CSV intake failed: "+err.message}});
-</script></body></html>
+</script></body></html   // Existing manual/verified mappings remain protected below. They must not
+   // trigger arithmetic propagation that bypasses per-page OCR validation.
+>
