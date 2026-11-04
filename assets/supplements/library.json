@@ -1,6 +1,6 @@
 {
   "schema": "leaders-companion-supplement-library-v1",
-  "version": "1.0",
+  "version": "1.1",
   "sourceFolder": "https://drive.google.com/drive/folders/14xM6CeA0oDHAbnWWCo6W3sCd5-R8OVq1",
   "pageRule": "One physical page per SUP reference; numbered -1/-2/-3 references are separate pages.",
   "entries": [
@@ -122,13 +122,28 @@
       "status": "ready"
     },
     {
-      "id": "SUP-Children",
-      "title": "Blessings of the Children (source is two pages; split required)",
+      "id": "SUP-Children-1",
+      "title": "Blessings of the Children — content page",
       "pdf": "assets/supplements/SUP-Children.pdf",
       "driveUrl": "https://docs.google.com/document/d/1DuEWg0fLMbA_73VGjmIh6gCAu_Wn7J9uDWZs1lB3Y6E/edit",
-      "pages": 2,
+      "pages": 1,
       "replaceable": false,
-      "status": "needs-split"
+      "status": "ready",
+      "sourcePage": 1,
+      "sourcePages": 2,
+      "note": "Extract page 1 from original two-page source."
+    },
+    {
+      "id": "SUP-Children-2",
+      "title": "Blessings of the Children — blank source page",
+      "pdf": "assets/supplements/SUP-Children.pdf",
+      "driveUrl": "https://docs.google.com/document/d/1DuEWg0fLMbA_73VGjmIh6gCAu_Wn7J9uDWZs1lB3Y6E/edit",
+      "pages": 1,
+      "replaceable": false,
+      "status": "ready",
+      "sourcePage": 2,
+      "sourcePages": 2,
+      "note": "Original source PDF page 2 contains no prayer text; retained as an explicit one-page blank."
     }
   ]
 }
