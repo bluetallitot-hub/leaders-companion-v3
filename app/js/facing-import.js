@@ -920,14 +920,17 @@ function assignCueHighlights(side){
  }
  return matches;
 }
+function rolePaletteKey(role){
+ const code=String(role||"").trim().toUpperCase();
+ for(const [color,assignedRole] of serviceRoleAssignments)if(String(assignedRole).trim().toUpperCase()===code)return String(color).toLowerCase();
+ return "";
+}
 function roleColor(role){
- const key=String(role||"").trim().toUpperCase();
- const assigned=serviceRoleAssignments.get(key)||serviceRoleAssignments.get(String(role||""));
- const index=Number(assigned);
- if(Number.isInteger(index)&&index>=0&&index<serviceHighlightColors.length)return serviceHighlightColors[index];
- const direct=String(assigned||"");if(/^#[0-9a-f]{6}$/i.test(direct))return direct;
- const fallback={R:"#F5D03C",P:"#75C56A",S1:"#74B9E7",S2:"#F3A65B"};
- return fallback[key]||"#F5D03C";
+ const key=rolePaletteKey(role);
+ if(/^#[0-9a-f]{6}$/i.test(key))return key;
+ const code=String(role||"").trim().toUpperCase();
+ const defaults={R:"#F5D03C",P:"#75C56A",S1:"#74B9E7",S2:"#F3A65B"};
+ return defaults[code]||"#F5D03C";
 }
 // Word candidates are derived from actual ink gaps, never equal-width divisions.
 // Ambiguous spacing may merge adjacent words; manual line mode remains available.
@@ -1098,8 +1101,8 @@ function installRivokSelectionGeometry(side,result){
 }
 let rivokOverlay=null;
 function highlightAlpha(h){
- const role=String(h.roleId||"").trim();
- const raw=serviceRoleOpacity.get(role)??serviceRoleOpacity.get(role.toUpperCase())??serviceRoleOpacity.get(role.toLowerCase());
+ const role=String(h.roleId||"").trim(),palette=rolePaletteKey(role);
+ const raw=serviceRoleOpacity.get(palette)??serviceRoleOpacity.get(role)??serviceRoleOpacity.get(role.toLowerCase());
  const opacity=raw==null?40:Number(raw);
  return Math.max(0,Math.min(1,(Number.isFinite(opacity)?opacity:40)/100));
 }
@@ -1864,7 +1867,7 @@ async function preview(bytes){
  await autoMatchCues();
 }
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
-let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null,serviceRoleOpacity=new Map(),serviceRoleAssignments=new Map(),serviceHighlightColors=["#F5D03C","#75C56A","#74B9E7","#F3A65B","#DA88B8","#AE93DC"],embeddedPageRecords=[];
+let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null,serviceRoleOpacity=new Map(),serviceRoleAssignments=new Map(),serviceRoleDisplayNames=new Map(),serviceHighlightColors=["#F5D03C","#75C56A","#74B9E7","#F3A65B","#DA88B8","#AE93DC"],embeddedPageRecords=[];
 const spreadEdits=new Map();
 function saveCurrentSpreadEdits(){if(pageMetadata.length)spreadEdits.set(selectedSpreadFirst,pageMetadata.map(r=>r?JSON.parse(JSON.stringify(r.leadership.highlights||[])):[]));}
 function updateSpreadNavigation(){const total=Math.ceil(sourcePdfPages/2),current=Math.ceil(selectedSpreadFirst/2),percent=Math.round(Math.min(sourcePdfPages,selectedSpreadFirst+1)/Math.max(1,sourcePdfPages)*100);$("spread-position").textContent="Spread "+current+" of "+(total||"—")+" · PDF pages "+selectedSpreadFirst+(selectedSpreadFirst+1<=sourcePdfPages?"–"+(selectedSpreadFirst+1):"")+" · "+percent+"% through service";const progress=$("review-progress");if(progress)progress.value=percent;$("previous-spread").disabled=!sourcePdfBytes||current<=1;$("next-spread").disabled=!sourcePdfBytes||current>=total;}
@@ -2127,6 +2130,22 @@ async function readEmbeddedPageRecords(bytes){
   }catch(e){console.warn("Page record unreadable",i+1,e);return null}
  });
 }
+function populateHighlightRoles(){
+ const select=$("active-highlight-role");if(!select)return;
+ const current=select.value,roles=new Map();
+ for(const [color,role] of serviceRoleAssignments)roles.set(String(role),String(role));
+ for(const c of importedCues){const role=c.leader_role||c.role_name||c.role_code||c.role;if(role)roles.set(role,role)}
+ if(!roles.size){roles.set("R","Rabbi");roles.set("P","President")}
+ select.replaceChildren();
+ for(const role of roles.keys()){const option=document.createElement("option");option.value=role;option.textContent=serviceRoleDisplayNames.get(role)||({R:"Rabbi",P:"President"}[role]||role);select.append(option)}
+ if(roles.has(current))select.value=current;
+}
+$("run-auto-cues")?.addEventListener("click",async()=>{
+ const button=$("run-auto-cues");button.disabled=true;$("auto-cue-status").textContent="Matching cue text…";
+ try{await autoMatchCues();$("auto-cue-status").textContent=cueMatchReport}
+ catch(e){$("auto-cue-status").textContent="Automatic matching failed: "+e.message}
+ finally{button.disabled=false}
+});
 async function restoreSiddurIntake(){
  if(!window.indexedDB)return;
  const db=await new Promise((resolve,reject)=>{const q=indexedDB.open("leaders-companion-siddur-v3",1);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains("projects"))q.result.createObjectStore("projects")};q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});
@@ -2136,7 +2155,7 @@ async function restoreSiddurIntake(){
  importedCues=rows.filter(c=>c.source_page||c.printed_page);
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  filename=(data.pdfName||"siddur.pdf").replace(/\.pdf$/i,"");
- serviceManifest=data.manifest||null;servicePageMapping=data.pageMapping||null;serviceRoleOpacity=new Map(data.roleOpacity||serviceManifest?.opacity||[]);serviceRoleAssignments=new Map(data.roleAssignments||[]);
+ serviceManifest=data.manifest||null;servicePageMapping=data.pageMapping||null;serviceRoleOpacity=new Map(data.roleOpacity||serviceManifest?.opacity||[]);serviceRoleAssignments=new Map(data.roleAssignments||[]);serviceRoleDisplayNames=new Map(data.roleDisplayNames||[]);populateHighlightRoles();
  sourcePdfBytes=new Uint8Array(data.pdf);embeddedPageRecords=await readEmbeddedPageRecords(sourcePdfBytes);
  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
  sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();
