@@ -1,0 +1,134 @@
+{
+  "schema": "leaders-companion-supplement-library-v1",
+  "version": "1.0",
+  "sourceFolder": "https://drive.google.com/drive/folders/14xM6CeA0oDHAbnWWCo6W3sCd5-R8OVq1",
+  "pageRule": "One physical page per SUP reference; numbered -1/-2/-3 references are separate pages.",
+  "entries": [
+    {
+      "id": "SUP-Ein_Keloheinu",
+      "title": "Ein Keloheinu",
+      "pdf": "assets/supplements/SUP-Ein_Keloheinu.pdf",
+      "driveUrl": "https://drive.google.com/file/d/1eh4L8fOTKy_fTGtLjxHR_mWBG98ADbDQ/view",
+      "pages": 1,
+      "replaceable": false,
+      "status": "ready"
+    },
+    {
+      "id": "SUP-RH-Greetings",
+      "title": "Rosh Hashanah Greetings",
+      "pdf": "assets/supplements/SUP-RH-Greetings.pdf",
+      "driveUrl": "https://docs.google.com/document/d/1XSPPorewNRTjEe14KONVQ79v9iQkCYYbecnJ5j0Pabg/edit",
+      "pages": 1,
+      "replaceable": false,
+      "status": "ready"
+    },
+    {
+      "id": "SUP-Remarks-A",
+      "title": "Remarks (Drive version A)",
+      "pdf": "assets/supplements/SUP-Remarks-A.pdf",
+      "driveUrl": "https://docs.google.com/document/d/18VZRGUyS-EgVxca0K68Kwszw-fB1XpU20GGCnN24lSM/edit",
+      "pages": 1,
+      "replaceable": true,
+      "status": "ready"
+    },
+    {
+      "id": "SUP-Remarks-B",
+      "title": "Remarks (Drive version B)",
+      "pdf": "assets/supplements/SUP-Remarks-B.pdf",
+      "driveUrl": "https://docs.google.com/document/d/1e3q5AvTN6_BUPL4h5pp8Vy9BlFVZaQArjlDO-1KOlNs/edit",
+      "pages": 1,
+      "replaceable": true,
+      "status": "ready"
+    },
+    {
+      "id": "SUP-RH-Candle",
+      "title": "Rosh Hashanah Candles",
+      "pdf": "assets/supplements/SUP-RH-Candle.pdf",
+      "driveUrl": "https://docs.google.com/document/d/1vGphQSFzk250AWJPUQHfg4ovEZF_cSNHZ_OIDF-U6FI/edit",
+      "pages": 1,
+      "replaceable": false,
+      "status": "ready"
+    },
+    {
+      "id": "SUP-Rogativo",
+      "title": "Rogativo",
+      "pdf": "assets/supplements/SUP-Rogativo.pdf",
+      "driveUrl": "https://docs.google.com/document/d/1LVdLZ5YJsXdFqpPVofxVTfF46QdCE2-aiq-6dfQ3wSw/edit",
+      "pages": 1,
+      "replaceable": false,
+      "status": "ready"
+    },
+    {
+      "id": "SUP-Sermon",
+      "title": "Sermon — replaceable position",
+      "pdf": "assets/supplements/SUP-Sermon.pdf",
+      "driveUrl": "https://docs.google.com/document/d/1C8W3-65nzgxIgykAqpgK7ig2VzNEyRtWyijB9GiktAI/edit",
+      "pages": 1,
+      "replaceable": true,
+      "status": "ready"
+    },
+    {
+      "id": "SUP-Notices",
+      "title": "Notices — replaceable position",
+      "pdf": "assets/supplements/SUP-Notices.pdf",
+      "driveUrl": "https://docs.google.com/document/d/1UUYhHGvjsviSJ2wThYH3tZ9j96xGI8DoMG9vS34x1ig/edit",
+      "pages": 1,
+      "replaceable": true,
+      "status": "ready"
+    },
+    {
+      "id": "SUP-Hashkavot-2",
+      "title": "Hashkavot 2",
+      "pdf": "assets/supplements/SUP-Hashkavot-2.pdf",
+      "driveUrl": "https://docs.google.com/document/d/1R3qwbyvNuhgGmsESMajClVdJrPo-H9i81uFophEM4dI/edit",
+      "pages": 1,
+      "replaceable": false,
+      "status": "ready"
+    },
+    {
+      "id": "SUP-Hashkavot-1",
+      "title": "Hashkavot 1",
+      "pdf": "assets/supplements/SUP-Hashkavot-1.pdf",
+      "driveUrl": "https://docs.google.com/document/d/1lEwX6zUI-ct79WRMRrjQIigmIY2dJLddXl3SUDN0vHk/edit",
+      "pages": 1,
+      "replaceable": false,
+      "status": "ready"
+    },
+    {
+      "id": "SUP-Avinu-Malkeinu",
+      "title": "Avinu Malkeinu",
+      "pdf": "assets/supplements/SUP-Avinu-Malkeinu.pdf",
+      "driveUrl": "https://docs.google.com/document/d/1DrZyfZ3N7WYdgZDuHfT_bcYyF4FSTMVLAYwpBVP6GMI/edit",
+      "pages": 1,
+      "replaceable": false,
+      "status": "ready"
+    },
+    {
+      "id": "SUP-Israel",
+      "title": "Prayer for Israel",
+      "pdf": "assets/supplements/SUP-Israel.pdf",
+      "driveUrl": "https://docs.google.com/document/d/1Yt3RjNw9P4XjYpBPxMVzR2Qpu2IIEQNwN0KxUTAARfE/edit",
+      "pages": 1,
+      "replaceable": false,
+      "status": "ready"
+    },
+    {
+      "id": "SUP-SH-Candle",
+      "title": "Shabbat Candles",
+      "pdf": "assets/supplements/SUP-SH-Candle.pdf",
+      "driveUrl": "https://docs.google.com/document/d/10GvihN5xCFs2i_8cUpDbtzjSPNm7_yahDNa9TNYOGy4/edit",
+      "pages": 1,
+      "replaceable": false,
+      "status": "ready"
+    },
+    {
+      "id": "SUP-Children",
+      "title": "Blessings of the Children (source is two pages; split required)",
+      "pdf": "assets/supplements/SUP-Children.pdf",
+      "driveUrl": "https://docs.google.com/document/d/1DuEWg0fLMbA_73VGjmIh6gCAu_Wn7J9uDWZs1lB3Y6E/edit",
+      "pages": 2,
+      "replaceable": false,
+      "status": "needs-split"
+    }
+  ]
+}
