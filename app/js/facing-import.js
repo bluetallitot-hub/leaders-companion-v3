@@ -333,6 +333,29 @@ function facingPageWarnings(record){
  }
  return warnings;
 }
+function instructionTextForPage(state){
+ return (state.instructionIds||[]).map(id=>{
+  const entry=(facingInstructionLibrary?.prayers||[]).flatMap(p=>p.instructions||[]).find(x=>Number(x.instruction_id)===Number(id));
+  return entry?String(entry.text).replace(/\\{PrayerName\\}/g,state.instructionPrayer||"prayer").replace(/\\{PageNumber\\}/g,state.instructionPageNumber||"").replace(/\\{[^}]+\\}/g,""):null;
+ }).filter(Boolean);
+}
+function renderInstructionPreviews(){
+ for(let side=0;side<2;side++){
+  const canvas=$(side===0?"output-left":"output-right"),record=pageMetadata[side];
+  if(!canvas)continue;
+  const parent=canvas.parentElement;parent.style.position="relative";
+  let preview=parent.querySelector(".instruction-page-preview");
+  if(!preview){preview=document.createElement("div");preview.className="instruction-page-preview";preview.style.cssText="position:absolute;pointer-events:none;z-index:5;background:rgba(255,255,255,.94);border:1px dashed #546b7b;padding:3px 5px;font:12px Arial,sans-serif;color:#182c36;max-width:80%;white-space:pre-wrap";parent.append(preview)}
+  const state=record?.leadership,text=state?instructionTextForPage(state):[];
+  preview.hidden=!text.length;
+  if(!text.length)continue;
+  preview.textContent=text.join("\\n");
+  const position=state.instructionPosition||"top";
+  preview.style.left="10%";preview.style.right="10%";
+  preview.style.top=position==="top"?"4%":"auto";
+  preview.style.bottom=position==="bottom"?"4%":"auto";
+ }
+}
 function renderFacingInstructions(){
  const root=$("facing-instruction-pages");if(!root)return;root.replaceChildren();
  for(let side=0;side<pageMetadata.length;side++){
@@ -353,6 +376,13 @@ function renderFacingInstructions(){
    const remove=document.createElement("button");remove.type="button";remove.textContent="Remove";remove.onclick=()=>{state.instructionIds=state.instructionIds.filter(x=>x!==id);state.highlightConfirmed=false;renderFacingInstructions()};line.append(remove);selected.append(line);
   }
   panel.append(selected);
+  const positionLabel=document.createElement("label");positionLabel.textContent="Instruction placement ";
+  const position=document.createElement("select");
+  position.add(new Option("Top margin","top"));position.add(new Option("Bottom margin","bottom"));
+  position.value=state.instructionPosition||"top";
+  position.onchange=()=>{state.instructionPosition=position.value;state.highlightConfirmed=false;renderFacingInstructions()};
+  positionLabel.append(position);panel.append(positionLabel);
+  state.instructionPageNumber=String(record.source.originalPageNumber||record.source.sourcePdfPage||"");
   const warnings=facingPageWarnings(record);
   for(const warning of warnings){
    const label=document.createElement("label");label.style.display="block";
@@ -368,6 +398,7 @@ function renderFacingInstructions(){
   const note=document.createElement("p");note.textContent=unresolved.length?unresolved.length+" unresolved warning(s); confirmation blocked.":state.highlightConfirmed?"Page confirmed for download.":"Review the highlights, then confirm.";panel.append(note);
   root.append(panel);
  }
+ renderInstructionPreviews();
 }
 function renderPageCueEditor(){
  const root=$("page-cue-editor");if(!root)return;root.replaceChildren();
@@ -2270,11 +2301,24 @@ async function exportEditedSinglePage(side){
   const hex=roleColor(mark.roleId).replace("#",""),value=parseInt(hex,16);
   copy.drawRectangle({x:mark.x*width,y:(1-mark.y-mark.height)*height,width:mark.width*width,height:mark.height*height,color:PDFLib.rgb(((value>>16)&255)/255,((value>>8)&255)/255,(value&255)/255),opacity:highlightAlpha(mark),blendMode:"Multiply"});
  }
+ const instructionState=pageMetadata[side].leadership;
+ const instructionLines=instructionTextForPage(instructionState);
+ if(instructionLines.length){
+  const font=await out.embedFont(PDFLib.StandardFonts.Helvetica);
+  const size=10,margin=18,lineHeight=13,atTop=(instructionState.instructionPosition||"top")==="top";
+  const yBase=atTop?height-margin-size:margin+(instructionLines.length-1)*lineHeight;
+  const printable=line=>String(line).replace(/[^\\x20-\\x7e]/g,"?");
+  for(let n=0;n<instructionLines.length;n++){
+   const line=printable(instructionLines[n]).slice(0,105),y=yBase-n*lineHeight;
+   copy.drawRectangle({x:margin-3,y:y-3,width:Math.min(width-margin*2,Math.max(90,font.widthOfTextAtSize(line,size)+8)),height:lineHeight,color:PDFLib.rgb(1,1,1),opacity:.94});
+   copy.drawText(line,{x:margin,y,size,font,color:PDFLib.rgb(.12,.18,.22)});
+  }
+ }
  const record=JSON.parse(JSON.stringify(pageMetadata[side]));
  record.leadership.highlights=marks;record.production={...(record.production||{}),pageStatus:"downloaded-page-draft"};
  copy.node.set(PDFLib.PDFName.of("LCIntakeRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(record)));
  const sourceRecord=embeddedPageRecords[index]||{};
- const pageRecord={...sourceRecord,instructionIds:record.leadership.instructionIds||[],instructionPrayer:record.leadership.instructionPrayer||"",instructionOverrides:record.leadership.instructionOverrides||{},highlightConfirmed:!!record.leadership.highlightConfirmed,sourcePdfPage:index+1,printedPage:record.source.originalPageNumber||sourceRecord.printedPage||null,
+ const pageRecord={...sourceRecord,instructionIds:record.leadership.instructionIds||[],instructionPrayer:record.leadership.instructionPrayer||"",instructionPosition:record.leadership.instructionPosition||"top",instructionOverrides:record.leadership.instructionOverrides||{},highlightConfirmed:!!record.leadership.highlightConfirmed,sourcePdfPage:index+1,printedPage:record.source.originalPageNumber||sourceRecord.printedPage||null,
   cues:record.leadership.cues,highlights:marks,editedAt:new Date().toISOString()};
  copy.node.set(PDFLib.PDFName.of("LCPageRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(pageRecord)));
  await out.attach(new TextEncoder().encode(JSON.stringify({schema:"leaders-companion-page-export",version:1,sourcePdfPage:index+1,record:pageRecord},null,2)),"page-edit.json",{mimeType:"application/json"});
