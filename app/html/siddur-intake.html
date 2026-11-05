@@ -661,8 +661,11 @@ function renderMappingExceptions(){
  }
  $("csv-note").textContent=exceptions?exceptions+" mapping exception"+(exceptions===1?"":"s")+" require attention. Successfully mapped pages are hidden.":"No mapping exceptions — all referenced pages are accounted for.";
 }
+function applyCsvDocumentSettings(){
+ const direction=csvDocumentRecord?.facing_page_direction;
+ if(direction==="english"||direction==="hebrew")$("facing-direction").value=direction;
+}
 function populateDocumentIdentity(){
- if(csvDocumentRecord?.facing_page_direction&&["english","hebrew"].includes(csvDocumentRecord.facing_page_direction))$("facing-direction").value=csvDocumentRecord.facing_page_direction;
  const siddur=$("master-siddur-name"),service=$("master-service-name");
  const filename=String(sourcePdfName||"").replace(/\.pdf$/i,"").trim();
  if(filename&&filename.toLowerCase()!=="siddur"&&!siddur.dataset.userEdited)siddur.value=filename;
@@ -707,7 +710,7 @@ $("load-test-case").addEventListener("click",async()=>{
  finally{button.disabled=false}
 });
 $("siddur").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{const bytes=new Uint8Array(await file.arrayBuffer());sourcePdfBytes=bytes.slice();sourcePdfName=file.name;const doc=await pdfjsLib.getDocument({data:bytes}).promise;pdfCount=doc.numPages;pageMapping={};renderRoles();refresh();renderSupplements();renderMapping();await autoMapOnIntake();await saveIntakeProject().catch(err=>{$("status").textContent="PDF loaded, but browser storage failed: "+err.message});$("handoff-status").textContent="PDF loaded: "+sourcePdfName+" ("+pdfCount+" pages); "+(csvRows?csvRows.length+" cues loaded":"CSV still missing")+". Saved in browser."}catch(err){$("status").textContent="PDF intake failed: "+err.message}});
-$("cues").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{csvRows=parseCsv(await file.text());if(!csvRows.length)throw Error("CSV contains no cue rows; check the file format.");rolesLocked=false;roleOpacity.clear();roleAssignments.clear();renderRoles();refresh();renderSupplements();renderMapping();await autoMapOnIntake();await saveIntakeProject().catch(err=>{$("status").textContent="CSV loaded, but browser storage failed: "+err.message});$("handoff-status").textContent="CSV loaded: "+csvRows.length+" cues; "+(sourcePdfBytes?sourcePdfName+" ("+pdfCount+" PDF pages)":"PDF still missing")+". Saved in browser."}catch(err){$("status").textContent="CSV intake failed: "+err.message}});
+$("cues").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{csvRows=parseCsv(await file.text());if(!csvRows.length)throw Error("CSV contains no cue rows; check the file format.");rolesLocked=false;roleOpacity.clear();roleAssignments.clear();applyCsvDocumentSettings();renderRoles();refresh();renderSupplements();renderMapping();await autoMapOnIntake();await saveIntakeProject().catch(err=>{$("status").textContent="CSV loaded, but browser storage failed: "+err.message});$("handoff-status").textContent="CSV loaded: "+csvRows.length+" cues; "+(sourcePdfBytes?sourcePdfName+" ("+pdfCount+" PDF pages)":"PDF still missing")+". Saved in browser."}catch(err){$("status").textContent="CSV intake failed: "+err.message}});
 
 let instructionLibrary=null,instructionDrafts={},instructionOverrides={};
 function instructionCurrent(){const n=Number($("instruction-page").value);if(!n)return null;const key="pdf-page-"+n;return {key,data:instructionDrafts[key]||{instructionIds:[],highlightConfirmed:false,metadata:{PageID:key,PageNumber:String(n)}}}}
