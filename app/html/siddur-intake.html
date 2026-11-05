@@ -406,6 +406,14 @@ async function autoMapPages(){
   for(const n of [first-2,first-1,first,first+1,first+2,first+3,center-3,center-2,center-1,center,center+1,center+2,Math.round(last*.45),Math.round(last*.65),Math.round(last*.8),last-1]){
    if(n>=1&&n<=last)scanSet.add(n);
   }
+  // Target the actual requested folios, rather than sampling unrelated front matter.
+  // Sample both pages of candidate bilingual pairs across a broad offset range.
+  for(const printed of [targets[0],targets[Math.floor(targets.length/2)],targets[targets.length-1]]){
+   for(let offset=-90;offset<=90;offset+=18){
+    const candidate=2*printed+offset;
+    for(const n of [candidate,candidate+1])if(n>=1&&n<=last)scanSet.add(n);
+   }
+  }
   // Include neighbors for bilingual page-number confirmation.
   const hits=new Map(),observations=[];let scanned=0;
   for(const number of [...scanSet].sort((a,b)=>a-b)){
