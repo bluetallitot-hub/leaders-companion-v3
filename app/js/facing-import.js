@@ -2290,6 +2290,10 @@ async function exportEntireService(){
 
 async function exportEditedSinglePage(side){
  if(!sourcePdfBytes||!pageMetadata[side])throw Error("No page loaded.");
+ const approval=pageMetadata[side].leadership;
+ const unresolved=facingPageWarnings(pageMetadata[side]).filter(w=>!approval.instructionOverrides?.[w]);
+ if(unresolved.length)throw Error("Resolve or explicitly override all page warnings before downloading: "+unresolved.join("; "));
+ if(!approval.highlightConfirmed)throw Error("Confirm highlights and page instructions before downloading this page.");
  saveCurrentSpreadEdits();
  const index=selectedSpreadFirst-1+side;
  const original=await PDFLib.PDFDocument.load(sourcePdfBytes.slice());
