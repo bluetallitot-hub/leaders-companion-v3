@@ -212,7 +212,7 @@ function renderSupplementLibrary(){
 }
 let autoSupplementLoading=false;
 async function autoLoadExactSupplements(){
- if(autoSupplementLoading||!csvRows||!supplementCatalog.length)return;
+ if(autoSupplementLoading||!csvRows||(!supplementCatalog.length&&!Object.keys(localSupplementLibrary).length))return;
  autoSupplementLoading=true;
  try{for(const ref of orderedRefs().filter(r=>refKind(r)==="supplement")){
   const current=supplements[ref];if(current?.bytes?.length||current?.manualOverride||current?.placeholder)continue;
