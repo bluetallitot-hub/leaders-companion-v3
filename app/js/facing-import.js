@@ -320,6 +320,55 @@ function applyCueTextEdits(){
   cue.matchStatus="edited-awaiting-rematch";
  }
 }
+let facingInstructionLibrary=null;
+fetch("../../data/prayer-instructions.v1.json",{cache:"no-store"}).then(r=>{if(!r.ok)throw Error("Instruction library HTTP "+r.status);return r.json()}).then(data=>{facingInstructionLibrary=data;renderFacingInstructions()}).catch(e=>{const status=$("facing-instruction-status");if(status)status.textContent="Instruction library unavailable: "+e.message});
+function facingPageWarnings(record){
+ const state=record.leadership;
+ const warnings=[];
+ for(const cue of state.cues||[])if(!String(cue.matchStatus||"").includes("candidate")&&!String(cue.matchStatus||"").includes("matched"))warnings.push("Cue "+cue.cueId+" requires review: "+(cue.matchStatus||"unmatched"));
+ for(const id of state.instructionIds||[]){
+  const instruction=(facingInstructionLibrary?.prayers||[]).flatMap(p=>p.instructions||[]).find(x=>Number(x.instruction_id)===Number(id));
+  if(!instruction)warnings.push("Instruction #"+id+" not found");
+  else if(instruction.approval_status!=="approved")warnings.push("Instruction #"+id+" is not approved in the library");
+ }
+ return warnings;
+}
+function renderFacingInstructions(){
+ const root=$("facing-instruction-pages");if(!root)return;root.replaceChildren();
+ for(let side=0;side<pageMetadata.length;side++){
+  const record=pageMetadata[side];if(!record)continue;
+  const state=record.leadership;state.instructionIds??=[];state.instructionOverrides??={};
+  const panel=document.createElement("section");panel.style.cssText="padding:10px 0;border-bottom:1px solid #ddd";
+  const title=document.createElement("h4");title.textContent=(side===0?"Left":"Right")+" page — "+(record.source.originalPageNumber||record.source.sourcePdfPage||"");panel.append(title);
+  const name=document.createElement("label");name.textContent="Prayer name ";const prayer=document.createElement("input");prayer.value=state.instructionPrayer||record.identification?.prayerTitle||"";name.append(prayer);panel.append(name);
+  const select=document.createElement("select");select.setAttribute("aria-label","Instruction for "+(side===0?"left":"right")+" page");
+  select.add(new Option("Select instruction",""));
+  for(const p of facingInstructionLibrary?.prayers||[])for(const ins of p.instructions||[])select.add(new Option("#"+ins.instruction_id+" — "+p.canonical_title+" — "+ins.text+" ("+(ins.approval_status||"unreviewed")+")",String(ins.instruction_id)));
+  panel.append(select);
+  const add=document.createElement("button");add.type="button";add.textContent="Add instruction";add.onclick=()=>{if(!select.value)return;const id=Number(select.value);if(!state.instructionIds.includes(id))state.instructionIds.push(id);state.highlightConfirmed=false;renderFacingInstructions()};panel.append(add);
+  prayer.onchange=()=>{state.instructionPrayer=prayer.value;state.highlightConfirmed=false;renderFacingInstructions()};
+  const selected=document.createElement("div");
+  for(const id of state.instructionIds){
+   const line=document.createElement("div");line.textContent="Instruction #"+id+" ";
+   const remove=document.createElement("button");remove.type="button";remove.textContent="Remove";remove.onclick=()=>{state.instructionIds=state.instructionIds.filter(x=>x!==id);state.highlightConfirmed=false;renderFacingInstructions()};line.append(remove);selected.append(line);
+  }
+  panel.append(selected);
+  const warnings=facingPageWarnings(record);
+  for(const warning of warnings){
+   const label=document.createElement("label");label.style.display="block";
+   const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.checked=!!state.instructionOverrides[warning];
+   checkbox.onchange=()=>{state.instructionOverrides[warning]=checkbox.checked;state.highlightConfirmed=false;renderFacingInstructions()};
+   label.append(checkbox,document.createTextNode(" Override review warning: "+warning));panel.append(label);
+  }
+  const unresolved=warnings.filter(w=>!state.instructionOverrides[w]);
+  const confirm=document.createElement("label");confirm.style.display="block";
+  const check=document.createElement("input");check.type="checkbox";check.checked=!!state.highlightConfirmed;check.disabled=unresolved.length>0;
+  check.onchange=()=>{state.highlightConfirmed=check.checked;renderFacingInstructions()};
+  confirm.append(check,document.createTextNode(" Confirm Highlight and page instructions"));panel.append(confirm);
+  const note=document.createElement("p");note.textContent=unresolved.length?unresolved.length+" unresolved warning(s); confirmation blocked.":state.highlightConfirmed?"Page confirmed for download.":"Review the highlights, then confirm.";panel.append(note);
+  root.append(panel);
+ }
+}
 function renderPageCueEditor(){
  const root=$("page-cue-editor");if(!root)return;root.replaceChildren();
  for(let side=0;side<pageMetadata.length;side++){
@@ -342,6 +391,7 @@ function renderPageCueEditor(){
     const start=inputs.start.value.trim(),end=inputs.end.value.trim();
     if(!start||!end){$("page-cue-editor-status").textContent="Both beginning and ending cues are required.";return}
     cueTextEdits.set(cue.cueId,{start,end});
+    for(const record of pageMetadata)if(record.leadership.cues.some(c=>c.cueId===cue.cueId))record.leadership.highlightConfirmed=false;
     for(const c of importedCues)if((c.cue_id||c.test_id)===cue.cueId){c.begin_cue=start;c.end_cue=end;c.cue_left=start;c.cue_right=end;c.begin_cue_hebrew=/[\u0590-\u05ff]/u.test(start)?start:"";c.end_cue_hebrew=/[\u0590-\u05ff]/u.test(end)?end:"";}
     applyCueTextEdits();button.disabled=true;$("page-cue-editor-status").textContent="Rematching edited cues…";
     try{await autoMatchCues();$("page-cue-editor-status").textContent="Rematch complete. Inspect the proposed highlights before confirming."}
@@ -1814,7 +1864,7 @@ async function autoMatchCues(){
  total+=matchCrossPageEnglishCues();
  $("ocr-diagnostics").textContent=pageMetadata.map((r,i)=>"Page "+(r.source.sourcePage||i+1)+" OCR ("+(sourceTextLines[i]||[]).length+" mapped lines):\\n"+(sourceTextLines[i]||[]).map(l=>l.text).join("\\n")+"\\n\\nRAW OCR DIAGNOSTICS:\\n"+(rawOcrDiagnostics[i]||"Not run")).join("\\n\\n");
  cueMatchReport=total+" of "+pageMetadata.reduce((n,r)=>n+r.leadership.cues.length,0)+" cues automatically matched. "+pageMetadata.flatMap(r=>r.leadership.cues.map(c=>c.cueId+": "+c.matchStatus)).join("; ");
- refreshCueVisibilityPicker();renderPageCueEditor();drawHighlights();displayMetadata();if($("cue-summary"))$("cue-summary").textContent=cueMatchReport;status(cueMatchReport);
+ refreshCueVisibilityPicker();renderPageCueEditor();renderFacingInstructions();drawHighlights();displayMetadata();if($("cue-summary"))$("cue-summary").textContent=cueMatchReport;status(cueMatchReport);
 }
 async function syncHighlightMetadata(){
  if(!output)return;
@@ -2224,7 +2274,7 @@ async function exportEditedSinglePage(side){
  record.leadership.highlights=marks;record.production={...(record.production||{}),pageStatus:"downloaded-page-draft"};
  copy.node.set(PDFLib.PDFName.of("LCIntakeRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(record)));
  const sourceRecord=embeddedPageRecords[index]||{};
- const pageRecord={...sourceRecord,sourcePdfPage:index+1,printedPage:record.source.originalPageNumber||sourceRecord.printedPage||null,
+ const pageRecord={...sourceRecord,instructionIds:record.leadership.instructionIds||[],instructionPrayer:record.leadership.instructionPrayer||"",instructionOverrides:record.leadership.instructionOverrides||{},highlightConfirmed:!!record.leadership.highlightConfirmed,sourcePdfPage:index+1,printedPage:record.source.originalPageNumber||sourceRecord.printedPage||null,
   cues:record.leadership.cues,highlights:marks,editedAt:new Date().toISOString()};
  copy.node.set(PDFLib.PDFName.of("LCPageRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(pageRecord)));
  await out.attach(new TextEncoder().encode(JSON.stringify({schema:"leaders-companion-page-export",version:1,sourcePdfPage:index+1,record:pageRecord},null,2)),"page-edit.json",{mimeType:"application/json"});
