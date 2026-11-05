@@ -305,6 +305,10 @@ let highlightView="highlights";
 let selectionMode="line";
 let visibleCueId="";
 let selectedCueBySide=["",""];
+const cueRoleEdits=new Map();
+function cueRoleOptions(){const roles=new Map([["R","Rabbi"],["P","President"],["C","Congregation"],["L","Leader"],["S1","Soloist 1"],["S2","Soloist 2"]]);for(const [code,name] of serviceRoleDisplayNames)roles.set(String(code),String(name));for(const code of serviceRoleAssignments.values())if(!roles.has(String(code)))roles.set(String(code),String(code));return roles}
+function applyCueRoleEdits(){for(const record of pageMetadata)for(const cue of record?.leadership?.cues||[]){if(!cueRoleEdits.has(cue.cueId))continue;cue.role=cueRoleEdits.get(cue.cueId);for(const h of record.leadership.highlights||[])if(h.cueId===cue.cueId)h.roleId=cue.role}}
+
 function installCueVisibilityPicker(){
  const anchor=$("highlight-view");if(!anchor||$("visible-cue"))return;
  const select=document.createElement("select");select.id="visible-cue";select.setAttribute("aria-label","Visible leader cue");
@@ -418,18 +422,31 @@ function renderPageCueEditor(){
   const title=document.createElement("div");title.className="cue-page-title";
   title.textContent=(side===0?"Left":"Right")+" page"+(record?.source?.originalPageNumber?" · "+record.source.originalPageNumber:"");
   panel.append(title);
-  const buttons=document.createElement("div");buttons.className="cue-six-buttons";
+  applyCueRoleEdits();
   const active=cues.find(c=>c.cueId===selectedCueBySide[side])||cues[0];
-  for(let n=0;n<Math.max(6,cues.length);n++){
-   const cue=cues[n],pick=document.createElement("button");pick.type="button";
-   pick.className="cue-pick";pick.textContent=cue?(({R:"Rabbi",P:"President",C:"Congregation",L:"Leader"}[cue.role]||cue.role||"Role")):"—";pick.disabled=!cue;
-   pick.title=cue?((cue.prayer||"Prayer")+" — "+(cue.role||"Role")):"No cue";
-   pick.setAttribute("aria-label",cue?"Select "+(side===0?"left":"right")+" page cue "+(n+1):"Empty cue slot");
-   pick.setAttribute("aria-pressed",String(!!cue&&cue.cueId===active?.cueId));
-   if(cue)pick.onclick=()=>{selectedCueBySide[side]=cue.cueId;renderPageCueEditor();drawHighlights()};
-   buttons.append(pick);
+  const selector=document.createElement("label");selector.className="cue-number-selector";selector.textContent="Cue number ";
+  const choice=document.createElement("select");choice.setAttribute("aria-label",(side===0?"Left":"Right")+" page cue number");
+  cues.forEach((cue,index)=>{const option=document.createElement("option");option.value=String(index);option.textContent="Cue "+(index+1)+(cue.prayer?" — "+cue.prayer:"");choice.append(option)});
+  choice.value=String(Math.max(0,cues.indexOf(active)));
+  choice.disabled=!cues.length;
+  choice.onchange=()=>{selectedCueBySide[side]=cues[Number(choice.value)].cueId;renderPageCueEditor();drawHighlights()};
+  selector.append(choice);panel.append(selector);
+  if(active){
+   const roleRow=document.createElement("label");roleRow.className="cue-role-selector";roleRow.textContent="Role ";
+   const roleSelect=document.createElement("select");roleSelect.setAttribute("aria-label",(side===0?"Left":"Right")+" page selected cue role");
+   const roles=cueRoleOptions();if(!roles.has(String(active.role)))roles.set(String(active.role),String(active.role));
+   for(const [code,name] of roles){const option=document.createElement("option");option.value=code;option.textContent=name;roleSelect.append(option)}
+   roleSelect.value=String(active.role);
+   roleSelect.onchange=()=>{active.role=roleSelect.value;cueRoleEdits.set(active.cueId,active.role);
+    for(const record of pageMetadata){for(const cue of record.leadership.cues)if(cue.cueId===active.cueId)cue.role=active.role;
+     for(const h of record.leadership.highlights)if(h.cueId===active.cueId)h.roleId=active.role;
+     if(record.leadership.cues.some(c=>c.cueId===active.cueId))record.leadership.highlightConfirmed=false}
+    for(const row of importedCues)if((row.cue_id||row.test_id)===active.cueId)row.role=active.role;
+    renderPageCueEditor();drawHighlights();displayMetadata();
+    $("page-cue-editor-status").textContent="Cue "+(cues.indexOf(active)+1)+" role updated on "+(side===0?"left":"right")+" page. Review highlights before approval.";
+   };
+   roleRow.append(roleSelect);panel.append(roleRow);
   }
-  panel.append(buttons);
   if(!active){const note=document.createElement("p");note.textContent="No cues on this page.";panel.append(note);root.append(panel);continue}
   const wrap=document.createElement("div");wrap.className="cue-edit-compact";
   const name=document.createElement("strong");name.textContent=(active.prayer||"Cue "+(cues.indexOf(active)+1))+(active.role?" · "+active.role:"");wrap.append(name);
@@ -2117,6 +2134,7 @@ async function loadSelectedSpread(){
  baseOutput=output.slice();
  await preview(output);
  for(let side=0;side<2;side++)$("download-page-"+side).disabled=!pageMetadata[side];
+ applyCueRoleEdits();
  const saved=spreadEdits.get(selectedSpreadFirst);
  if(saved){pageMetadata.forEach((record,i)=>{if(record&&saved[i])record.leadership.highlights=saved[i]});drawHighlights()}
  if($("metadata-dialog").open)refreshMetadataDialog();
@@ -2443,7 +2461,7 @@ async function restoreSiddurIntake(){
  serviceManifest=data.manifest||null;servicePageMapping=data.pageMapping||null;serviceRoleOpacity=new Map(data.roleOpacity||serviceManifest?.opacity||[]);serviceRoleAssignments=new Map(data.roleAssignments||[]);serviceRoleDisplayNames=new Map(data.roleDisplayNames||[]);populateHighlightRoles();
  sourcePdfBytes=new Uint8Array(data.pdf);embeddedPageRecords=await readEmbeddedPageRecords(sourcePdfBytes);
  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
- sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();
+ sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();cueRoleEdits.clear();
  updateIntakeInventory();
  await loadSelectedSpread();
  status("Restored "+data.pdfName+" and "+importedCues.length+" cue rows. The PDF contains selected service pages.");
