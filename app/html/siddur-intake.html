@@ -689,14 +689,14 @@ async function buildApprovedMasterPdf(){
  const title=$("master-title").value.trim()||siddur+" — "+service,direction=$("facing-direction").value;
  out.setTitle(title);out.setSubject("Leader's Companion approved service");out.setCreator("Leader's Companion V3.189");
  const font=await out.embedFont(PDFLib.StandardFonts.Helvetica),bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
- const titlePage=out.addPage([612,792]);titlePage.drawText(title.replace(/[^\\x20-\\x7E]/g,"-").slice(0,65),{x:44,y:680,size:21,font:bold});titlePage.drawText("Approved service document",{x:44,y:625,size:13,font});
+ const titlePage=out.addPage([612,792]);titlePage.drawText(Array.from(title,c=>c.charCodeAt(0)>=32&&c.charCodeAt(0)<=126?c:"-").join("").slice(0,65),{x:44,y:680,size:21,font:bold});titlePage.drawText("Approved service document",{x:44,y:625,size:13,font});
  const toc=out.addPage([612,792]);toc.drawText("Contents",{x:44,y:740,size:22,font:bold});let y=700;
  const manifest=[];
  for(const p of approved){
   const m=pageMapping[p],indices=(direction==="hebrew"?[Number(m.h)-1,Number(m.e)-1]:[Number(m.e)-1,Number(m.h)-1]);
   const pageTitle=cueRowsForPage(p,"printed",null).map(c=>c.prayer_title||c.prayer_name||c.title).find(Boolean)||"Printed page "+p;
   if(y<55)throw Error("Contents exceeds one page; reduce approved spreads or extend contents pagination.");
-  toc.drawText((String(p)+" - "+pageTitle).replace(/[^\\x20-\\x7E]/g,"?").slice(0,68),{x:44,y,size:10,font});toc.drawText(String(out.getPageCount()+1),{x:550,y,size:10,font});y-=17;
+  toc.drawText(Array.from(String(p)+" - "+pageTitle,c=>c.charCodeAt(0)>=32&&c.charCodeAt(0)<=126?c:"?").join("").slice(0,68),{x:44,y,size:10,font});toc.drawText(String(out.getPageCount()+1),{x:550,y,size:10,font});y-=17;
   for(const index of indices){
    if(index<0||index>=source.getPageCount())throw Error("Source page out of range: "+(index+1));
    const [copy]=await out.copyPages(source,[index]);out.addPage(copy);
