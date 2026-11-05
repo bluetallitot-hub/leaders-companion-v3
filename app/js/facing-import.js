@@ -862,6 +862,7 @@ function isolatedHebrewCueMatch(side,cue,ocr){
  if(!beginning)return null;
  // End is searched ONLY after the beginning's position in the reading stream.
  const ending=locate(end,beginning.index+1);
+ if(!ending)return null; // Both Hebrew anchors are mandatory; never highlight only the start.
  // Map the OCR cue's word span onto Rivok word boxes. OCR identifies
  // positions; only Rivok rectangles are ever used for the overlay.
  const rivokByLine=id=>words.filter(w=>w.lineId===id).sort((a,b)=>b.x-a.x);
@@ -1761,6 +1762,45 @@ async function diagnoseHebrewWordRecognition(){
  finally{if(worker)await worker.terminate();button.disabled=false}
 }
 $("hebrew-word-ocr-diagnostic").addEventListener("click",diagnoseHebrewWordRecognition);
+function matchCrossPageEnglishCues(){
+ // A physical page boundary can be traversed only when both sides are
+ // independently identified as the same language and share the same cue ID.
+ // Never join English to Hebrew facing pages.
+ if(pageMetadata.length!==2)return 0;
+ const [a,b]=pageMetadata;
+ if(!a||!b||a.source.languageCode!=="E"||b.source.languageCode!=="E")return 0;
+ const firstNumber=Number(a.source.sourcePdfPage),secondNumber=Number(b.source.sourcePdfPage);
+ if(!Number.isInteger(firstNumber)||secondNumber!==firstNumber+1)return 0;
+ let matched=0;
+ for(const cue of a.leadership.cues){
+  const other=b.leadership.cues.find(c=>c.cueId&&c.cueId===cue.cueId);
+  if(!other||!cue.startCue||!cue.endCue)continue;
+  const firstLines=sourceTextLines[0]||[],secondLines=sourceTextLines[1]||[];
+  const start=matchingCueLine(firstLines,cue.startCue),end=matchingCueLine(secondLines,cue.endCue);
+  if(start===null||end===null)continue;
+  // Do not replace a complete, independently matched cue.
+  if(!String(cue.matchStatus).includes("review-required")||!String(other.matchStatus).includes("review-required"))continue;
+  const firstAnchor=firstLines[start],lastAnchor=secondLines[end];
+  if(!firstAnchor||!lastAnchor)continue;
+  const selections=[
+   (detectedLines[0]||[]).filter(l=>l.column===firstAnchor.column&&l.y+l.height/2>=firstAnchor.y-.012),
+   (detectedLines[1]||[]).filter(l=>l.column===lastAnchor.column&&l.y+l.height/2<=lastAnchor.y+.012)
+  ];
+  if(selections.some(lines=>!lines.length))continue;
+  for(let side=0;side<2;side++){
+   const record=pageMetadata[side],c=side===0?cue:other;
+   record.leadership.highlights=record.leadership.highlights.filter(h=>h.cueId!==cue.cueId);
+   for(const line of selections[side])record.leadership.highlights.push({
+    highlightId:"HL-"+cue.cueId+"-"+line.id,lineId:line.id,cueId:cue.cueId,roleId:c.role,
+    x:line.x,y:line.y,width:line.width,height:line.height,
+    coordinateSystem:"normalized-top-left",visibleInPdf:false,tentative:true
+   });
+   c.matchStatus="cross-page-English-candidate-review-required";
+  }
+  matched++;
+ }
+ return matched;
+}
 async function autoMatchCues(){
  if(!pageMetadata.length||!importedCues.length)return;
  let total=0;
@@ -1771,6 +1811,7 @@ async function autoMatchCues(){
   try{sourceTextLines[side]=await recognizeCueLines(side);if(pageMetadata[side].source.languageCode==="H"){status("Running independent Hebrew line OCR before cue matching...");sourceTextLines[side]=await secondPassHebrewLines(side,sourceTextLines[side]);}total+=assignCueHighlights(side)}
   catch(e){rawOcrDiagnostics[side]="OCR error: "+e.message;console.warn("Cue OCR unavailable",e);total+=assignCueHighlights(side);for(const cue of pageMetadata[side].leadership.cues)if(cue.matchStatus==="unmatched-review-required")cue.matchStatus="ocr-error: "+e.message}
  }
+ total+=matchCrossPageEnglishCues();
  $("ocr-diagnostics").textContent=pageMetadata.map((r,i)=>"Page "+(r.source.sourcePage||i+1)+" OCR ("+(sourceTextLines[i]||[]).length+" mapped lines):\\n"+(sourceTextLines[i]||[]).map(l=>l.text).join("\\n")+"\\n\\nRAW OCR DIAGNOSTICS:\\n"+(rawOcrDiagnostics[i]||"Not run")).join("\\n\\n");
  cueMatchReport=total+" of "+pageMetadata.reduce((n,r)=>n+r.leadership.cues.length,0)+" cues automatically matched. "+pageMetadata.flatMap(r=>r.leadership.cues.map(c=>c.cueId+": "+c.matchStatus)).join("; ");
  refreshCueVisibilityPicker();renderPageCueEditor();drawHighlights();displayMetadata();if($("cue-summary"))$("cue-summary").textContent=cueMatchReport;status(cueMatchReport);
