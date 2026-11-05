@@ -317,6 +317,34 @@ function installCueVisibilityPicker(){
  select.addEventListener("change",()=>{visibleCueId=select.value;drawHighlights()});
 }
 
+let cueCsvRows=[],cueCsvHeaders=[];
+function cueCsvSerialize(){
+ const headers=[...new Set([...cueCsvHeaders,...cueCsvRows.flatMap(row=>Object.keys(row))])];
+ const quote=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
+ return [headers.map(quote).join(","),...cueCsvRows.map(row=>headers.map(h=>quote(row[h])).join(","))].join("\r\n")+"\r\n";
+}
+function cueCsvUpdate(cueId,start,end,role){
+ const row=cueCsvRows.find(c=>(c.cue_id||c.test_id)===cueId);
+ if(!row)return false;
+ row.begin_cue=start;row.end_cue=end;
+ if("cue_left" in row)row.cue_left=start;if("cue_right" in row)row.cue_right=end;
+ if("begin_cue_hebrew" in row)row.begin_cue_hebrew=/[\u0590-\u05ff]/u.test(start)?start:"";
+ if("end_cue_hebrew" in row)row.end_cue_hebrew=/[\u0590-\u05ff]/u.test(end)?end:"";
+ if(role)row.leader_role=role;
+ return true;
+}
+function downloadUpdatedCueCsv(){
+ const blob=new Blob([cueCsvSerialize()],{type:"text/csv;charset=utf-8"});
+ const url=URL.createObjectURL(blob),link=document.createElement("a");
+ link.href=url;link.download=(($("assembly-siddur")?.value||filename)+" - "+($("assembly-service")?.value||"service")+" - updated cues.csv").replace(/[\\/:*?"<>|]/g,"_");
+ document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+async function saveCueCsvHandoff(){
+ if(!window.indexedDB)return;
+ const db=await new Promise((resolve,reject)=>{const q=indexedDB.open("leaders-companion-siddur-v3",1);q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});
+ await new Promise((resolve,reject)=>{const tx=db.transaction("projects","readwrite"),store=tx.objectStore("projects"),req=store.get("handoff");req.onsuccess=()=>{const data=req.result;if(data){data.csv=cueCsvSerialize();store.put(data,"handoff")}};tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)});
+ db.close();
+}
 const cueTextEdits=new Map();
 function applyCueTextEdits(){
  for(const record of pageMetadata)for(const cue of record?.leadership?.cues||[]){
@@ -463,7 +491,9 @@ function renderPageCueEditor(){
     cueTextEdits.set(cue.cueId,{start,end});
     for(const record of pageMetadata)if(record.leadership.cues.some(c=>c.cueId===cue.cueId))record.leadership.highlightConfirmed=false;
     for(const c of importedCues)if((c.cue_id||c.test_id)===cue.cueId){c.begin_cue=start;c.end_cue=end;c.cue_left=start;c.cue_right=end;c.begin_cue_hebrew=/[\u0590-\u05ff]/u.test(start)?start:"";c.end_cue_hebrew=/[\u0590-\u05ff]/u.test(end)?end:"";}
-    applyCueTextEdits();button.disabled=true;$("page-cue-editor-status").textContent="Rematching edited cues…";
+    if(!cueCsvUpdate(cue.cueId,start,end,cue.role)){$("page-cue-editor-status").textContent="Cue not found in source CSV; changes were not saved.";return}
+    applyCueTextEdits();button.disabled=true;$("page-cue-editor-status").textContent="Saving cue CSV and rematching…";
+    try{await saveCueCsvHandoff();downloadUpdatedCueCsv()}catch(e){$("page-cue-editor-status").textContent="CSV save failed: "+e.message;button.disabled=false;return}
     try{await autoMatchCuesForSide(side);$("page-cue-editor-status").textContent=(side===0?"Left":"Right")+" page rematched. The other page was not changed."}
     catch(e){$("page-cue-editor-status").textContent="Rematch failed: "+e.message}
     finally{button.disabled=false;renderPageCueEditor()}
@@ -2184,7 +2214,7 @@ $("cue-file").addEventListener("change",async()=>{
   if(!rows.length||!rows.every(c=>c.printed_page&&c.language&&
     (c.begin_cue||c.begin_cue_hebrew)&&(c.end_cue||c.end_cue_hebrew)))
     throw Error("CSV needs printed_page, language, and beginning/ending cues (begin_cue/end_cue or Hebrew equivalents).");
-  importedCues=rows;
+  importedCues=rows;cueCsvRows=rows.map(row=>({...row}));cueCsvHeaders=Object.keys(rows[0]||{});
   cueTextEdits.clear();
   updateIntakeInventory();
   applyImportedCues();refreshCueVisibilityPicker();
@@ -2467,6 +2497,7 @@ async function restoreSiddurIntake(){
  const data=await new Promise((resolve,reject)=>{const tx=db.transaction("projects","readonly");const q=tx.objectStore("projects").get("handoff");q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});db.close();
  if(!data?.pdf)throw Error("No saved PDF found. Return to Siddur Intake and save the project again.");
  const rows=data.csv?parseCsv(data.csv):[];
+ cueCsvRows=rows.map(row=>({...row}));cueCsvHeaders=(data.csv?.split(/\\r?\\n/)[0]||"").split(",").map(h=>h.replace(/^"|"$/g,"").trim().toLowerCase());
  importedCues=rows.filter(c=>c.source_page||c.printed_page);
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  filename=(data.pdfName||"siddur.pdf").replace(/\.pdf$/i,"");
