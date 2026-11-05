@@ -2348,3 +2348,56 @@ if(new URLSearchParams(location.search).get("intake")==="1")restoreSiddurIntake(
 // V3.150 editor visibility controls
 const zoomControl=$("page-zoom");if(zoomControl){const applyZoom=()=>{$("spread-preview").querySelector(".pdf-spread").style.width=zoomControl.value+"%";$("spread-preview").querySelector(".pdf-spread").style.minWidth="0";$("zoom-value").textContent=zoomControl.value+"%"};zoomControl.addEventListener("input",applyZoom);applyZoom();}
 $("show-detection")?.addEventListener("click",()=>{highlightView=highlightView==="detection"?"highlights":"detection";$("highlight-view").value=highlightView;$("show-detection").textContent=highlightView==="detection"?"Hide selectable lines":"Show selectable lines";drawHighlights()});
+
+
+let assemblyPages=[];
+function assemblyStatus(message){const el=$("assembly-status");if(el)el.textContent=message}
+function assemblySafeName(value){return String(value).replace(/[\\/:*?"<>|]/g,"-").trim()}
+function assemblyToday(){const now=new Date(),local=new Date(now.getTime()-now.getTimezoneOffset()*60000);return local.toISOString().slice(0,10)}
+$("assembly-files").addEventListener("change",async event=>{
+ assemblyPages=[];$("assembly-download").disabled=true;$("assembly-pages").replaceChildren();
+ const files=[...event.target.files];if(!files.length)return;
+ try{
+  for(const file of files){
+   const bytes=new Uint8Array(await file.arrayBuffer()),doc=await PDFLib.PDFDocument.load(bytes);
+   if(doc.getPageCount()!==1)throw Error(file.name+" must contain exactly one page.");
+   const page=doc.getPage(0),raw=page.node.get(PDFLib.PDFName.of("LCPageRecord"));
+   if(!raw||typeof raw.decodeText!=="function")throw Error(file.name+" lacks Leader's Companion page metadata.");
+   const record=JSON.parse(raw.decodeText());
+   const index=Number(record.sourcePdfPage);
+   if(!Number.isInteger(index)||index<1)throw Error(file.name+" has no valid physical page number.");
+   if(!record.highlightConfirmed)throw Error(file.name+" has not been confirmed in the Facing-Page Editor.");
+   assemblyPages.push({file,bytes,index,record});
+  }
+  assemblyPages.sort((a,b)=>a.index-b.index);
+  const seen=new Set();
+  for(const item of assemblyPages){
+   if(seen.has(item.index))throw Error("Duplicate physical page "+item.index+". Select only one approved revision.");
+   seen.add(item.index);
+   const li=document.createElement("li");li.textContent="Page "+item.index+" — "+item.file.name+" (confirmed)";$("assembly-pages").append(li);
+  }
+  assemblyStatus(assemblyPages.length+" confirmed pages ready. Verify their order before downloading.");
+  $("assembly-download").disabled=false;
+ }catch(error){assemblyPages=[];$("assembly-pages").replaceChildren();assemblyStatus("Assembly blocked: "+error.message)}
+});
+$("assembly-download").addEventListener("click",async()=>{
+ const button=$("assembly-download");button.disabled=true;
+ try{
+  const siddur=$("assembly-siddur").value.trim(),service=$("assembly-service").value.trim();
+  if(!siddur||!service)throw Error("Enter both Siddur Name and Service Name.");
+  if(!assemblyPages.length)throw Error("Select confirmed page PDFs.");
+  const out=await PDFLib.PDFDocument.create();
+  const manifest=[];
+  for(const item of assemblyPages){
+   const source=await PDFLib.PDFDocument.load(item.bytes.slice()),[page]=await out.copyPages(source,[0]);out.addPage(page);
+   manifest.push({outputPage:out.getPageCount(),sourcePdfPage:item.index,printedPage:item.record.printedPage||null,confirmed:true});
+  }
+  const date=assemblyToday();
+  out.setTitle(siddur+" — "+service);out.setSubject("Leader's Companion Main Document");
+  await out.attach(new TextEncoder().encode(JSON.stringify({schema:"leaders-companion-main-document",version:1,siddur,service,publicationDate:date,pages:manifest},null,2)),"main-document-manifest.json",{mimeType:"application/json"});
+  const bytes=new Uint8Array(await out.save()),name=assemblySafeName(siddur)+" - "+assemblySafeName(service)+" - "+date+".pdf";
+  const url=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"})),a=document.createElement("a");a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+  assemblyStatus("Downloaded "+name+" with "+manifest.length+" confirmed pages.");
+ }catch(error){assemblyStatus("Assembly failed: "+error.message)}
+ finally{button.disabled=!assemblyPages.length}
+});
