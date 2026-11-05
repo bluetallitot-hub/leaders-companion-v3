@@ -2437,7 +2437,7 @@ async function restoreSiddurIntake(){
  filename=(data.pdfName||"siddur.pdf").replace(/\.pdf$/i,"");
  const details=data.masterDetails||{};siddurStyleSheet=data.styleSheet||{framework:"boxes"};
  if($("assembly-siddur"))$("assembly-siddur").value=details.siddur||"";
- if($("assembly-service"))$("assembly-service").value=details.service||"";
+ if($("assembly-service"))$("assembly-service").value=details.service||"";updateProposedMainDocumentFilename();
  serviceManifest=data.manifest||null;servicePageMapping=data.pageMapping||null;serviceRoleOpacity=new Map(data.roleOpacity||serviceManifest?.opacity||[]);serviceRoleAssignments=new Map(data.roleAssignments||[]);serviceRoleDisplayNames=new Map(data.roleDisplayNames||[]);populateHighlightRoles();
  sourcePdfBytes=new Uint8Array(data.pdf);embeddedPageRecords=await readEmbeddedPageRecords(sourcePdfBytes);
  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
@@ -2457,6 +2457,13 @@ let assemblyPages=[];
 function assemblyStatus(message){const el=$("assembly-status");if(el)el.textContent=message}
 function assemblySafeName(value){return String(value).replace(/[\\/:*?"<>|]/g,"-").trim()}
 function assemblyToday(){const now=new Date(),local=new Date(now.getTime()-now.getTimezoneOffset()*60000);return local.toISOString().slice(0,10)}
+function proposedMainDocumentFilename(){
+ const siddur=$("assembly-siddur")?.value.trim()||"",service=$("assembly-service")?.value.trim()||"";
+ return siddur&&service?assemblySafeName(siddur)+" - "+assemblySafeName(service)+" - "+assemblyToday()+".pdf":"Enter Siddur and Service names.";
+}
+function updateProposedMainDocumentFilename(){const target=$("assembly-proposed-filename");if(target)target.textContent=proposedMainDocumentFilename()}
+for(const id of ["assembly-siddur","assembly-service"])$(id)?.addEventListener("input",updateProposedMainDocumentFilename);
+updateProposedMainDocumentFilename();
 $("assembly-files").addEventListener("change",async event=>{
  assemblyPages=[];$("assembly-download").disabled=true;$("assembly-pages").replaceChildren();
  const files=[...event.target.files];if(!files.length)return;
@@ -2504,7 +2511,7 @@ $("assembly-download").addEventListener("click",async()=>{
   const date=assemblyToday();
   out.setTitle(siddur+" — "+service);out.setSubject("Leader's Companion Main Document");
   await out.attach(new TextEncoder().encode(JSON.stringify({schema:"leaders-companion-main-document",version:1,siddur,service,publicationDate:date,pages:manifest},null,2)),"main-document-manifest.json",{mimeType:"application/json"});
-  const bytes=new Uint8Array(await out.save()),name=assemblySafeName(siddur)+" - "+assemblySafeName(service)+" - "+date+".pdf";
+  const bytes=new Uint8Array(await out.save()),name=proposedMainDocumentFilename();
   const url=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"})),a=document.createElement("a");a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
   assemblyStatus("Downloaded "+name+" with "+manifest.length+" confirmed pages.");
  }catch(error){assemblyStatus("Assembly failed: "+error.message)}
