@@ -122,7 +122,7 @@ function renderOutliers(outliers,names){
 function csvText(){
  const headers=[...new Set([...csvHeaders,"siddur_title","facing_page_direction","role_names","role_letters","role_colors","page_type","supplement_file","highlight_role","highlight_color","cue_left","cue_right","printed_page","leader_notes","highlight_style_id"])];
  const quote=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
- const documentRow={...(csvDocumentRecord||{}),record_type:"DOCUMENT",siddur_title:$("master-siddur-name").value,service_name:$("master-service-name").value,facing_page_direction:$("facing-direction").value,role_names:JSON.stringify(Object.fromEntries(roleDisplayNames)),role_letters:JSON.stringify(Object.fromEntries([...roleAssignments].map(([color,code])=>[code,color]))),role_colors:JSON.stringify(Object.fromEntries(roleAssignments))};
+ const documentRow={...(csvDocumentRecord||{}),record_type:"DOCUMENT",siddur_title:$("master-siddur-name").value,service_name:$("master-service-name").value,facing_page_direction:$("facing-direction").value,role_names:JSON.stringify(Object.fromEntries(roleDisplayNames)),role_letters:JSON.stringify(Object.fromEntries([...roleDisplayNames].map(([code,name])=>[name,code]))),role_colors:JSON.stringify(Object.fromEntries(roleAssignments))};
  return [headers.map(quote).join(","),...[documentRow,...csvRows,...intakePageRecords].map(row=>headers.map(h=>quote(row[h])).join(","))].join("\r\n")+"\r\n";
 }
 function downloadBytes(bytes,name,type){const url=URL.createObjectURL(new Blob([bytes],{type}));const a=document.createElement("a");a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)}
