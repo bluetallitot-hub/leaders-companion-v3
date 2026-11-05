@@ -60,6 +60,7 @@ function openIntakeStage(index){
  const mappingIndex=stages.findIndex(panel=>panel.querySelector("#mapping-section"));
  if(current===mappingIndex&&index>mappingIndex){const message=mappingGateMessage();if(message){showMappingGate(message);return}}
  if(!intakeReady())return;
+ if(index>mappingIndex&&intakeStageReached<=mappingIndex+1){const message=mappingGateMessage();if(message){openIntakeStage(mappingIndex);showMappingGate(message);return}}
  let next=index;
  while(next<stages.length&&!intakeStageAvailable(stages[next]))next++;
  if(next>=stages.length)return;
