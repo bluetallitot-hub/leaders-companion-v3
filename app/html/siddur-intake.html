@@ -304,13 +304,16 @@ function renderMapping(){
   for(const key of ["e","h"]){const td=document.createElement("td"),input=document.createElement("input");input.type="number";input.min="1";input.max=String(pdfCount||99999);input.style.width="95px";input.value=mapping[key]||"";input.setAttribute("aria-label",printed+" "+(key==="e"?"English":"Hebrew")+" physical PDF page");input.addEventListener("change",()=>{const entry=pageMapping[printed]||{e:"",h:"",verified:false};entry[key]=input.value;entry.verified=false;entry.manual=true;entry.auto=false;pageMapping[printed]=entry;mappingPreviewed.delete(printed);renderMapping();$("map-status").textContent="Manual mapping saved for printed page "+printed+". Other pages remain unchanged until individually scanned.";saveIntakeProject().catch(console.error)});td.append(input);tr.append(td)}
   const td=document.createElement("td"),check=document.createElement("input");check.type="checkbox";check.checked=!!mapping.verified;check.disabled=!!(mapping.auto&&[pages[0],pages[pages.length-1]].includes(printed)&&!mappingPreviewed.has(printed))||!(Number(mapping.e)>=1&&Number(mapping.h)>=1&&Number(mapping.e)!==Number(mapping.h)&&Number(mapping.e)<=pdfCount&&Number(mapping.h)<=pdfCount);check.setAttribute("aria-label","Verify printed page "+printed);check.addEventListener("change",()=>{pageMapping[printed].verified=check.checked;renderMapping();saveIntakeProject().catch(console.error)});td.append(check);const preview=document.createElement("button");preview.type="button";preview.textContent="Preview pair";preview.disabled=!mapping.e||!mapping.h;preview.addEventListener("click",async()=>{await previewMappedPair(printed);mappingPreviewed.add(printed);renderMapping()});td.append(preview);tr.append(td);body.append(tr);
  }
- const valid=pages.filter(p=>mapValid(pageMapping[p])).length;\n const endpoints=pages.length?[pages[0],pages[pages.length-1]]:[];\n const endpointsVerified=endpoints.every(p=>!pageMapping[p]?.auto||!!pageMapping[p]?.verified&&mappingPreviewed.has(p));
+ const valid=pages.filter(p=>mapValid(pageMapping[p])).length;
+ const endpoints=pages.length?[pages[0],pages[pages.length-1]]:[];
+ const endpointsVerified=endpoints.every(p=>!pageMapping[p]?.auto||!!pageMapping[p]?.verified&&mappingPreviewed.has(p));
  const other=orderedRefs().filter(r=>["internal","supplement","external","unknown"].includes(refKind(r)));
  const missing=other.filter(r=>refKind(r)==="unknown"||((refKind(r)==="supplement"||refKind(r)==="external")&&!supplements[r]?.bytes?.length&&!supplements[r]?.placeholder)||refKind(r)==="internal"&&expandRef(r).some(n=>Number(n)<1||Number(n)>pdfCount));
  $("map-status").textContent=valid+" of "+pages.length+" printed pages verified; "+(other.length-missing.length)+" of "+other.length+" special references ready."+(missing.length?" Missing: "+missing.join(", "):"")+(valid<pages.length?" Enter the physical PDF page numbers for one known English/Hebrew pair above. The system will propose the remaining pairs; then use Check all valid pairs.":"");
  $("open-facing").disabled=!orderedRefs().length||valid!==pages.length||!endpointsVerified||missing.length>0||!sourcePdfBytes;
  $("download-reduced").disabled=$("open-facing").disabled;
- if(!endpointsVerified)$("map-status").textContent+=" Preview and verify the FIRST and LAST automatically mapped printed-page pairs.";\n const reasons=missing.map(ref=>{const kind=refKind(ref);return ref+" ("+(kind==="supplement"?"upload supplement in section 6":kind==="external"?"upload external document in section 6":kind==="internal"?"physical PDF page outside the loaded siddur":"unrecognized source-page format; correct CSV reference")+")"});
+ if(!endpointsVerified)$("map-status").textContent+=" Preview and verify the FIRST and LAST automatically mapped printed-page pairs.";
+ const reasons=missing.map(ref=>{const kind=refKind(ref);return ref+" ("+(kind==="supplement"?"upload supplement in section 6":kind==="external"?"upload external document in section 6":kind==="internal"?"physical PDF page outside the loaded siddur":"unrecognized source-page format; correct CSV reference")+")"});
  $("handoff-blockers").textContent=$("open-facing").disabled?("Cannot proceed: "+(pages.length-valid)+" unverified printed-page pairs; "+missing.length+" unresolved special references."+(reasons.length?" Missing: "+reasons.join("; ")+".":"")):"Ready to continue to the facing-page editor.";
 }
 $("verify-all").addEventListener("click",()=>{let n=0;for(const p of siddurPages()){if(mapValid({...pageMapping[p],verified:true})&&(!pageMapping[p]?.auto||![siddurPages()[0],siddurPages().at(-1)].includes(p)||mappingPreviewed.has(p))){pageMapping[p].verified=true;n++}}renderMapping();$("map-status").textContent="Checked "+n+" valid facing-page pairs. This confirms page numbers, not visual content; preview representative spreads before export.";saveIntakeProject().catch(console.error)});
@@ -500,14 +503,16 @@ async function autoMapPages(){
    return;
    }catch(e){$("map-status").textContent="Image OCR failed: "+e.message}finally{if(worker)await worker.terminate();btn.disabled=false}
 }
-let intakeAutoMapRunning=false;\nconst mappingPreviewed=new Set();\nfunction updateMappingVisibility(){const ready=!!sourcePdfBytes&&!!csvRows&&!intakeAutoMapRunning;$("mapping-section").hidden=!ready;$("mapping-pending").hidden=ready;if(!ready)$("mapping-pending").textContent=intakeAutoMapRunning?"Mapping pending — automatic detection in progress…":"Mapping pending — load the source PDF and cue CSV.";}
+let intakeAutoMapRunning=false;
+const mappingPreviewed=new Set();
+function updateMappingVisibility(){const ready=!!sourcePdfBytes&&!!csvRows&&!intakeAutoMapRunning;$("mapping-section").hidden=!ready;$("mapping-pending").hidden=ready;if(!ready)$("mapping-pending").textContent=intakeAutoMapRunning?"Mapping pending — automatic detection in progress…":"Mapping pending — load the source PDF and cue CSV.";}
 async function autoMapOnIntake(){
  if(!sourcePdfBytes||!csvRows||intakeAutoMapRunning)return;
  if(siddurPages().every(p=>mapValid(pageMapping[p])))return;
- intakeAutoMapRunning=true;
+ intakeAutoMapRunning=true;updateMappingVisibility();
  try{await autoMapPages()}
  catch(error){$("map-status").textContent="Automatic page scan could not complete: "+error.message}
- finally{intakeAutoMapRunning=false}
+ finally{intakeAutoMapRunning=false;updateMappingVisibility()}
 }
 $("scan-map").addEventListener("click",autoMapPages);
 function cueRowsForPage(ref,kind,language){
