@@ -356,6 +356,14 @@ function renderInstructionPreviews(){
   preview.style.bottom=position==="bottom"?"4%":"auto";
  }
 }
+function pageApprovalFingerprint(record){
+ const state=record.leadership||{};
+ return JSON.stringify({highlights:state.highlights||[],cues:state.cues||[],instructionIds:state.instructionIds||[],instructionPrayer:state.instructionPrayer||"",instructionPosition:state.instructionPosition||"top",instructionOverrides:state.instructionOverrides||{}});
+}
+function pageApprovalCurrent(record){
+ const state=record?.leadership;
+ return !!(state?.highlightConfirmed&&state.confirmedFingerprint===pageApprovalFingerprint(record));
+}
 function renderFacingInstructions(){
  const root=$("facing-instruction-pages");if(!root)return;root.replaceChildren();
  for(let side=0;side<pageMetadata.length;side++){
@@ -392,10 +400,10 @@ function renderFacingInstructions(){
   }
   const unresolved=warnings.filter(w=>!state.instructionOverrides[w]);
   const confirm=document.createElement("label");confirm.style.display="block";
-  const check=document.createElement("input");check.type="checkbox";check.checked=!!state.highlightConfirmed;check.disabled=unresolved.length>0;
-  check.onchange=()=>{state.highlightConfirmed=check.checked;renderFacingInstructions()};
+  const check=document.createElement("input");check.type="checkbox";check.checked=pageApprovalCurrent(record);check.disabled=unresolved.length>0;
+  check.onchange=()=>{state.highlightConfirmed=check.checked;state.confirmedFingerprint=check.checked?pageApprovalFingerprint(record):null;renderFacingInstructions()};
   confirm.append(check,document.createTextNode(" Confirm Highlight and page instructions"));panel.append(confirm);
-  const note=document.createElement("p");note.textContent=unresolved.length?unresolved.length+" unresolved warning(s); confirmation blocked.":state.highlightConfirmed?"Page confirmed for download.":"Review the highlights, then confirm.";panel.append(note);
+  const note=document.createElement("p");note.textContent=unresolved.length?unresolved.length+" unresolved warning(s); confirmation blocked.":pageApprovalCurrent(record)?"Page confirmed for download.":"Review the highlights, then confirm.";panel.append(note);
   root.append(panel);
  }
  renderInstructionPreviews();
@@ -2293,7 +2301,7 @@ async function exportEditedSinglePage(side){
  const approval=pageMetadata[side].leadership;
  const unresolved=facingPageWarnings(pageMetadata[side]).filter(w=>!approval.instructionOverrides?.[w]);
  if(unresolved.length)throw Error("Resolve or explicitly override all page warnings before downloading: "+unresolved.join("; "));
- if(!approval.highlightConfirmed)throw Error("Confirm highlights and page instructions before downloading this page.");
+ if(!pageApprovalCurrent(pageMetadata[side]))throw Error("Page changed since approval. Review and reconfirm highlights and instructions before downloading.");
  saveCurrentSpreadEdits();
  const index=selectedSpreadFirst-1+side;
  const original=await PDFLib.PDFDocument.load(sourcePdfBytes.slice());
@@ -2332,7 +2340,7 @@ async function exportEditedSinglePage(side){
  record.leadership.highlights=marks;record.production={...(record.production||{}),pageStatus:"downloaded-page-draft"};
  copy.node.set(PDFLib.PDFName.of("LCIntakeRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(record)));
  const sourceRecord=embeddedPageRecords[index]||{};
- const pageRecord={...sourceRecord,instructionIds:record.leadership.instructionIds||[],instructionPrayer:record.leadership.instructionPrayer||"",instructionPosition:record.leadership.instructionPosition||"top",instructionOverrides:record.leadership.instructionOverrides||{},highlightConfirmed:!!record.leadership.highlightConfirmed,sourcePdfPage:index+1,printedPage:record.source.originalPageNumber||sourceRecord.printedPage||null,
+ const pageRecord={...sourceRecord,instructionIds:record.leadership.instructionIds||[],instructionPrayer:record.leadership.instructionPrayer||"",instructionPosition:record.leadership.instructionPosition||"top",instructionOverrides:record.leadership.instructionOverrides||{},highlightConfirmed:pageApprovalCurrent(pageMetadata[side]),sourcePdfPage:index+1,printedPage:record.source.originalPageNumber||sourceRecord.printedPage||null,
   cues:record.leadership.cues,highlights:marks,editedAt:new Date().toISOString()};
  copy.node.set(PDFLib.PDFName.of("LCPageRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(pageRecord)));
  await out.attach(new TextEncoder().encode(JSON.stringify({schema:"leaders-companion-page-export",version:1,sourcePdfPage:index+1,record:pageRecord},null,2)),"page-edit.json",{mimeType:"application/json"});
