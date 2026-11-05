@@ -369,13 +369,19 @@ function renderFacingInstructions(){
   const state=record.leadership;state.instructionIds??=[];state.instructionOverrides??={};
   const panel=document.createElement("section");panel.className="instruction-page-panel";
   const title=document.createElement("strong");title.textContent=(side===0?"Left":"Right")+" page instructions";panel.append(title);
-  const name=document.createElement("label");name.className="instruction-prayer";name.textContent="Prayer ";const prayer=document.createElement("input");prayer.value=state.instructionPrayer||record.identification?.prayerTitle||"";name.append(prayer);panel.append(name);
+  const prayerTitle=state.instructionPrayer||record.identification?.prayerTitle||record.leadership?.cues?.[0]?.prayer||"Untitled prayer";
+  const prayerRow=document.createElement("div");prayerRow.className="instruction-prayer-row";
+  const prayerName=document.createElement("strong");prayerName.textContent=prayerTitle;prayerRow.append(prayerName);
+  const editPrayer=document.createElement("button");editPrayer.type="button";editPrayer.textContent="Edit prayer name";prayerRow.append(editPrayer);
+  const prayer=document.createElement("input");prayer.value=prayerTitle;prayer.hidden=true;prayer.setAttribute("aria-label","Prayer name");prayerRow.append(prayer);
+  editPrayer.onclick=()=>{prayer.hidden=!prayer.hidden;editPrayer.textContent=prayer.hidden?"Edit prayer name":"Done";if(prayer.hidden){state.instructionPrayer=prayer.value.trim();state.highlightConfirmed=false;renderFacingInstructions()}};
+  panel.append(prayerRow);
   const select=document.createElement("select");select.setAttribute("aria-label","Instruction for "+(side===0?"left":"right")+" page");
   select.add(new Option("Select instruction",""));
   for(const p of facingInstructionLibrary?.prayers||[])for(const ins of p.instructions||[])select.add(new Option("#"+ins.instruction_id+" — "+p.canonical_title+" — "+ins.text+" ("+(ins.approval_status||"unreviewed")+")",String(ins.instruction_id)));
   panel.append(select);
   const add=document.createElement("button");add.type="button";add.textContent="Add instruction";add.onclick=()=>{if(!select.value)return;const id=Number(select.value);if(!state.instructionIds.includes(id))state.instructionIds.push(id);state.highlightConfirmed=false;renderFacingInstructions()};panel.append(add);
-  prayer.onchange=()=>{state.instructionPrayer=prayer.value;state.highlightConfirmed=false;renderFacingInstructions()};
+
   const selected=document.createElement("div");
   for(const id of state.instructionIds){
    const line=document.createElement("div");line.className="instruction-selected";const entry=(facingInstructionLibrary?.prayers||[]).flatMap(p=>p.instructions||[]).find(ins=>Number(ins.instruction_id)===id);line.textContent=entry?.text||"Selected instruction";
@@ -414,8 +420,8 @@ function renderPageCueEditor(){
   const active=cues.find(c=>c.cueId===visibleCueId)||cues[0];
   for(let n=0;n<Math.max(6,cues.length);n++){
    const cue=cues[n],pick=document.createElement("button");pick.type="button";
-   pick.className="cue-pick";pick.textContent=cue?String(n+1):"—";pick.disabled=!cue;
-   pick.title=cue?(cue.prayer||"Cue "+(n+1)):"No cue";
+   pick.className="cue-pick";pick.textContent=cue?(serviceRoleNames?.get?.(String(cue.role))||({R:"Rabbi",P:"President",C:"Congregation",L:"Leader"}[cue.role]||cue.role||"Role")):"—";pick.disabled=!cue;
+   pick.title=cue?((cue.prayer||"Prayer")+" — "+(cue.role||"Role")):"No cue";
    pick.setAttribute("aria-label",cue?"Select "+(side===0?"left":"right")+" page cue "+(n+1):"Empty cue slot");
    pick.setAttribute("aria-pressed",String(!!cue&&cue.cueId===active?.cueId));
    if(cue)pick.onclick=()=>{visibleCueId=cue.cueId;renderPageCueEditor();drawHighlights()};
@@ -438,7 +444,7 @@ function renderPageCueEditor(){
     for(const record of pageMetadata)if(record.leadership.cues.some(c=>c.cueId===cue.cueId))record.leadership.highlightConfirmed=false;
     for(const c of importedCues)if((c.cue_id||c.test_id)===cue.cueId){c.begin_cue=start;c.end_cue=end;c.cue_left=start;c.cue_right=end;c.begin_cue_hebrew=/[\u0590-\u05ff]/u.test(start)?start:"";c.end_cue_hebrew=/[\u0590-\u05ff]/u.test(end)?end:"";}
     applyCueTextEdits();button.disabled=true;$("page-cue-editor-status").textContent="Rematching edited cues…";
-    try{await autoMatchCues();$("page-cue-editor-status").textContent="Rematch complete. Inspect the proposed highlights before confirming."}
+    try{await autoMatchCuesForSide(side);$("page-cue-editor-status").textContent=(side===0?"Left":"Right")+" page rematched. The other page was not changed."}
     catch(e){$("page-cue-editor-status").textContent="Rematch failed: "+e.message}
     finally{button.disabled=false;renderPageCueEditor()}
    };
@@ -1895,6 +1901,17 @@ function matchCrossPageEnglishCues(){
  }
  return matched;
 }
+async function autoMatchCuesForSide(side){
+ const record=pageMetadata[side];if(!record)return;
+ record.leadership.highlights=record.leadership.highlights.filter(h=>!h.cueId);
+ status("Matching "+(side===0?"left":"right")+" page cues…");
+ try{
+  sourceTextLines[side]=await recognizeCueLines(side);
+  if(record.source.languageCode==="H")sourceTextLines[side]=await secondPassHebrewLines(side,sourceTextLines[side]);
+  assignCueHighlights(side);
+ }catch(e){rawOcrDiagnostics[side]="OCR error: "+e.message;assignCueHighlights(side)}
+ refreshCueVisibilityPicker();renderPageCueEditor();drawHighlights();displayMetadata();
+}
 async function autoMatchCues(){
  if(!pageMetadata.length||!importedCues.length)return;
  let total=0;
@@ -2391,7 +2408,7 @@ function populateHighlightRoles(){
  for(const role of roles.keys()){const option=document.createElement("option");option.value=role;option.textContent=serviceRoleDisplayNames.get(role)||({R:"Rabbi",P:"President"}[role]||role);select.append(option)}
  if(roles.has(current))select.value=current;
 }
-$("rematch-all-cues")?.addEventListener("click",()=>$("run-auto-cues")?.click());
+
 $("run-auto-cues")?.addEventListener("click",async()=>{
  const button=$("run-auto-cues");button.disabled=true;$("auto-cue-status").textContent="Matching cue text…";
  try{await autoMatchCues();$("auto-cue-status").textContent=cueMatchReport}
