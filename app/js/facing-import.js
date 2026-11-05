@@ -2304,15 +2304,25 @@ async function exportEditedSinglePage(side){
  const instructionState=pageMetadata[side].leadership;
  const instructionLines=instructionTextForPage(instructionState);
  if(instructionLines.length){
-  const font=await out.embedFont(PDFLib.StandardFonts.Helvetica);
-  const size=10,margin=18,lineHeight=13,atTop=(instructionState.instructionPosition||"top")==="top";
-  const yBase=atTop?height-margin-size:margin+(instructionLines.length-1)*lineHeight;
-  const printable=line=>String(line).replace(/[^\\x20-\\x7e]/g,"?");
-  for(let n=0;n<instructionLines.length;n++){
-   const line=printable(instructionLines[n]).slice(0,105),y=yBase-n*lineHeight;
-   copy.drawRectangle({x:margin-3,y:y-3,width:Math.min(width-margin*2,Math.max(90,font.widthOfTextAtSize(line,size)+8)),height:lineHeight,color:PDFLib.rgb(1,1,1),opacity:.94});
-   copy.drawText(line,{x:margin,y,size,font,color:PDFLib.rgb(.12,.18,.22)});
-  }
+  const imageCanvas=document.createElement("canvas");
+  const imageContext=imageCanvas.getContext("2d");
+  const scale=3, fontSize=12, lineHeight=19, padding=8;
+  imageCanvas.width=Math.ceil((width-36)*scale);
+  imageCanvas.height=Math.ceil((instructionLines.length*lineHeight+padding*2)*scale);
+  imageContext.fillStyle="white";
+  imageContext.fillRect(0,0,imageCanvas.width,imageCanvas.height);
+  imageContext.fillStyle="#182c36";
+  imageContext.font=(fontSize*scale)+"px Arial, sans-serif";
+  imageContext.textBaseline="top";
+  instructionLines.forEach((line,n)=>{
+   const isHebrew=/[\u0590-\u05ff]/.test(line);
+   imageContext.direction=isHebrew?"rtl":"ltr";
+   imageContext.textAlign=isHebrew?"right":"left";
+   imageContext.fillText(line,isHebrew?imageCanvas.width-padding*scale:padding*scale,(padding+n*lineHeight)*scale,imageCanvas.width-padding*scale*2);
+  });
+  const image=await out.embedPng(imageCanvas.toDataURL("image/png"));
+  const imageHeight=imageCanvas.height/scale;
+  copy.drawImage(image,{x:18,y:(instructionState.instructionPosition||"top")==="top"?height-18-imageHeight:18,width:imageCanvas.width/scale,height:imageHeight});
  }
  const record=JSON.parse(JSON.stringify(pageMetadata[side]));
  record.leadership.highlights=marks;record.production={...(record.production||{}),pageStatus:"downloaded-page-draft"};
