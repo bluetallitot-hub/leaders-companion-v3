@@ -449,7 +449,7 @@ function renderPageCueEditor(){
     catch(e){$("page-cue-editor-status").textContent="Rematch failed: "+e.message}
     finally{button.disabled=false;renderPageCueEditor()}
    };
-  button.textContent="Save and rematch";
+  button.textContent="Save cue and rematch";
   const actions=document.createElement("div");actions.className="cue-actions";
   const line=document.createElement("button");line.type="button";line.textContent="Line";line.setAttribute("aria-pressed",String(selectionMode==="line"));
   const word=document.createElement("button");word.type="button";word.textContent="Word";word.setAttribute("aria-pressed",String(selectionMode==="word"));
