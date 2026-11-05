@@ -1025,6 +1025,20 @@ function isolatedHebrewCueMatch(side,cue,ocr){
  };
  endpoint(beginning,start);
  endpoint(ending,end);
+ // Fill the intervening printed Hebrew words, not only the two anchor phrases.
+ // Read in visual RTL order and retain the actual Rivok word rectangles.
+ const firstRank=rank.get(beginning.token.lineId),lastRank=rank.get(ending.token.lineId);
+ if(firstRank===undefined||lastRank===undefined||lastRank<firstRank)return null;
+ const startWord=closestRivok(beginning.token),endWord=closestRivok(ending.token);
+ for(let lineIndex=firstRank;lineIndex<=lastRank;lineIndex++){
+  const row=rivokByLine(ordered[lineIndex].id);
+  if(!row.length)continue;
+  let from=0,to=row.length-1;
+  if(lineIndex===firstRank&&startWord){const pos=row.findIndex(w=>w.id===startWord.id);if(pos>=0)from=pos}
+  if(lineIndex===lastRank&&endWord){const pos=row.findIndex(w=>w.id===endWord.id);if(pos>=0)to=pos}
+  if(from>to)return null;
+  for(let j=from;j<=to;j++)include(row[j]);
+ }
  const chosen=[...selection.values()];
  if(!chosen.length)return null;
  return chosen.map(w=>({highlightId:"HL-"+cue.cueId+"-"+w.id,
