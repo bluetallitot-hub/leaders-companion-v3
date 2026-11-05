@@ -69,3 +69,8 @@
 /* Unlimited numbered cues and editable role assignment per facing page. */
 .cue-number-selector,.cue-role-selector{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:.86rem;font-weight:600}
 .cue-number-selector select,.cue-role-selector select{flex:1;min-width:0;padding:6px 8px;font:inherit;font-weight:400}
+
+/* Overlay must cover only the PDF canvas, never the download button beneath it.
+   100% height previously stretched highlight coordinates over the entire sheet. */
+.pdf-sheet .highlight-overlay{top:0;left:0;right:auto;bottom:auto;width:100%;height:auto;aspect-ratio:612 / 792}
+.pdf-sheet>canvas:not(.highlight-overlay){display:block;width:100%;height:auto}
