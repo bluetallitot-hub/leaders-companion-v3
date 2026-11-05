@@ -449,7 +449,17 @@ function renderPageCueEditor(){
     catch(e){$("page-cue-editor-status").textContent="Rematch failed: "+e.message}
     finally{button.disabled=false;renderPageCueEditor()}
    };
-  button.textContent="Save and rematch";wrap.append(button);panel.append(wrap);root.append(panel);
+  button.textContent="Save and rematch";
+  const actions=document.createElement("div");actions.className="cue-actions";
+  const line=document.createElement("button");line.type="button";line.textContent="Line";line.setAttribute("aria-pressed",String(selectionMode==="line"));
+  const word=document.createElement("button");word.type="button";word.textContent="Word";word.setAttribute("aria-pressed",String(selectionMode==="word"));
+  for(const [control,mode] of [[line,"line"],[word,"word"]])control.onclick=()=>{selectionMode=mode;$("selection-mode").value=mode;renderPageCueEditor();drawHighlights()};
+  const manual=document.createElement("button");manual.type="button";manual.textContent="Save manual highlight";manual.onclick=()=>{
+   if(!record){return}
+   saveCurrentSpreadEdits();record.leadership.highlightConfirmed=false;
+   $("page-cue-editor-status").textContent=(side===0?"Left":"Right")+" page manual highlights saved in this editing session. Review and approve before export.";
+  };
+  actions.append(button,line,word,manual);wrap.append(actions);panel.append(wrap);root.append(panel);
  }
 }
 function refreshCueVisibilityPicker(){
@@ -2440,7 +2450,7 @@ if(new URLSearchParams(location.search).get("intake")==="1")restoreSiddurIntake(
 
 // V3.150 editor visibility controls
 const zoomControl=$("page-zoom");if(zoomControl){const applyZoom=()=>{$("spread-preview").querySelector(".pdf-spread").style.width=zoomControl.value+"%";$("spread-preview").querySelector(".pdf-spread").style.minWidth="0";$("zoom-value").textContent=zoomControl.value+"%"};zoomControl.addEventListener("input",applyZoom);applyZoom();}
-$("show-detection")?.addEventListener("click",()=>{highlightView=highlightView==="detection"?"highlights":"detection";$("highlight-view").value=highlightView;$("show-detection").textContent=highlightView==="detection"?"Hide selectable lines":"Show selectable lines";drawHighlights()});
+$("show-detection")?.addEventListener("click",()=>{highlightView=highlightView==="detection"?"highlights":"detection";$("highlight-view").value=highlightView;$("show-detection").textContent=highlightView==="detection"?"Hide recognized words (debug)":"Show all recognized words (debug)";drawHighlights()});
 
 
 let assemblyPages=[];
