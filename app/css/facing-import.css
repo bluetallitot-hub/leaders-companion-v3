@@ -54,3 +54,10 @@
 @media(max-width:640px){#facing-instruction-pages.instruction-two-pages{grid-template-columns:1fr}.instruction-page-panel:first-child{border-right:0;border-bottom:2px solid #a9bdb2}}
 
 .cue-editor-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px}.cue-editor-heading button{padding:5px 9px;font-size:.85rem}
+
+.cue-six-buttons .cue-pick{font-size:.78rem;line-height:1.1;overflow-wrap:anywhere;min-height:38px}
+.instruction-prayer-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.instruction-prayer-row strong{flex:1;min-width:100px}
+.instruction-prayer-row button{font-size:.78rem;padding:4px 8px}
+.instruction-prayer-row input{flex-basis:100%}
+#facing-instructions{border-top:1px solid #aebdb8;padding-top:10px;margin-top:12px}
