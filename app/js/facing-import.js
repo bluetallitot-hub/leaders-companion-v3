@@ -2119,7 +2119,7 @@ async function preview(bytes){
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null,serviceRoleOpacity=new Map(),serviceRoleAssignments=new Map(),serviceRoleDisplayNames=new Map(),serviceHighlightColors=["#F5D03C","#75C56A","#74B9E7","#F3A65B","#DA88B8","#AE93DC"],embeddedPageRecords=[];
 const spreadEdits=new Map();
-function saveCurrentSpreadEdits(){if(pageMetadata.length)spreadEdits.set(selectedSpreadFirst,pageMetadata.map(r=>r?JSON.parse(JSON.stringify(r.leadership.highlights||[])):[]));}
+function saveCurrentSpreadEdits(){if(pageMetadata.length)spreadEdits.set(selectedSpreadFirst,{pages:pageMetadata.map(r=>r?{leadership:JSON.parse(JSON.stringify(r.leadership)),prayerTitle:r.prayerTitle,identification:r.identification?JSON.parse(JSON.stringify(r.identification)):null}:null),selectedCues:[...selectedCueBySide]});}
 function updateSpreadNavigation(){updateSpanStatus();const total=Math.ceil(sourcePdfPages/2),current=Math.ceil(selectedSpreadFirst/2),percent=Math.round(Math.min(sourcePdfPages,selectedSpreadFirst+1)/Math.max(1,sourcePdfPages)*100);$("spread-position").textContent="Spread "+current+" of "+(total||"—")+" · PDF pages "+selectedSpreadFirst+(selectedSpreadFirst+1<=sourcePdfPages?"–"+(selectedSpreadFirst+1):"")+" · "+percent+"% through service";const progress=$("review-progress");if(progress)progress.value=percent;$("previous-spread").disabled=!sourcePdfBytes||current<=1;$("next-spread").disabled=!sourcePdfBytes||current>=total;}
 async function navigateSpread(direction){if(!sourcePdfBytes)return;saveCurrentSpreadEdits();selectedSpreadFirst=Math.max(1,Math.min(2*Math.ceil(sourcePdfPages/2)-1,selectedSpreadFirst+direction*2));updateIntakeInventory();try{await loadSelectedSpread()}catch(e){console.error(e);status("Spread navigation failed: "+e.message)}}
 $("framework-boxes")?.addEventListener("change",async()=>{if(!sourcePdfBytes)return;saveCurrentSpreadEdits();try{await loadSelectedSpread()}catch(e){status("Framework style update failed: "+e.message)}});
@@ -2151,7 +2151,7 @@ async function loadSelectedSpread(){
  for(let side=0;side<2;side++)$("download-page-"+side).disabled=!pageMetadata[side];
  applyCueRoleEdits();
  const saved=spreadEdits.get(selectedSpreadFirst);
- if(saved){pageMetadata.forEach((record,i)=>{if(record&&saved[i])record.leadership.highlights=saved[i]});drawHighlights()}
+ if(saved){pageMetadata.forEach((record,i)=>{const prior=saved.pages?.[i];if(record&&prior){record.leadership=JSON.parse(JSON.stringify(prior.leadership));record.prayerTitle=prior.prayerTitle;if(prior.identification)record.identification=JSON.parse(JSON.stringify(prior.identification))}});selectedCueBySide=[...(saved.selectedCues||["",""])];renderPageCueEditor();drawHighlights()}else selectedCueBySide=["",""];
  if($("metadata-dialog").open)refreshMetadataDialog();
  $("download").disabled=false;
  status(cueMatchReport);updateSpanStatus();
