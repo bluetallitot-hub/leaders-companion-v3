@@ -52,3 +52,5 @@
 .instruction-page-panel p{margin:3px 0;font-size:.82rem}
 .instruction-selected{font-size:.85rem;border-bottom:1px solid #e2e8e3;padding:5px 0;display:flex;justify-content:space-between;gap:8px}
 @media(max-width:640px){#facing-instruction-pages.instruction-two-pages{grid-template-columns:1fr}.instruction-page-panel:first-child{border-right:0;border-bottom:2px solid #a9bdb2}}
+
+.cue-editor-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px}.cue-editor-heading button{padding:5px 9px;font-size:.85rem}
