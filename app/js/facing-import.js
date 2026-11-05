@@ -286,7 +286,7 @@ function applyImportedCues(){
   record.leadership.cues=matches.map((c,i)=>({
    cueId:c.cue_id||c.test_id||"import-"+i,service:c.service_name||c.service||null,role:c.leader_role||c.role_name||c.role_code||c.role||null,
    style:c.performance_style||c.style||null,styleSlot:null,startCue:c.cue_left||c.begin_cue||"",endCue:c.cue_right||c.end_cue||"",
-   startCueHebrew:c.begin_cue_hebrew||"",endCueHebrew:c.end_cue_hebrew||"",
+   startCueHebrew:c.begin_cue_hebrew||(/[\u0590-\u05ff]/u.test(c.begin_cue||c.cue_left||"")?(c.begin_cue||c.cue_left):""),endCueHebrew:c.end_cue_hebrew||(/[\u0590-\u05ff]/u.test(c.end_cue||c.cue_right||"")?(c.end_cue||c.cue_right):""),
    prayer:c.prayer_name||c.prayer_action||c.prayer||null,sourceRow:c.leader_map_source_row||null,
    highlights:[],matchStatus:"unmatched-review-required"
   }));
