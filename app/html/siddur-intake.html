@@ -662,6 +662,7 @@ function renderMappingExceptions(){
  $("csv-note").textContent=exceptions?exceptions+" mapping exception"+(exceptions===1?"":"s")+" require attention. Successfully mapped pages are hidden.":"No mapping exceptions — all referenced pages are accounted for.";
 }
 function populateDocumentIdentity(){
+ if(csvDocumentRecord?.facing_page_direction&&["english","hebrew"].includes(csvDocumentRecord.facing_page_direction))$("facing-direction").value=csvDocumentRecord.facing_page_direction;
  const siddur=$("master-siddur-name"),service=$("master-service-name");
  const filename=String(sourcePdfName||"").replace(/\.pdf$/i,"").trim();
  if(filename&&filename.toLowerCase()!=="siddur"&&!siddur.dataset.userEdited)siddur.value=filename;
