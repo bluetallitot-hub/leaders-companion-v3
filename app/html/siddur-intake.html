@@ -698,7 +698,7 @@ async function buildReducedPdf(){
   if(kind==="supplement"&&refKind(refs[refIndex+1]||"")!=="supplement"&&out.getPageCount()%2!==0)blankFacing(ref);
   }
  // A facing spread must never combine a supplement with a printed bilingual pair.
- for(let i=0;i<manifestPages.length;i+=2){const pair=manifestPages.slice(i,i+2);if(pair.some(p=>p.kind==="printed")&&(!pair.every(p=>p.kind==="printed")||pair[0].printedPage!==pair[1].printedPage||pair[0].languageCode===pair[1].languageCode))throw Error("Invalid bilingual spread at output pages "+(i+1)+"–"+(i+2)+". Recheck mapping and source order.");}
+ for(let i=0;i<manifestPages.length;i+=2){const pair=manifestPages.slice(i,i+2);if(pair.some(p=>p.kind==="printed")&&(!pair.every(p=>p.kind==="printed")||pair[0].printedPage!==pair[1].printedPage||pair[0].language===pair[1].language))throw Error("Invalid bilingual spread at output pages "+(i+1)+"–"+(i+2)+". Recheck mapping and source order.");}
  for(const page of out.getPages()){
   const raw=page.node.get(PDFLib.PDFName.of("LCPageRecord"));
   if(!raw)continue;
