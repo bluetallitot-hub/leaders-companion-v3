@@ -1,11 +1,12 @@
 "use strict";
 const $=id=>document.getElementById(id);
 const W=612,H=792,REGIONS=[{x:171.36,y:98,w:380.88,h:540},{x:59.76,y:98,w:380.88,h:540}];
+let siddurStyleSheet={framework:"boxes"};
 let output=null,baseOutput=null,filename="siddur",pageMetadata=[],roleConfig=null,highlightDraft=null,importedCues=[];
 function status(s){if($("status"))$("status").textContent=s;if($("editor-status"))$("editor-status").textContent=s}
 const workerURL="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
 function drawTemplate(page,side){
- if($("framework-boxes")?.value==="none")return;
+ if(siddurStyleSheet.framework==="none")return;
  const text=side===0?171.36:59.76,content=side===0?20.16:444.96;
  const min=Math.min(text,content),max=Math.max(text+380.88,content+146.88);
  const boxes=[[text,710,380.88,30],[text,642,380.88,64],[text,98,380.88,540],[text,46,380.88,48],[content,46,146.88,694],[min,24,max-min,18]];
@@ -2424,7 +2425,7 @@ async function restoreSiddurIntake(){
  importedCues=rows.filter(c=>c.source_page||c.printed_page);
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  filename=(data.pdfName||"siddur.pdf").replace(/\.pdf$/i,"");
- const details=data.masterDetails||{};
+ const details=data.masterDetails||{};siddurStyleSheet=data.styleSheet||{framework:"boxes"};
  if($("assembly-siddur"))$("assembly-siddur").value=details.siddur||"";
  if($("assembly-service"))$("assembly-service").value=details.service||"";
  serviceManifest=data.manifest||null;servicePageMapping=data.pageMapping||null;serviceRoleOpacity=new Map(data.roleOpacity||serviceManifest?.opacity||[]);serviceRoleAssignments=new Map(data.roleAssignments||[]);serviceRoleDisplayNames=new Map(data.roleDisplayNames||[]);populateHighlightRoles();
