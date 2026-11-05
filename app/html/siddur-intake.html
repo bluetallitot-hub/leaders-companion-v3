@@ -500,6 +500,15 @@ async function autoMapPages(){
    return;
    }catch(e){$("map-status").textContent="Image OCR failed: "+e.message}finally{if(worker)await worker.terminate();btn.disabled=false}
 }
+let intakeAutoMapRunning=false;
+async function autoMapOnIntake(){
+ if(!sourcePdfBytes||!csvRows||intakeAutoMapRunning)return;
+ if(siddurPages().every(p=>mapValid(pageMapping[p])))return;
+ intakeAutoMapRunning=true;
+ try{await autoMapPages()}
+ catch(error){$("map-status").textContent="Automatic page scan could not complete: "+error.message}
+ finally{intakeAutoMapRunning=false}
+}
 $("scan-map").addEventListener("click",autoMapPages);
 function cueRowsForPage(ref,kind,language){
  const reference=String(ref||"").trim();
@@ -651,14 +660,14 @@ $("load-test-case").addEventListener("click",async()=>{
   const cues=parseCsv(csvTextValue);if(!cues.length)throw Error("Test CSV has no cues");
   sourcePdfBytes=bytes;sourcePdfName="DSP-SH.pdf";pdfCount=pdf.numPages;csvRows=cues;
   rolesLocked=false;roleOpacity.clear();roleAssignments.clear();roleDisplayNames.clear();pageMapping={};supplements={};
-  renderRoles();refresh();renderSupplements();renderMapping();await saveIntakeProject();
+  renderRoles();refresh();renderSupplements();renderMapping();await autoMapOnIntake();await saveIntakeProject();
   status.textContent="Temporary test case loaded: DSP Sabbath PDF ("+pdfCount+" pages), "+cues.length+" cues, "+intakePageRecords.length+" page records. Page mapping still requires review.";
   $("handoff-status").textContent="DSP Sabbath test fixture loaded. No local uploads required.";
  }catch(err){status.textContent="Test case could not load: "+err.message}
  finally{button.disabled=false}
 });
-$("siddur").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{const bytes=new Uint8Array(await file.arrayBuffer());sourcePdfBytes=bytes.slice();sourcePdfName=file.name;const doc=await pdfjsLib.getDocument({data:bytes}).promise;pdfCount=doc.numPages;pageMapping={};renderRoles();refresh();renderSupplements();renderMapping();await saveIntakeProject().catch(err=>{$("status").textContent="PDF loaded, but browser storage failed: "+err.message});$("handoff-status").textContent="PDF loaded: "+sourcePdfName+" ("+pdfCount+" pages); "+(csvRows?csvRows.length+" cues loaded":"CSV still missing")+". Saved in browser."}catch(err){$("status").textContent="PDF intake failed: "+err.message}});
-$("cues").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{csvRows=parseCsv(await file.text());if(!csvRows.length)throw Error("CSV contains no cue rows; check the file format.");rolesLocked=false;roleOpacity.clear();roleAssignments.clear();renderRoles();refresh();renderSupplements();renderMapping();await saveIntakeProject().catch(err=>{$("status").textContent="CSV loaded, but browser storage failed: "+err.message});$("handoff-status").textContent="CSV loaded: "+csvRows.length+" cues; "+(sourcePdfBytes?sourcePdfName+" ("+pdfCount+" PDF pages)":"PDF still missing")+". Saved in browser."}catch(err){$("status").textContent="CSV intake failed: "+err.message}});
+$("siddur").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{const bytes=new Uint8Array(await file.arrayBuffer());sourcePdfBytes=bytes.slice();sourcePdfName=file.name;const doc=await pdfjsLib.getDocument({data:bytes}).promise;pdfCount=doc.numPages;pageMapping={};renderRoles();refresh();renderSupplements();renderMapping();await autoMapOnIntake();await saveIntakeProject().catch(err=>{$("status").textContent="PDF loaded, but browser storage failed: "+err.message});$("handoff-status").textContent="PDF loaded: "+sourcePdfName+" ("+pdfCount+" pages); "+(csvRows?csvRows.length+" cues loaded":"CSV still missing")+". Saved in browser."}catch(err){$("status").textContent="PDF intake failed: "+err.message}});
+$("cues").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;try{csvRows=parseCsv(await file.text());if(!csvRows.length)throw Error("CSV contains no cue rows; check the file format.");rolesLocked=false;roleOpacity.clear();roleAssignments.clear();renderRoles();refresh();renderSupplements();renderMapping();await autoMapOnIntake();await saveIntakeProject().catch(err=>{$("status").textContent="CSV loaded, but browser storage failed: "+err.message});$("handoff-status").textContent="CSV loaded: "+csvRows.length+" cues; "+(sourcePdfBytes?sourcePdfName+" ("+pdfCount+" PDF pages)":"PDF still missing")+". Saved in browser."}catch(err){$("status").textContent="CSV intake failed: "+err.message}});
 
 let instructionLibrary=null,instructionDrafts={},instructionOverrides={};
 function instructionCurrent(){const n=Number($("instruction-page").value);if(!n)return null;const key="pdf-page-"+n;return {key,data:instructionDrafts[key]||{instructionIds:[],highlightConfirmed:false,metadata:{PageID:key,PageNumber:String(n)}}}}
