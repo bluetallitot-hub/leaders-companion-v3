@@ -2497,7 +2497,7 @@ async function restoreSiddurIntake(){
  const data=await new Promise((resolve,reject)=>{const tx=db.transaction("projects","readonly");const q=tx.objectStore("projects").get("handoff");q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});db.close();
  if(!data?.pdf)throw Error("No saved PDF found. Return to Siddur Intake and save the project again.");
  const rows=data.csv?parseCsv(data.csv):[];
- cueCsvRows=rows.map(row=>({...row}));cueCsvHeaders=(data.csv?.split(/\\r?\\n/)[0]||"").split(",").map(h=>h.replace(/^"|"$/g,"").trim().toLowerCase());
+ cueCsvRows=rows.map(row=>({...row}));cueCsvHeaders=(data.csv?.split(/\r?\n/)[0]||"").split(",").map(h=>h.replace(/^"|"$/g,"").trim().toLowerCase());
  importedCues=rows.filter(c=>c.source_page||c.printed_page);
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  filename=(data.pdfName||"siddur.pdf").replace(/\.pdf$/i,"");
