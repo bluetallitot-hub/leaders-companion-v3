@@ -664,6 +664,9 @@ function renderMappingExceptions(){
 function applyCsvDocumentSettings(){
  const direction=csvDocumentRecord?.facing_page_direction;
  if(direction==="english"||direction==="hebrew")$("facing-direction").value=direction;
+ for(const [field,target] of [["role_names",roleDisplayNames],["role_colors",roleAssignments]]){
+  try{const entries=JSON.parse(csvDocumentRecord?.[field]||"{}");for(const [key,value] of Object.entries(entries))target.set(key,value)}catch(e){console.warn("Invalid CSV metadata",field,e)}
+ }
 }
 function populateDocumentIdentity(){
  const siddur=$("master-siddur-name"),service=$("master-service-name");
