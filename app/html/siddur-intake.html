@@ -34,7 +34,7 @@ function intakeStageAvailable(panel){
 function endpointMappingPages(){const pages=siddurPages();return [...new Set([pages[0],pages[pages.length-1]].filter(Boolean))]}
 function autoVerifyInteriorMappings(){
  const pages=siddurPages(),endpoints=endpointMappingPages();
- if(!endpoints.length||!endpoints.every(p=>mapValid(pageMapping[p])&&mappingPreviewed.has(p)))return false;
+ if(!endpoints.length||!endpoints.every(p=>mapValid(pageMapping[p])&&mappingPreviewed.has(p))){for(const p of pages)if(!endpoints.includes(p)&&pageMapping[p]?.verifiedBy==="verified-endpoints"){pageMapping[p].verified=false;delete pageMapping[p].verifiedBy}return false;}
  for(const p of pages){
   if(endpoints.includes(p))continue;
   const m=pageMapping[p];
