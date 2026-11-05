@@ -1,0 +1,51 @@
+{
+  "schema": "leaders-companion-instruction-library",
+  "version": 1,
+  "description": "Reusable prayer-level spoken instruction templates. Source cue CSV and original siddur remain unchanged.",
+  "placeholderSyntax": "{field_name}",
+  "allowedPlaceholders": [
+    "prayer_name",
+    "page_name",
+    "service_name",
+    "section_name"
+  ],
+  "prayers": [
+    {
+      "prayer_id": "amidah",
+      "canonical_title": "Amidah",
+      "aliases": [
+        "The Amidah",
+        "עמידה"
+      ],
+      "instructions": [
+        {
+          "instruction_id": "amidah-rise-v1",
+          "kind": "spoken",
+          "text": "Please rise for the {prayer_name} on page {page_name}.",
+          "required": [
+            "prayer_name",
+            "page_name"
+          ],
+          "enabled": true,
+          "approval_status": "proposed",
+          "notes": "Example supplied by user; approve wording before production."
+        }
+      ]
+    }
+  ],
+  "matching": {
+    "priority": [
+      "prayer_id",
+      "canonical_title",
+      "aliases"
+    ],
+    "caseInsensitive": true,
+    "automaticInsertion": "only when instruction approved and page mapping verified",
+    "unmatched": "review_required",
+    "ambiguous": "review_required"
+  },
+  "provenance": {
+    "created_for": "Leader's Companion V3",
+    "source": "User example: Amidah instruction"
+  }
+}
