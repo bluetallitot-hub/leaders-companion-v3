@@ -304,6 +304,7 @@ let detectedLines=[[],[]];
 let highlightView="highlights";
 let selectionMode="line";
 let visibleCueId="";
+let selectedCueBySide=["",""];
 function installCueVisibilityPicker(){
  const anchor=$("highlight-view");if(!anchor||$("visible-cue"))return;
  const select=document.createElement("select");select.id="visible-cue";select.setAttribute("aria-label","Visible leader cue");
@@ -418,14 +419,14 @@ function renderPageCueEditor(){
   title.textContent=(side===0?"Left":"Right")+" page"+(record?.source?.originalPageNumber?" · "+record.source.originalPageNumber:"");
   panel.append(title);
   const buttons=document.createElement("div");buttons.className="cue-six-buttons";
-  const active=cues.find(c=>c.cueId===visibleCueId)||cues[0];
+  const active=cues.find(c=>c.cueId===selectedCueBySide[side])||cues[0];
   for(let n=0;n<Math.max(6,cues.length);n++){
    const cue=cues[n],pick=document.createElement("button");pick.type="button";
    pick.className="cue-pick";pick.textContent=cue?(({R:"Rabbi",P:"President",C:"Congregation",L:"Leader"}[cue.role]||cue.role||"Role")):"—";pick.disabled=!cue;
    pick.title=cue?((cue.prayer||"Prayer")+" — "+(cue.role||"Role")):"No cue";
    pick.setAttribute("aria-label",cue?"Select "+(side===0?"left":"right")+" page cue "+(n+1):"Empty cue slot");
    pick.setAttribute("aria-pressed",String(!!cue&&cue.cueId===active?.cueId));
-   if(cue)pick.onclick=()=>{visibleCueId=cue.cueId;renderPageCueEditor();drawHighlights()};
+   if(cue)pick.onclick=()=>{selectedCueBySide[side]=cue.cueId;renderPageCueEditor();drawHighlights()};
    buttons.append(pick);
   }
   panel.append(buttons);
@@ -1281,7 +1282,8 @@ function drawHighlights(){
    }
    ctx.restore();
   }
-  const selected=(pageMetadata[i]?.leadership?.highlights||[]).filter(h=>visibleCueId==="__all__"||visibleCueId&&h.cueId===visibleCueId);
+  const pageCue=selectedCueBySide[i];
+  const selected=(pageMetadata[i]?.leadership?.highlights||[]).filter(h=>!pageCue||h.cueId===pageCue||!h.cueId);
   for(const line of detectedLines[i]){
    const lineHighlight=selected.find(h=>!h.wordId&&h.lineId===line.id);
    const wordOverrides=selected.filter(h=>h.wordId&&h.lineId===line.id);
@@ -2137,7 +2139,7 @@ $("source").addEventListener("change",async()=>{
   if(!window.PDFLib||!window.pdfjsLib)throw Error("PDF libraries unavailable.");
   sourcePdfBytes=new Uint8Array(await file.arrayBuffer());
   const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
-  sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();
+  sourcePdfPages=source.numPages;selectedSpreadFirst=1;selectedCueBySide=["",""];spreadEdits.clear();
   updateIntakeInventory();
   await loadSelectedSpread();
  }catch(e){console.error(e);status("Import failed: "+e.message)}
