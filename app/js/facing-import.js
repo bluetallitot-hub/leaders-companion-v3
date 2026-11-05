@@ -1951,6 +1951,7 @@ async function loadSelectedSpread(){
  output=await createPdf(sourcePdfBytes.slice());
  baseOutput=output.slice();
  await preview(output);
+ for(let side=0;side<2;side++)$("download-page-"+side).disabled=!pageMetadata[side];
  const saved=spreadEdits.get(selectedSpreadFirst);
  if(saved){pageMetadata.forEach((record,i)=>{if(record&&saved[i])record.leadership.highlights=saved[i]});drawHighlights()}
  if($("metadata-dialog").open)refreshMetadataDialog();
@@ -2164,6 +2165,40 @@ async function exportEntireService(){
  exportProgress(total,total,"Complete");
  return {bytes:new Uint8Array(await result.save()),pages:total,highlighted};
 }
+
+async function exportEditedSinglePage(side){
+ if(!sourcePdfBytes||!pageMetadata[side])throw Error("No page loaded.");
+ saveCurrentSpreadEdits();
+ const index=selectedSpreadFirst-1+side;
+ const original=await PDFLib.PDFDocument.load(sourcePdfBytes.slice());
+ if(index>=original.getPageCount())throw Error("Page out of range.");
+ const out=await PDFLib.PDFDocument.create(),[copy]=await out.copyPages(original,[index]);out.addPage(copy);
+ const width=copy.getWidth(),height=copy.getHeight(),marks=pageMetadata[side].leadership.highlights||[];
+ for(const mark of marks){
+  if(![mark.x,mark.y,mark.width,mark.height].every(Number.isFinite)||mark.width<=0||mark.height<=0)continue;
+  const hex=roleColor(mark.roleId).replace("#",""),value=parseInt(hex,16);
+  copy.drawRectangle({x:mark.x*width,y:(1-mark.y-mark.height)*height,width:mark.width*width,height:mark.height*height,color:PDFLib.rgb(((value>>16)&255)/255,((value>>8)&255)/255,(value&255)/255),opacity:highlightAlpha(mark),blendMode:"Multiply"});
+ }
+ const record=JSON.parse(JSON.stringify(pageMetadata[side]));
+ record.leadership.highlights=marks;record.production={...(record.production||{}),pageStatus:"downloaded-page-draft"};
+ copy.node.set(PDFLib.PDFName.of("LCIntakeRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(record)));
+ const sourceRecord=embeddedPageRecords[index]||{};
+ const pageRecord={...sourceRecord,sourcePdfPage:index+1,printedPage:record.source.originalPageNumber||sourceRecord.printedPage||null,
+  cues:record.leadership.cues,highlights:marks,editedAt:new Date().toISOString()};
+ copy.node.set(PDFLib.PDFName.of("LCPageRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(pageRecord)));
+ await out.attach(new TextEncoder().encode(JSON.stringify({schema:"leaders-companion-page-export",version:1,sourcePdfPage:index+1,record:pageRecord},null,2)),"page-edit.json",{mimeType:"application/json"});
+ return {bytes:new Uint8Array(await out.save()),index:index+1,marks:marks.length};
+}
+for(let side=0;side<2;side++)$("download-page-"+side).addEventListener("click",async()=>{
+ const button=$("download-page-"+side);button.disabled=true;
+ try{
+  const result=await exportEditedSinglePage(side),url=URL.createObjectURL(new Blob([result.bytes],{type:"application/pdf"}));
+  const a=document.createElement("a");a.href=url;a.download=filename+"-page-"+String(result.index).padStart(3,"0")+".pdf";
+  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+  $("page-cue-editor-status").textContent="Downloaded physical page "+result.index+" with "+result.marks+" highlights and editable cue metadata.";
+ }catch(e){$("page-cue-editor-status").textContent="Page download failed: "+e.message}
+ finally{button.disabled=!pageMetadata[side]}
+});
 $("download").addEventListener("click",async()=>{
  const button=$("download");button.disabled=true;
  try{
