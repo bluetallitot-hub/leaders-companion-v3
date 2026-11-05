@@ -2376,7 +2376,13 @@ $("assembly-files").addEventListener("change",async event=>{
    seen.add(item.index);
    const li=document.createElement("li");li.textContent="Page "+item.index+" — "+item.file.name+" (confirmed)";$("assembly-pages").append(li);
   }
-  assemblyStatus(assemblyPages.length+" confirmed pages ready. Verify their order before downloading.");
+  const expected=Number(sourcePdfPages)||0;
+  const received=new Set(assemblyPages.map(p=>p.index));
+  const missing=Array.from({length:expected},(_,i)=>i+1).filter(n=>!received.has(n));
+  if(!expected||missing.length||assemblyPages.some(p=>p.index>expected)){
+   assemblyStatus("Incomplete service. Expected "+expected+" pages; missing: "+missing.join(", ")+". Export blocked.");return;
+  }
+  assemblyStatus("All "+expected+" service pages confirmed and in order.");
   $("assembly-download").disabled=false;
  }catch(error){assemblyPages=[];$("assembly-pages").replaceChildren();assemblyStatus("Assembly blocked: "+error.message)}
 });
@@ -2385,7 +2391,7 @@ $("assembly-download").addEventListener("click",async()=>{
  try{
   const siddur=$("assembly-siddur").value.trim(),service=$("assembly-service").value.trim();
   if(!siddur||!service)throw Error("Enter both Siddur Name and Service Name.");
-  if(!assemblyPages.length)throw Error("Select confirmed page PDFs.");
+  if(!assemblyPages.length||!sourcePdfPages||assemblyPages.length!==sourcePdfPages||assemblyPages.some((p,i)=>p.index!==i+1))throw Error("Complete service page set required.");
   const out=await PDFLib.PDFDocument.create();
   const manifest=[];
   for(const item of assemblyPages){
