@@ -678,25 +678,25 @@ function masterSpreadOptions(){const sel=$("master-spread"),old=sel.value;sel.re
 function masterApprovalStatus(){const p=$("master-spread").value,approved=masterApprovedSpreads[p];$("master-approval-status").textContent=p?(approved?"Approved "+approved.at:"Not approved"):"Select a verified spread. "+Object.keys(masterApprovedSpreads).length+" approved."}
 function masterPageCheck(n){const key="pdf-page-"+n,record=instructionDrafts[key]||{instructionIds:[],highlightConfirmed:false,metadata:{PageID:key,PageNumber:String(n)}};const warnings=LCInstructions.validate(instructionLibrary,record);return {key,record,warnings,unresolved:warnings.filter(w=>!instructionOverrides[key]?.[w.code]?.accepted)}}
 $("master-spread").onchange=masterApprovalStatus;
-$("master-approve").onclick=async()=>{try{const p=$("master-spread").value,m=pageMapping[p];if(!p||!mapValid(m)||!instructionLibrary)throw Error("Select a verified spread and load the instruction library.");const results=[masterPageCheck(m.e),masterPageCheck(m.h)];const missing=results.flatMap(x=>x.unresolved.map(w=>x.key+": "+w.message));if(missing.length)throw Error("Resolve or override each warning on BOTH pages: "+missing.join("; "));masterApprovedSpreads[p]={at:new Date().toISOString(),pages:[Number(m.e),Number(m.h)],validation:results.map(x=>({page:x.key,warnings:x.warnings,overrides:instructionOverrides[x.key]||{}}))};await saveIntakeProject();masterApprovalStatus()}catch(e){$("master-approval-status").textContent=e.message}};
+$("master-approve").onclick=async()=>{try{const p=$("master-spread").value,m=pageMapping[p];if(!p||!mapValid(m)||!instructionLibrary)throw Error("Select a verified spread and load the instruction library.");const results=[masterPageCheck(m.e),masterPageCheck(m.h)];const snapshot=JSON.stringify(results.map(x=>({record:x.record,overrides:instructionOverrides[x.key]||{}})));const missing=results.flatMap(x=>x.unresolved.map(w=>x.key+": "+w.message));if(missing.length)throw Error("Resolve or override each warning on BOTH pages: "+missing.join("; "));masterApprovedSpreads[p]={at:new Date().toISOString(),pages:[Number(m.e),Number(m.h)],snapshot,validation:results.map(x=>({page:x.key,warnings:x.warnings,overrides:instructionOverrides[x.key]||{}}))};await saveIntakeProject();masterApprovalStatus()}catch(e){$("master-approval-status").textContent=e.message}};
 $("master-revoke").onclick=async()=>{delete masterApprovedSpreads[$("master-spread").value];await saveIntakeProject();masterApprovalStatus()};
 async function buildApprovedMasterPdf(){
  if(!sourcePdfBytes||!csvRows||!instructionLibrary)throw Error("Load the original siddur, cues, and instruction library.");
- const approved=siddurPages().filter(p=>{const a=masterApprovedSpreads[p],m=pageMapping[p];return a&&mapValid(m)&&a.pages[0]===Number(m.e)&&a.pages[1]===Number(m.h)});
+ const approved=siddurPages().filter(p=>{const a=masterApprovedSpreads[p],m=pageMapping[p];return a&&mapValid(m)&&a.pages[0]===Number(m.e)&&a.pages[1]===Number(m.h)});for(const p of approved){const m=pageMapping[p],a=masterApprovedSpreads[p],checks=[masterPageCheck(m.e),masterPageCheck(m.h)];if(checks.some(x=>x.unresolved.length)||JSON.stringify(checks.map(x=>({record:x.record,overrides:instructionOverrides[x.key]||{}})))!==a.snapshot)throw Error("Spread "+p+" has changed since approval or has unresolved warnings. Reapprove before exporting.");}
  if(!approved.length)throw Error("Approve at least one complete bilingual spread.");
  const source=await PDFLib.PDFDocument.load(sourcePdfBytes.slice()),out=await PDFLib.PDFDocument.create();
  const siddur=$("master-siddur-name").value.trim()||sourcePdfName.replace(/\.pdf$/i,""),service=$("master-service-name").value.trim()||"Service";
  const title=$("master-title").value.trim()||siddur+" — "+service,direction=$("facing-direction").value;
  out.setTitle(title);out.setSubject("Leader's Companion approved service");out.setCreator("Leader's Companion V3.189");
  const font=await out.embedFont(PDFLib.StandardFonts.Helvetica),bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
- const titlePage=out.addPage([612,792]);titlePage.drawText(title.slice(0,65),{x:44,y:680,size:21,font:bold});titlePage.drawText("Approved service document",{x:44,y:625,size:13,font});
+ const titlePage=out.addPage([612,792]);titlePage.drawText(title.replace(/[^\\x20-\\x7E]/g,"-").slice(0,65),{x:44,y:680,size:21,font:bold});titlePage.drawText("Approved service document",{x:44,y:625,size:13,font});
  const toc=out.addPage([612,792]);toc.drawText("Contents",{x:44,y:740,size:22,font:bold});let y=700;
  const manifest=[];
  for(const p of approved){
   const m=pageMapping[p],indices=(direction==="hebrew"?[Number(m.h)-1,Number(m.e)-1]:[Number(m.e)-1,Number(m.h)-1]);
   const pageTitle=cueRowsForPage(p,"printed",null).map(c=>c.prayer_title||c.prayer_name||c.title).find(Boolean)||"Printed page "+p;
   if(y<55)throw Error("Contents exceeds one page; reduce approved spreads or extend contents pagination.");
-  toc.drawText((String(p)+" — "+pageTitle).slice(0,68),{x:44,y,size:10,font});toc.drawText(String(out.getPageCount()+1),{x:550,y,size:10,font});y-=17;
+  toc.drawText((String(p)+" - "+pageTitle).replace(/[^\\x20-\\x7E]/g,"?").slice(0,68),{x:44,y,size:10,font});toc.drawText(String(out.getPageCount()+1),{x:550,y,size:10,font});y-=17;
   for(const index of indices){
    if(index<0||index>=source.getPageCount())throw Error("Source page out of range: "+(index+1));
    const [copy]=await out.copyPages(source,[index]);out.addPage(copy);
@@ -712,7 +712,7 @@ async function buildApprovedMasterPdf(){
    manifest.push({...entry,instructionIds:record.instructionIds,approvedAt:masterApprovedSpreads[p].at});
   }
  }
- const meta={schema:"leaders-companion-approved-master",version:1,title,siddur,service,direction,instructionLibraryVersion:instructionLibrary.version,pages:manifest,approvedSpreads:approved};
+ const meta={schema:"leaders-companion-approved-master",version:1,title,siddur,service,direction,instructionLibraryVersion:instructionLibrary.version,pages:manifest,approvedSpreads:approved,sections:approved.map(p=>({printedPage:p,section:cueRowsForPage(p,"printed",null).map(c=>c.section_title||c.section_name||c.section_id).find(Boolean)||null}))};
  out.catalog.set(PDFLib.PDFName.of("LCMasterMetadata"),PDFLib.PDFHexString.fromText(JSON.stringify(meta)));
  await out.attach(new TextEncoder().encode(JSON.stringify(meta,null,2)),"master-manifest.json",{mimeType:"application/json"});
  await out.attach(new TextEncoder().encode(JSON.stringify(instructionLibrary,null,2)),"instruction-library-snapshot.json",{mimeType:"application/json"});
