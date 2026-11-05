@@ -44,6 +44,8 @@ function openIntakeStage(index){
  stages[next].scrollIntoView({behavior:"smooth",block:"start"});
 }
 function initializeIntakePanels(){
+ const sourceSection=document.querySelector("main > section.panel");
+ if(sourceSection){const firstProceed=document.createElement("button");firstProceed.type="button";firstProceed.id="source-proceed";firstProceed.textContent="Proceed to Main Document settings";firstProceed.disabled=true;firstProceed.onclick=()=>openIntakeStage(0);sourceSection.append(firstProceed)}
  const sections=[...document.querySelectorAll("main > section.panel")].filter(el=>!el.hasAttribute("aria-hidden"));
  for(const section of sections){
   const heading=section.querySelector("h2");
@@ -60,6 +62,7 @@ function initializeIntakePanels(){
 }
 function updateIntakePanels(){
  const ready=intakeReady(),stages=intakeStages();
+ if($("source-proceed"))$("source-proceed").disabled=!ready;
  if(!ready){intakeStageReached=0;for(const panel of stages){panel.hidden=true;panel.open=false}return}
  if(!intakeStageReached){intakeStageReached=1;stages[0].open=true}
  for(let i=0;i<stages.length;i++)stages[i].hidden=i>=intakeStageReached||!intakeStageAvailable(stages[i]);
