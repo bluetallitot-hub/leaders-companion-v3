@@ -309,6 +309,48 @@ function installCueVisibilityPicker(){
  anchor.insertAdjacentElement("afterend",select);
  select.addEventListener("change",()=>{visibleCueId=select.value;drawHighlights()});
 }
+
+const cueTextEdits=new Map();
+function applyCueTextEdits(){
+ for(const record of pageMetadata)for(const cue of record?.leadership?.cues||[]){
+  const edit=cueTextEdits.get(cue.cueId);if(!edit)continue;
+  cue.startCue=edit.start;cue.endCue=edit.end;
+  cue.startCueHebrew=/[\u0590-\u05ff]/u.test(edit.start)?edit.start:"";
+  cue.endCueHebrew=/[\u0590-\u05ff]/u.test(edit.end)?edit.end:"";
+  cue.matchStatus="edited-awaiting-rematch";
+ }
+}
+function renderPageCueEditor(){
+ const root=$("page-cue-editor");if(!root)return;root.replaceChildren();
+ for(let side=0;side<pageMetadata.length;side++){
+  const record=pageMetadata[side];if(!record)continue;
+  const heading=document.createElement("h4");heading.textContent=(side===0?"Left":"Right")+" page — "+(record.source.originalPageNumber||record.source.serviceReference||"");root.append(heading);
+  const cues=record.leadership.cues||[];
+  if(!cues.length){const p=document.createElement("p");p.textContent="No cues assigned to this page.";root.append(p);continue}
+  for(const cue of cues){
+   const wrap=document.createElement("div");wrap.style.cssText="border-top:1px solid #ddd;padding:9px 0";
+   const name=document.createElement("strong");name.textContent=(cue.cueId||"Cue")+" · "+(cue.prayer||"")+" · "+(cue.role||"");wrap.append(name);
+   const fields=document.createElement("div");fields.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin-top:6px";
+   const inputs={};
+   for(const [key,label,value] of [["start","Beginning cue",cue.startCue],["end","Ending cue",cue.endCue]]){
+    const lab=document.createElement("label");lab.textContent=label;lab.style.cssText="display:flex;flex-direction:column;gap:4px";
+    const input=document.createElement("textarea");input.rows=2;input.value=value||"";input.dir="auto";input.style.width="100%";lab.append(input);fields.append(lab);inputs[key]=input;
+   }
+   wrap.append(fields);
+   const state=document.createElement("p");state.textContent="Match: "+(cue.matchStatus||"not checked");wrap.append(state);
+   const button=document.createElement("button");button.type="button";button.textContent="Save cue and rematch";button.onclick=async()=>{
+    const start=inputs.start.value.trim(),end=inputs.end.value.trim();
+    if(!start||!end){$("page-cue-editor-status").textContent="Both beginning and ending cues are required.";return}
+    cueTextEdits.set(cue.cueId,{start,end});
+    for(const c of importedCues)if((c.cue_id||c.test_id)===cue.cueId){c.begin_cue=start;c.end_cue=end;c.cue_left=start;c.cue_right=end;c.begin_cue_hebrew=/[\u0590-\u05ff]/u.test(start)?start:"";c.end_cue_hebrew=/[\u0590-\u05ff]/u.test(end)?end:"";}
+    applyCueTextEdits();button.disabled=true;$("page-cue-editor-status").textContent="Rematching edited cues…";
+    try{await autoMatchCues();$("page-cue-editor-status").textContent="Rematch complete. Inspect the proposed highlights before confirming."}
+    catch(e){$("page-cue-editor-status").textContent="Rematch failed: "+e.message}
+    finally{button.disabled=false;renderPageCueEditor()}
+   };wrap.append(button);root.append(wrap);
+  }
+ }
+}
 function refreshCueVisibilityPicker(){
  installCueVisibilityPicker();const select=$("visible-cue");if(!select)return;
  const cues=pageMetadata.flatMap(p=>p?.leadership?.cues||[]);
@@ -1731,7 +1773,7 @@ async function autoMatchCues(){
  }
  $("ocr-diagnostics").textContent=pageMetadata.map((r,i)=>"Page "+(r.source.sourcePage||i+1)+" OCR ("+(sourceTextLines[i]||[]).length+" mapped lines):\\n"+(sourceTextLines[i]||[]).map(l=>l.text).join("\\n")+"\\n\\nRAW OCR DIAGNOSTICS:\\n"+(rawOcrDiagnostics[i]||"Not run")).join("\\n\\n");
  cueMatchReport=total+" of "+pageMetadata.reduce((n,r)=>n+r.leadership.cues.length,0)+" cues automatically matched. "+pageMetadata.flatMap(r=>r.leadership.cues.map(c=>c.cueId+": "+c.matchStatus)).join("; ");
- refreshCueVisibilityPicker();drawHighlights();displayMetadata();if($("cue-summary"))$("cue-summary").textContent=cueMatchReport;status(cueMatchReport);
+ refreshCueVisibilityPicker();renderPageCueEditor();drawHighlights();displayMetadata();if($("cue-summary"))$("cue-summary").textContent=cueMatchReport;status(cueMatchReport);
 }
 async function syncHighlightMetadata(){
  if(!output)return;
@@ -1806,6 +1848,7 @@ async function createPdf(bytes){
    highlights:[]
   }));
  }
+ applyCueTextEdits();
  storeMasterRoles(out);
  for(let i=0;i<records.length;i++){
   const {meta,png}=records[i],page=out.addPage([W,H]);
@@ -1943,6 +1986,7 @@ $("cue-file").addEventListener("change",async()=>{
     (c.begin_cue||c.begin_cue_hebrew)&&(c.end_cue||c.end_cue_hebrew)))
     throw Error("CSV needs printed_page, language, and beginning/ending cues (begin_cue/end_cue or Hebrew equivalents).");
   importedCues=rows;
+  cueTextEdits.clear();
   updateIntakeInventory();
   applyImportedCues();refreshCueVisibilityPicker();
   if(pageMetadata.length)await autoMatchCues();
