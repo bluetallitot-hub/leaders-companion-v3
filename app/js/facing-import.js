@@ -1388,7 +1388,7 @@ function installHighlightSelection(){
    const chosen=from===to?[start]:ordered.slice(Math.min(from,to),Math.max(from,to)+1).filter(l=>l.column===start.column);
    const highlights=pageMetadata[i].leadership.highlights;
    for(const item of chosen){
-    const role=$("active-highlight-role")?.value||pageMetadata[i].leadership.cues[0]?.role||roleConfig.id;
+    const role=pageMetadata[i].leadership.cues.find(c=>c.cueId===visibleCueId)?.role||pageMetadata[i].leadership.cues[0]?.role||roleConfig.id;
     if(selectionMode==="word"){
      const lineId=item.lineId;
      const lineIndex=highlights.findIndex(h=>!h.wordId&&h.lineId===lineId);
@@ -2391,6 +2391,7 @@ function populateHighlightRoles(){
  for(const role of roles.keys()){const option=document.createElement("option");option.value=role;option.textContent=serviceRoleDisplayNames.get(role)||({R:"Rabbi",P:"President"}[role]||role);select.append(option)}
  if(roles.has(current))select.value=current;
 }
+$("rematch-all-cues")?.addEventListener("click",()=>$("run-auto-cues")?.click());
 $("run-auto-cues")?.addEventListener("click",async()=>{
  const button=$("run-auto-cues");button.disabled=true;$("auto-cue-status").textContent="Matching cue text…";
  try{await autoMatchCues();$("auto-cue-status").textContent=cueMatchReport}
