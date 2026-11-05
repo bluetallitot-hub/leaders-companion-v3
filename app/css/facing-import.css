@@ -39,3 +39,16 @@
 .cue-edit-compact textarea{width:100%;min-height:45px;resize:vertical;padding:5px 7px;font:inherit;font-size:.85rem;line-height:1.25}
 .cue-edit-compact button{align-self:flex-start;padding:6px 10px}
 @media(max-width:640px){#page-cue-editor.cue-two-pages{grid-template-columns:1fr}.cue-page-panel:first-child{border-right:0;border-bottom:2px solid #a9bdb2}}
+
+/* Instruction editing mirrors the two facing pages, below cue editing. */
+#facing-instructions{margin-top:10px}
+#facing-instructions>.hint{display:none}
+#facing-instruction-pages.instruction-two-pages{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0}
+.instruction-page-panel{min-width:0;padding:8px 12px;display:flex;flex-direction:column;gap:6px}
+.instruction-page-panel:first-child{border-right:2px solid #a9bdb2}
+.instruction-page-panel label{margin:0;font-size:.85rem}
+.instruction-page-panel input:not([type=checkbox]),.instruction-page-panel select{width:100%;padding:5px 7px}
+.instruction-page-panel button{align-self:flex-start;padding:6px 10px}
+.instruction-page-panel p{margin:3px 0;font-size:.82rem}
+.instruction-selected{font-size:.85rem;border-bottom:1px solid #e2e8e3;padding:5px 0;display:flex;justify-content:space-between;gap:8px}
+@media(max-width:640px){#facing-instruction-pages.instruction-two-pages{grid-template-columns:1fr}.instruction-page-panel:first-child{border-right:0;border-bottom:2px solid #a9bdb2}}
