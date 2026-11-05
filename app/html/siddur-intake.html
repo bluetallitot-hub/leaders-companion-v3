@@ -22,7 +22,7 @@
 const $=id=>document.getElementById(id);let pdfCount=null,csvRows=null,rolesLocked=false,sourcePdfBytes=null,sourcePdfName="siddur.pdf",csvHeaders=[],csvDocumentRecord=null,intakePageRecords=[],pageMapping={},supplements={},supplementCatalog=[],localSupplementLibrary={},reducedPdfBytes=null;const roleOpacity=new Map(),roleAssignments=new Map(),roleDisplayNames=new Map();const canonicalColors=["#F5D03C","#75C56A","#74B9E7","#EBA0C8","#F3A65B","#AE93DC"];
 const defaultRoleStyles={R:{name:"Rabbi",color:"#F5D03C"},LR1:{name:"Reader",color:"#75C56A"},P:{name:"President",color:"#74B9E7"},S1:{name:"Soloist",color:"#EBA0C8"}};
 function initializeIntakePanels(){
- const sections=[...document.querySelectorAll("main > section.panel")].filter(el=>!el.hidden&&!el.hasAttribute("aria-hidden"));
+ const sections=[...document.querySelectorAll("main > section.panel")].filter(el=>!el.hasAttribute("aria-hidden"));
  for(const section of sections){
   const heading=section.querySelector("h2");if(!heading||heading.textContent.trim().startsWith("1."))continue;
   const details=document.createElement("details");details.className="intake-stage";details.hidden=true;
