@@ -65,3 +65,7 @@
 .cue-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:4px}
 .cue-actions button{font-size:.77rem;padding:6px 8px}
 .cue-actions button[aria-pressed="true"]{background:#235d45;color:#fff}
+
+/* Unlimited numbered cues and editable role assignment per facing page. */
+.cue-number-selector,.cue-role-selector{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:.86rem;font-weight:600}
+.cue-number-selector select,.cue-role-selector select{flex:1;min-width:0;padding:6px 8px;font:inherit;font-weight:400}
