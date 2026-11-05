@@ -122,7 +122,8 @@ function renderOutliers(outliers,names){
 function csvText(){
  const headers=[...new Set([...csvHeaders,"siddur_title","page_type","supplement_file","highlight_role","highlight_color","cue_left","cue_right","printed_page","leader_notes","highlight_style_id"])];
  const quote=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
- return [headers.map(quote).join(","),...[...(csvDocumentRecord?[csvDocumentRecord]:[]),...csvRows,...intakePageRecords].map(row=>headers.map(h=>quote(row[h])).join(","))].join("\r\n")+"\r\n";
+ const documentRow={...(csvDocumentRecord||{}),record_type:"DOCUMENT",siddur_title:$("master-siddur-name").value,service_name:$("master-service-name").value};
+ return [headers.map(quote).join(","),...[documentRow,...csvRows,...intakePageRecords].map(row=>headers.map(h=>quote(row[h])).join(","))].join("\r\n")+"\r\n";
 }
 function downloadBytes(bytes,name,type){const url=URL.createObjectURL(new Blob([bytes],{type}));const a=document.createElement("a");a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)}
 $("export-csv").addEventListener("click",()=>{if(csvRows)downloadBytes(new TextEncoder().encode("\uFEFF"+csvText()),"SH-FE_edited_cues.csv","text/csv;charset=utf-8")});
