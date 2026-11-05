@@ -1802,7 +1802,7 @@ async function createPdf(bytes){
   }record.identification.serviceCode=(embedded.identification?.serviceCodes||[])[0]||null;record.identification.binderOrder=embedded.outputPage;
   record.leadership.cues=(embedded.cues||[]).map((c,k)=>({
    cueId:c.cue_id||"cue-"+k,role:c.leaderRole||c.leader_role||c.role_name||c.role_code||"",prayer:c.prayer_name||c.prayer_title||null,
-   startCue:c.beginCue||c.begin_cue||c.cue_left||"",endCue:c.endCue||c.end_cue||c.cue_right||"",style:c.performanceStyle||c.performance_style||c.style||"",matchStatus:"embedded-page-record",
+   startCue:c.beginCue||c.begin_cue||c.cue_left||"",endCue:c.endCue||c.end_cue||c.cue_right||"",startCueHebrew:c.begin_cue_hebrew||(/[\u0590-\u05ff]/u.test(c.beginCue||c.begin_cue||c.cue_left||"")?(c.beginCue||c.begin_cue||c.cue_left):""),endCueHebrew:c.end_cue_hebrew||(/[\u0590-\u05ff]/u.test(c.endCue||c.end_cue||c.cue_right||"")?(c.endCue||c.end_cue||c.cue_right):""),style:c.performanceStyle||c.performance_style||c.style||"",matchStatus:"embedded-page-record",
    highlights:[]
   }));
  }
