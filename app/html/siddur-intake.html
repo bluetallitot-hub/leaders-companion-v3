@@ -366,7 +366,7 @@ function renderMapping(){
  const endpoints=pages.length?[pages[0],pages[pages.length-1]]:[];
  const endpointsVerified=endpoints.every(p=>!pageMapping[p]?.auto||!!pageMapping[p]?.verified&&mappingPreviewed.has(p));
  const other=orderedRefs().filter(r=>["internal","supplement","external","unknown"].includes(refKind(r)));
- const missing=other.filter(r=>refKind(r)==="unknown"||((refKind(r)==="supplement"||refKind(r)==="external")&&!supplements[r]?.bytes?.length&&!supplements[r]?.placeholder)||refKind(r)==="internal"&&expandRef(r).some(n=>Number(n)<1||Number(n)>pdfCount));
+ const missing=other.flatMap(r=>refKind(r)==="supplement"?expandSupplementSpan(r):[r]).filter(r=>refKind(r)==="unknown"||((refKind(r)==="supplement"||refKind(r)==="external")&&!supplements[r]?.bytes?.length&&!supplements[r]?.placeholder)||refKind(r)==="internal"&&expandRef(r).some(n=>Number(n)<1||Number(n)>pdfCount));
  $("map-status").textContent=valid+" of "+pages.length+" printed pages verified; "+(other.length-missing.length)+" of "+other.length+" special references ready."+(missing.length?" Missing: "+missing.join(", "):"")+(valid<pages.length?" Enter the physical PDF page numbers for one known English/Hebrew pair above. The system will propose the remaining pairs; then use Check all valid pairs.":"");
  $("open-facing").disabled=!orderedRefs().length||valid!==pages.length||!endpointsVerified||missing.length>0||!sourcePdfBytes;
  $("download-reduced").disabled=$("open-facing").disabled;
