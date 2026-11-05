@@ -420,7 +420,7 @@ function renderPageCueEditor(){
   const active=cues.find(c=>c.cueId===visibleCueId)||cues[0];
   for(let n=0;n<Math.max(6,cues.length);n++){
    const cue=cues[n],pick=document.createElement("button");pick.type="button";
-   pick.className="cue-pick";pick.textContent=cue?(serviceRoleNames?.get?.(String(cue.role))||({R:"Rabbi",P:"President",C:"Congregation",L:"Leader"}[cue.role]||cue.role||"Role")):"—";pick.disabled=!cue;
+   pick.className="cue-pick";pick.textContent=cue?(({R:"Rabbi",P:"President",C:"Congregation",L:"Leader"}[cue.role]||cue.role||"Role")):"—";pick.disabled=!cue;
    pick.title=cue?((cue.prayer||"Prayer")+" — "+(cue.role||"Role")):"No cue";
    pick.setAttribute("aria-label",cue?"Select "+(side===0?"left":"right")+" page cue "+(n+1):"Empty cue slot");
    pick.setAttribute("aria-pressed",String(!!cue&&cue.cueId===active?.cueId));
