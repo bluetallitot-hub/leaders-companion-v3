@@ -410,23 +410,35 @@ function renderFacingInstructions(){
 }
 function renderPageCueEditor(){
  const root=$("page-cue-editor");if(!root)return;root.replaceChildren();
- for(let side=0;side<pageMetadata.length;side++){
-  const record=pageMetadata[side];if(!record)continue;
-  const heading=document.createElement("h4");heading.textContent=(side===0?"Left":"Right")+" page — "+(record.source.originalPageNumber||record.source.serviceReference||"");root.append(heading);
-  const cues=record.leadership.cues||[];
-  if(!cues.length){const p=document.createElement("p");p.textContent="No cues assigned to this page.";root.append(p);continue}
-  for(const cue of cues){
-   const wrap=document.createElement("div");wrap.style.cssText="border-top:1px solid #ddd;padding:9px 0";
-   const name=document.createElement("strong");name.textContent=(cue.cueId||"Cue")+" · "+(cue.prayer||"")+" · "+(cue.role||"");wrap.append(name);
-   const fields=document.createElement("div");fields.style.cssText="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin-top:6px";
-   const inputs={};
-   for(const [key,label,value] of [["start","Beginning cue",cue.startCue],["end","Ending cue",cue.endCue]]){
-    const lab=document.createElement("label");lab.textContent=label;lab.style.cssText="display:flex;flex-direction:column;gap:4px";
-    const input=document.createElement("textarea");input.rows=2;input.value=value||"";input.dir="auto";input.style.width="100%";lab.append(input);fields.append(lab);inputs[key]=input;
-   }
-   wrap.append(fields);
-   const state=document.createElement("p");state.textContent="Match: "+(cue.matchStatus||"not checked");wrap.append(state);
-   const button=document.createElement("button");button.type="button";button.textContent="Save cue and rematch";button.onclick=async()=>{
+ root.classList.add("cue-two-pages");
+ for(let side=0;side<2;side++){
+  const record=pageMetadata[side],cues=record?.leadership?.cues||[];
+  const panel=document.createElement("section");panel.className="cue-page-panel";
+  const title=document.createElement("div");title.className="cue-page-title";
+  title.textContent=(side===0?"Left":"Right")+" page"+(record?.source?.originalPageNumber?" · "+record.source.originalPageNumber:"");
+  panel.append(title);
+  const buttons=document.createElement("div");buttons.className="cue-six-buttons";
+  const active=cues.find(c=>c.cueId===visibleCueId)||cues[0];
+  for(let n=0;n<Math.max(6,cues.length);n++){
+   const cue=cues[n],pick=document.createElement("button");pick.type="button";
+   pick.className="cue-pick";pick.textContent=cue?String(n+1):"—";pick.disabled=!cue;
+   pick.title=cue?(cue.prayer||"Cue "+(n+1)):"No cue";
+   pick.setAttribute("aria-label",cue?"Select "+(side===0?"left":"right")+" page cue "+(n+1):"Empty cue slot");
+   pick.setAttribute("aria-pressed",String(!!cue&&cue.cueId===active?.cueId));
+   if(cue)pick.onclick=()=>{visibleCueId=cue.cueId;renderPageCueEditor();drawHighlights()};
+   buttons.append(pick);
+  }
+  panel.append(buttons);
+  if(!active){const note=document.createElement("p");note.textContent="No cues on this page.";panel.append(note);root.append(panel);continue}
+  const wrap=document.createElement("div");wrap.className="cue-edit-compact";
+  const name=document.createElement("strong");name.textContent=(active.prayer||"Cue "+(cues.indexOf(active)+1))+(active.role?" · "+active.role:"");wrap.append(name);
+  const inputs={};
+  for(const [key,label,value] of [["start","Beginning",active.startCue],["end","Ending",active.endCue]]){
+   const lab=document.createElement("label");lab.className="cue-field";lab.textContent=label;
+   const input=document.createElement("textarea");input.rows=2;input.value=value||"";input.dir="auto";lab.append(input);wrap.append(lab);inputs[key]=input;
+  }
+  const cue=active;
+     const button=document.createElement("button");button.type="button";button.textContent="Save cue and rematch";button.onclick=async()=>{
     const start=inputs.start.value.trim(),end=inputs.end.value.trim();
     if(!start||!end){$("page-cue-editor-status").textContent="Both beginning and ending cues are required.";return}
     cueTextEdits.set(cue.cueId,{start,end});
@@ -436,8 +448,8 @@ function renderPageCueEditor(){
     try{await autoMatchCues();$("page-cue-editor-status").textContent="Rematch complete. Inspect the proposed highlights before confirming."}
     catch(e){$("page-cue-editor-status").textContent="Rematch failed: "+e.message}
     finally{button.disabled=false;renderPageCueEditor()}
-   };wrap.append(button);root.append(wrap);
-  }
+   };
+  button.textContent="Save and rematch";wrap.append(button);panel.append(wrap);root.append(panel);
  }
 }
 function refreshCueVisibilityPicker(){
@@ -447,7 +459,7 @@ function refreshCueVisibilityPicker(){
  const previous=visibleCueId;select.replaceChildren();
  const blank=document.createElement("option");blank.value="";blank.textContent="No cue selected — clean pages";select.append(blank);
  const all=document.createElement("option");all.value="__all__";all.textContent="All proposed highlights (English + Hebrew)";select.append(all);
- for(const id of ids){const cue=cues.find(c=>c.cueId===id);const option=document.createElement("option");option.value=id;option.textContent=(cue?.role||"Leader")+" — "+id;select.append(option)}
+ for(const id of ids){const cue=cues.find(c=>c.cueId===id);const option=document.createElement("option");option.value=id;option.textContent=(cue?.prayer||"Cue "+(ids.indexOf(id)+1))+" · "+(cue?.role||"Leader");select.append(option)}
  visibleCueId=ids.includes(previous)||previous==="__all__"?previous:"__all__";select.value=visibleCueId;
 }
 
