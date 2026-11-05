@@ -350,10 +350,8 @@ function renderInstructionPreviews(){
   preview.hidden=!text.length;
   if(!text.length)continue;
   preview.textContent=text.join("\\n");
-  const position=state.instructionPosition||"top";
   preview.style.left="10%";preview.style.right="10%";
-  preview.style.top=position==="top"?"4%":"auto";
-  preview.style.bottom=position==="bottom"?"4%":"auto";
+  preview.style.top="4%";preview.style.bottom="auto";
  }
 }
 function pageApprovalFingerprint(record){
@@ -369,9 +367,9 @@ function renderFacingInstructions(){
  for(let side=0;side<pageMetadata.length;side++){
   const record=pageMetadata[side];if(!record)continue;
   const state=record.leadership;state.instructionIds??=[];state.instructionOverrides??={};
-  const panel=document.createElement("section");panel.style.cssText="padding:10px 0;border-bottom:1px solid #ddd";
-  const title=document.createElement("h4");title.textContent=(side===0?"Left":"Right")+" page — "+(record.source.originalPageNumber||record.source.sourcePdfPage||"");panel.append(title);
-  const name=document.createElement("label");name.textContent="Prayer name ";const prayer=document.createElement("input");prayer.value=state.instructionPrayer||record.identification?.prayerTitle||"";name.append(prayer);panel.append(name);
+  const panel=document.createElement("section");panel.className="instruction-page-panel";
+  const title=document.createElement("strong");title.textContent=(side===0?"Left":"Right")+" page instructions";panel.append(title);
+  const name=document.createElement("label");name.className="instruction-prayer";name.textContent="Prayer ";const prayer=document.createElement("input");prayer.value=state.instructionPrayer||record.identification?.prayerTitle||"";name.append(prayer);panel.append(name);
   const select=document.createElement("select");select.setAttribute("aria-label","Instruction for "+(side===0?"left":"right")+" page");
   select.add(new Option("Select instruction",""));
   for(const p of facingInstructionLibrary?.prayers||[])for(const ins of p.instructions||[])select.add(new Option("#"+ins.instruction_id+" — "+p.canonical_title+" — "+ins.text+" ("+(ins.approval_status||"unreviewed")+")",String(ins.instruction_id)));
@@ -380,16 +378,10 @@ function renderFacingInstructions(){
   prayer.onchange=()=>{state.instructionPrayer=prayer.value;state.highlightConfirmed=false;renderFacingInstructions()};
   const selected=document.createElement("div");
   for(const id of state.instructionIds){
-   const line=document.createElement("div");line.textContent="Instruction #"+id+" ";
+   const line=document.createElement("div");line.className="instruction-selected";const entry=(facingInstructionLibrary?.prayers||[]).flatMap(p=>p.instructions||[]).find(ins=>Number(ins.instruction_id)===id);line.textContent=entry?.text||"Selected instruction";
    const remove=document.createElement("button");remove.type="button";remove.textContent="Remove";remove.onclick=()=>{state.instructionIds=state.instructionIds.filter(x=>x!==id);state.highlightConfirmed=false;renderFacingInstructions()};line.append(remove);selected.append(line);
   }
   panel.append(selected);
-  const positionLabel=document.createElement("label");positionLabel.textContent="Instruction placement ";
-  const position=document.createElement("select");
-  position.add(new Option("Top margin","top"));position.add(new Option("Bottom margin","bottom"));
-  position.value=state.instructionPosition||"top";
-  position.onchange=()=>{state.instructionPosition=position.value;state.highlightConfirmed=false;renderFacingInstructions()};
-  positionLabel.append(position);panel.append(positionLabel);
   state.instructionPageNumber=String(record.source.originalPageNumber||record.source.sourcePdfPage||"");
   const warnings=facingPageWarnings(record);
   for(const warning of warnings){
@@ -406,6 +398,7 @@ function renderFacingInstructions(){
   const note=document.createElement("p");note.textContent=unresolved.length?unresolved.length+" unresolved warning(s); confirmation blocked.":pageApprovalCurrent(record)?"Page confirmed for download.":"Review the highlights, then confirm.";panel.append(note);
   root.append(panel);
  }
+ root.classList.add("instruction-two-pages");
  renderInstructionPreviews();
 }
 function renderPageCueEditor(){
