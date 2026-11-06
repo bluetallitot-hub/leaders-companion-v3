@@ -284,7 +284,17 @@ function applyImportedCues(){
  if(!pageMetadata.length)return;
  for(const record of pageMetadata){
   const code=record.source.languageCode,number=record.source.originalPageNumber;
-  const matches=importedCues.filter(c=>{const ref=String(c.source_page||c.printed_page||"").trim();const manifestRef=record.source.serviceReference;const sameReference=manifestRef&&(ref===manifestRef||(/^(\\d+)(?:-(\\d+))?$/.test(ref)&&/^(\\d+)(?:-(\\d+))?$/.test(manifestRef)&&Number(manifestRef)>=Number(ref.split("-")[0])&&Number(manifestRef)<=Number(ref.split("-").at(-1))));const match=ref.match(/^(\\d+)(?:-(\\d+))?$/);const page=Number(number);const inRange=match&&page>=Number(match[1])&&page<=Number(match[2]||match[1]);const language=String(c.language||"").toUpperCase();return (sameReference||(!manifestRef&&inRange))&&(!language||language===code||language==="BOTH"||language==="E/H"||language==="H+E")});
+  const matches=importedCues.filter(c=>{
+   const ref=String(c.source_page||c.printed_page||"").trim();
+   const manifestRef=String(record.source.serviceReference||"").trim();
+   const range=value=>{const m=value.match(/^(\\d+)(?:-(\\d+))?$/);return m?[Number(m[1]),Number(m[2]||m[1])]:null};
+   const cueRange=range(ref),pageRange=range(manifestRef);
+   const sameReference=!!manifestRef&&(ref===manifestRef||(cueRange&&pageRange&&cueRange[0]<=pageRange[1]&&pageRange[0]<=cueRange[1]));
+   const page=Number(number);
+   const inRange=cueRange&&Number.isFinite(page)&&page>=cueRange[0]&&page<=cueRange[1];
+   const language=String(c.language||"").toUpperCase();
+   return (sameReference||(!manifestRef&&inRange))&&(!language||language===code||language==="BOTH"||language==="E/H"||language==="H+E");
+  });
   record.leadership.cues=matches.map((c,i)=>({
    cueId:c.cue_id||c.test_id||"import-"+i,service:c.service_name||c.service||null,role:c.leader_role||c.role_name||c.role_code||c.role||null,
    style:c.performance_style||c.style||null,styleSlot:null,startCue:c.cue_left||c.begin_cue||"",endCue:c.cue_right||c.end_cue||"",
