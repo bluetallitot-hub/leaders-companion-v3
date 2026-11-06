@@ -1117,8 +1117,9 @@ function assignCueHighlights(side){
   if(begin===null||end===null){
    cue.matchStatus="anchor-review-required ("+(begin===null?"START ":"")+(end===null?"END":"")+")";
    rawOcrDiagnostics[side]+="\\nCUE "+cue.cueId+" START ["+cueCandidateDiagnostics(ocr,hebrew?(cue.startCueHebrew):cue.startCue)+"] END ["+cueCandidateDiagnostics(ocr,hebrew?(cue.endCueHebrew):cue.endCue)+"]";
-   const guess=tentativeEnglishHighlights(side,cue,ocr,geometry);
-   if(guess?.length){record.leadership.highlights.push(...guess);cue.matchStatus="tentative-English-review-required";matches++;}
+   // Never paint a guessed partial passage when either boundary is unresolved.
+   // The old tentative matcher could skip the opening line and extend into blank space.
+   cue.matchStatus="English-boundary-review-required";
    continue;
   }
   const first=ocr[begin],last=ocr[end];
