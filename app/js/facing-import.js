@@ -295,13 +295,22 @@ function applyImportedCues(){
    const language=String(c.language||"").toUpperCase();
    return (sameReference||(!manifestRef&&inRange))&&(!language||language===code||language==="BOTH"||language==="E/H"||language==="H+E");
   });
-  record.leadership.cues=matches.map((c,i)=>({
-   cueId:c.cue_id||c.test_id||"import-"+i,service:c.service_name||c.service||null,role:c.leader_role||c.role_name||c.role_code||c.role||null,
-   style:c.performance_style||c.style||null,styleSlot:null,startCue:c.cue_left||c.begin_cue||"",endCue:c.cue_right||c.end_cue||"",
-   startCueHebrew:c.begin_cue_hebrew||(/[\u0590-\u05ff]/u.test(c.begin_cue||c.cue_left||"")?(c.begin_cue||c.cue_left):""),endCueHebrew:c.end_cue_hebrew||(/[\u0590-\u05ff]/u.test(c.end_cue||c.cue_right||"")?(c.end_cue||c.cue_right):""),
-   prayer:c.prayer_name||c.prayer_action||c.prayer||null,sourceRow:c.leader_map_source_row||null,
-   highlights:[],matchStatus:"unmatched-review-required"
-  }));
+  // V2 stores physical LEFT and RIGHT cue boundaries for human reading.
+  // Hebrew begins on the RIGHT and ends on the LEFT; English is the reverse.
+  record.leadership.cues=matches.map((c,i)=>{
+   const isHebrew=code==="H";
+   const left=c.cue_left||"",right=c.cue_right||"";
+   const beginning=isHebrew?(right||c.begin_cue||""):(left||c.begin_cue||"");
+   const ending=isHebrew?(left||c.end_cue||""):(right||c.end_cue||"");
+   return {
+    cueId:c.cue_id||c.test_id||"import-"+i,service:c.service_name||c.service||null,role:c.leader_role||c.role_name||c.role_code||c.role||null,
+    style:c.performance_style||c.style||null,styleSlot:null,startCue:beginning,endCue:ending,
+    startCueHebrew:isHebrew?(beginning||c.begin_cue_hebrew||""):(c.begin_cue_hebrew||""),
+    endCueHebrew:isHebrew?(ending||c.end_cue_hebrew||""):(c.end_cue_hebrew||""),
+    prayer:c.prayer_name||c.prayer_action||c.prayer||null,sourceRow:c.leader_map_source_row||null,
+    highlights:[],matchStatus:"unmatched-review-required"
+   };
+  });
   if(matches.length){record.identification.serviceCode=matches[0].service||null;
    record.identification.prayerName=matches[0].prayer_name||matches[0].prayer||null;record.identification.serviceName=matches[0].service_name||null;
    record.identification.cueId=matches[0].cue_id||matches[0].test_id||null;}
