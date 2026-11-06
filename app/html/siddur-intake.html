@@ -768,7 +768,8 @@ async function clearPriorIntake(){
  });
  db.close();
 }
-const intakeReset=clearPriorIntake().catch(error=>{$("status").textContent="Could not clear prior browser intake: "+error.message});
+// Preserve the existing browser project and facing-page handoff when Intake is reopened.
+const intakeReset=Promise.resolve();
 function hexToRgba(hex,alpha){let h=hex.replace("#","");if(h.length===3)h=[...h].map(c=>c+c).join("");return "rgba("+[0,2,4].map(i=>parseInt(h.slice(i,i+2),16)).join(",") +","+alpha+")";}
 $("lock-roles").addEventListener("click",()=>{
  rolesLocked=!rolesLocked;
