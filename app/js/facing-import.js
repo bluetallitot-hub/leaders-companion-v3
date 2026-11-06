@@ -2022,34 +2022,7 @@ async function autoMatchCues(){
  refreshCueVisibilityPicker();renderPageCueEditor();renderFacingInstructions();drawHighlights();displayMetadata();if($("cue-summary"))$("cue-summary").textContent=cueMatchReport;status(cueMatchReport);
 }
 async function syncHighlightMetadata(){
- if(!output)return;
- const doc=await PDFLib.PDFDocument.load(baseOutput||output);
- storeMasterRoles(doc);
- doc.getPages().forEach((page,i)=>{
-  const record=pageMetadata[i];if(!record)return;
-  // Store cue geometry in the page dictionary only. Never draw permanent
-  // rectangles or PDF annotations: the web viewer controls visibility.
-  for(const h of record.leadership.highlights||[])h.visibleInPdf=false;
-  storePageMetadata(page,record);
- });
- output=new Uint8Array(await doc.save());
-}
-function storePageMetadata(page,record){
- // Single self-contained page-associated record. No external JSON or sidecar.
- const d=page.node,fields={
-  LCIntakeRecord:JSON.stringify(record),
-  LCOriginalPageNumber:record.source.originalPageNumber||"",
-  LCSourcePage:record.source.sourcePage||"",
-  LCLanguage:record.source.language,
-  LCLanguageCode:record.source.languageCode||"",
-  LCOriginalHeadingOCR:record.source.originalHeadingOCR||"",
-  LCRunningHeaderOCR:record.source.runningHeaderOCR||"",
-  LCSourceFilename:record.source.sourceFilename,
-  LCSourcePdfPage:String(record.source.sourcePdfPage),
-  LCIntakeStatus:record.intake.status
- };
- for(const [name,value] of Object.entries(fields))
-  d.set(PDFLib.PDFName.of(name),PDFLib.PDFHexString.fromText(value));
+ for(const record of pageMetadata)for(const h of record?.leadership?.highlights||[])h.visibleInPdf=false;
 }
 async function createPdf(bytes){
  const source=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
@@ -2062,7 +2035,7 @@ async function createPdf(bytes){
   const canvas=document.createElement("canvas");canvas.width=Math.ceil(v.width);canvas.height=Math.ceil(v.height);
   const ctx=canvas.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
   await src.render({canvasContext:ctx,viewport:v}).promise;
-  const meta=await readMetadata(source,first+i,canvas);const embedded=embeddedPageRecords[first+i];if(embedded?.language){meta.language=embedded.language==="E"?"English":embedded.language==="H"?"Hebrew":meta.language;}
+  const meta=await readMetadata(source,first+i,canvas);
   const crop=detectCrop(canvas,meta),cleaned=canvasCrop(canvas,crop);
   cleanPixels(cleaned);
   const png=await out.embedPng(await (await fetch(cleaned.toDataURL("image/png"))).arrayBuffer());
@@ -2072,37 +2045,25 @@ async function createPdf(bytes){
  if(records.length===2&&records[0].meta.language==="Hebrew"&&records[1].meta.language==="English")records.reverse();
  pageMetadata=records.map(r=>makeIntakeRecord(r.meta,r.sourceIndex));
  pageMetadata.forEach(r=>{r.leadership.highlights=[];r.leadership.role=roleConfig.id});
- if(serviceManifest?.pages){for(let i=0;i<pageMetadata.length;i++){const sourcePage=records[i].sourceIndex+1,entry=serviceManifest.pages.find(p=>p.outputPage===sourcePage);if(!entry)continue;const record=pageMetadata[i];record.source.serviceReference=entry.reference;record.source.originalPageNumber=entry.kind==="printed"?String(entry.reference):"SUP";record.identification.binderOrder=sourcePage;record.source.sourceId=entry.reference;const original=entry.sourcePage;const pair=servicePageMapping?.[String(entry.reference).split("-")[0]];if(pair&&original){const language=Number(pair.e)===original?"English":Number(pair.h)===original?"Hebrew":null;if(language){record.source.language=language;record.source.languageCode=language==="English"?"E":"H";}}}}
- for(let i=0;i<pageMetadata.length;i++){
-  const embedded=embeddedPageRecords[records[i].sourceIndex];
-  if(!embedded)continue;
+ if(serviceManifest?.pages)for(let i=0;i<pageMetadata.length;i++){
+  const entry=serviceManifest.pages.find(p=>p.outputPage===records[i].sourceIndex+1);
+  if(!entry)continue;
   const record=pageMetadata[i];
-  record.source.originalPageNumber=embedded.printedPage||record.source.originalPageNumber;
-  record.source.serviceReference=embedded.sourceReference||record.source.serviceReference;
-  record.source.languageCode=embedded.language||record.source.languageCode;
-  record.identification.prayerName=embedded.prayerTitle||embedded.prayerName||record.identification.prayerName||null;
-  record.identification.serviceName=embedded.serviceName||embedded.service_name||record.identification.serviceName||null;
-  if(!record.identification.prayerName||!record.identification.serviceName){
-   const ref=String(record.source.serviceReference||"");
-   const matching=importedCues.find(c=>String(c.source_page||c.printed_page||"")===ref);
-   if(matching){record.identification.prayerName ||= matching.prayer_name||null;record.identification.serviceName ||= matching.service_name||null}
-  }record.identification.serviceCode=(embedded.identification?.serviceCodes||[])[0]||null;record.identification.binderOrder=embedded.outputPage;
-  record.leadership.cues=(embedded.cues||[]).map((c,k)=>({
-   cueId:c.cue_id||"cue-"+k,role:c.leaderRole||c.leader_role||c.role_name||c.role_code||"",prayer:c.prayer_name||c.prayer_title||null,
-   startCue:c.beginCue||c.begin_cue||c.cue_left||"",endCue:c.endCue||c.end_cue||c.cue_right||"",startCueHebrew:c.begin_cue_hebrew||(/[\u0590-\u05ff]/u.test(c.beginCue||c.begin_cue||c.cue_left||"")?(c.beginCue||c.begin_cue||c.cue_left):""),endCueHebrew:c.end_cue_hebrew||(/[\u0590-\u05ff]/u.test(c.endCue||c.end_cue||c.cue_right||"")?(c.endCue||c.end_cue||c.cue_right):""),style:c.performanceStyle||c.performance_style||c.style||"",matchStatus:"embedded-page-record",
-   highlights:[]
-  }));
+  record.source.serviceReference=entry.reference;
+  record.source.originalPageNumber=String(entry.printedPage||entry.reference||"");
+  record.source.sourceId=entry.reference;
+  record.identification.binderOrder=entry.outputPage;
+  if(entry.language==="E"||entry.language==="H"){
+   record.source.languageCode=entry.language;
+   record.source.language=entry.language==="E"?"English":"Hebrew";
+  }
  }
- // Embedded records are fallback only: use the canonical CSV after page identity is finalized.
- // This prevents empty/stale embedded cue arrays from silently erasing imported cues.
- const embeddedCueFallback=pageMetadata.map(record=>record.leadership.cues);
  applyImportedCues();
- pageMetadata.forEach((record,i)=>{if(!record.leadership.cues.length)record.leadership.cues=embeddedCueFallback[i];});
  applyCueTextEdits();
- storeMasterRoles(out);
+ 
  for(let i=0;i<records.length;i++){
   const {meta,png}=records[i],page=out.addPage([W,H]);
-  drawTemplate(page,i);drawKnownFrameworkFields(page,pageMetadata[i],i,font,boldFont,embeddedPageRecords[records[i].sourceIndex]);storePageMetadata(page,pageMetadata[i]);
+  drawTemplate(page,i);drawKnownFrameworkFields(page,pageMetadata[i],i,font,boldFont,null);
   const r=REGIONS[i],pad=6,scale=Math.min((r.w-2*pad)/png.width,(r.h-2*pad)/png.height);
   const dw=png.width*scale,dh=png.height*scale;
   page.drawImage(png,{x:r.x+(r.w-dw)/2,y:r.y+(r.h-dh)/2,width:dw,height:dh});
@@ -2332,7 +2293,7 @@ function downloadPageNumber(index){
  return "";
 }
 function cuesForExportPage(index){
- const embedded=embeddedPageRecords[index-1];if(embedded)return embedded.cues||[];
+
  const entry=manifestEntry(index),ref=String(entry?.reference||"").trim();
  if(!ref)return [];
  return importedCues.filter(c=>{
@@ -2377,14 +2338,14 @@ async function exportEntireService(){
    const copied=await result.copyPages(original,[i]);page=result.addPage(copied[0]);
   }
   const width=page.getWidth(),height=page.getHeight(),spread=2*Math.floor(i/2)+1,side=i%2;
-  const edits=spreadEdits.get(spread)?.[side]||embeddedPageRecords[i]?.highlights||[];
+  const edits=spreadEdits.get(spread)?.[side]||[];
   for(const mark of edits){
    if(![mark.x,mark.y,mark.width,mark.height].every(Number.isFinite)||mark.width<=0||mark.height<=0)continue;
    const hex=roleColor(mark.roleId).replace("#",""),value=parseInt(hex,16);
    page.drawRectangle({x:mark.x*width,y:(1-mark.y-mark.height)*height,width:mark.width*width,height:mark.height*height,color:PDFLib.rgb(((value>>16)&255)/255,((value>>8)&255)/255,(value&255)/255),opacity:highlightAlpha(mark),blendMode:"Multiply"});
    highlighted++;
   }
-  const embedded=embeddedPageRecords[i]||{};
+  const embedded={};
   const number=String(embedded.printedPage||downloadPageNumber(i+1)||"").split("-")[0],title=printable(embedded.prayerTitle||embedded.prayerName||"");
   // Header/footer are drawn over a white strip, outside the main text wherever possible.
   if(number){
@@ -2405,14 +2366,13 @@ async function exportEntireService(){
   }
   const pageInfo={...embedded,outputPage:i+1,printedPage:number,manifest:entry,cues,prayerTitle:embedded.prayerTitle||embedded.prayerName||null,pageColor:embedded.pageColor||"W",highlights:edits,leadership:{...(embedded.leadership||{}),cues,highlights:edits}};
   metadata.pages.push(pageInfo);
-  page.node.set(PDFLib.PDFName.of("LCPageRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(pageInfo)));
-  page.node.set(PDFLib.PDFName.of("LCIntakeRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(pageInfo)));
+
+
   // Yield to the UI so the progress bar can repaint during large exports.
   if(i%2===0)await new Promise(resolve=>setTimeout(resolve,0));
  }
- if(typeof result.attach==="function")await result.attach(new TextEncoder().encode(JSON.stringify(metadata,null,2)),"leaders-companion-service-metadata.json",{mimeType:"application/json",description:"Page map, cues, prayer titles and highlight geometry"});
- result.setTitle(filename+" — Leader's Companion service framework");
- result.setSubject("Complete service pages with cue metadata, page references, and visible highlights");
+
+
  exportProgress(total,total,"Complete");
  return {bytes:new Uint8Array(await result.save()),pages:total,highlighted};
 }
@@ -2459,12 +2419,11 @@ async function exportEditedSinglePage(side){
  }
  const record=JSON.parse(JSON.stringify(pageMetadata[side]));
  record.leadership.highlights=marks;record.production={...(record.production||{}),pageStatus:"downloaded-page-draft"};
- copy.node.set(PDFLib.PDFName.of("LCIntakeRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(record)));
- const sourceRecord=embeddedPageRecords[index]||{};
+
+ const sourceRecord={};
  const pageRecord={...sourceRecord,instructionIds:record.leadership.instructionIds||[],instructionPrayer:record.leadership.instructionPrayer||"",instructionPosition:record.leadership.instructionPosition||"top",instructionOverrides:record.leadership.instructionOverrides||{},highlightConfirmed:pageApprovalCurrent(pageMetadata[side]),sourcePdfPage:index+1,printedPage:record.source.originalPageNumber||sourceRecord.printedPage||null,
   cues:record.leadership.cues,highlights:marks,editedAt:new Date().toISOString()};
- copy.node.set(PDFLib.PDFName.of("LCPageRecord"),PDFLib.PDFHexString.fromText(JSON.stringify(pageRecord)));
- await out.attach(new TextEncoder().encode(JSON.stringify({schema:"leaders-companion-page-export",version:1,sourcePdfPage:index+1,record:pageRecord},null,2)),"page-edit.json",{mimeType:"application/json"});
+
  return {bytes:new Uint8Array(await out.save()),index:index+1,marks:marks.length};
 }
 for(let side=0;side<2;side++)$("download-page-"+side).addEventListener("click",async()=>{
@@ -2484,19 +2443,11 @@ $("download").addEventListener("click",async()=>{
   const url=URL.createObjectURL(new Blob([result.bytes],{type:"application/pdf"}));
   const a=document.createElement("a");a.href=url;a.download=filename+"-service-framework.pdf";
   document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-  status("Downloaded "+result.pages+" pages with "+result.highlighted+" visible highlights and embedded page/cue metadata.");
+  status("Downloaded "+result.pages+" pages with "+result.highlighted+" visible highlights without embedded cue metadata.");
  }catch(e){console.error(e);status("Full-service export failed: "+e.message);$("export-status").textContent="Export failed: "+e.message}
  finally{button.disabled=false}
 });
 
-async function readEmbeddedPageRecords(bytes){
- const doc=await PDFLib.PDFDocument.load(bytes.slice());
- return doc.getPages().map((page,i)=>{
-  try{const field=page.node.get(PDFLib.PDFName.of("LCPageRecord"));if(!field)return null;
-   const value=field.decodeText?.();return value?JSON.parse(value):null;
-  }catch(e){console.warn("Page record unreadable",i+1,e);return null}
- });
-}
 function populateHighlightRoles(){
  const select=$("active-highlight-role");if(!select)return;
  const current=select.value,roles=new Map();
@@ -2528,7 +2479,7 @@ async function restoreSiddurIntake(){
  if($("assembly-siddur"))$("assembly-siddur").value=details.siddur||"";
  if($("assembly-service"))$("assembly-service").value=details.service||"";updateProposedMainDocumentFilename();
  serviceManifest=data.manifest||null;servicePageMapping=data.pageMapping||null;serviceRoleOpacity=new Map(data.roleOpacity||serviceManifest?.opacity||[]);serviceRoleAssignments=new Map(data.roleAssignments||[]);serviceRoleDisplayNames=new Map(data.roleDisplayNames||[]);populateHighlightRoles();
- sourcePdfBytes=new Uint8Array(data.pdf);embeddedPageRecords=await readEmbeddedPageRecords(sourcePdfBytes);
+ sourcePdfBytes=new Uint8Array(data.pdf);embeddedPageRecords=[];
  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
  sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();cueRoleEdits.clear();
  updateIntakeInventory();
@@ -2599,7 +2550,7 @@ $("assembly-download").addEventListener("click",async()=>{
   }
   const date=assemblyToday();
   out.setTitle(siddur+" — "+service);out.setSubject("Leader's Companion Main Document");
-  await out.attach(new TextEncoder().encode(JSON.stringify({schema:"leaders-companion-main-document",version:1,siddur,service,publicationDate:date,pages:manifest},null,2)),"main-document-manifest.json",{mimeType:"application/json"});
+
   const bytes=new Uint8Array(await out.save()),name=proposedMainDocumentFilename();
   const url=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"})),a=document.createElement("a");a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
   assemblyStatus("Downloaded "+name+" with "+manifest.length+" confirmed pages.");
