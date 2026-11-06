@@ -2491,7 +2491,21 @@ async function restoreSiddurIntake(){
  await loadSelectedSpread();
  status("Restored "+data.pdfName+" and "+importedCues.length+" cue rows. The PDF contains selected service pages.");
 }
-if(new URLSearchParams(location.search).get("intake")==="1")restoreSiddurIntake().catch(e=>status("Intake handoff failed: "+e.message));
+async function attemptIntakeHandoff(){
+ const indicator=$("handoff-diagnostic");
+ if(indicator)indicator.textContent="Loading saved Intake handoff from this browser…";
+ try{
+  await restoreSiddurIntake();
+  if(indicator)indicator.textContent="Intake connected: "+sourcePdfPages+" service pages and "+importedCues.length+" cue records loaded.";
+ }catch(e){
+  const message="Intake handoff failed: "+(e?.message||String(e));
+  if(indicator)indicator.textContent=message;
+  status(message);
+  console.error(message,e);
+ }
+}
+$("retry-handoff")?.addEventListener("click",attemptIntakeHandoff);
+attemptIntakeHandoff();
 
 // V3.150 editor visibility controls
 const zoomControl=$("page-zoom");if(zoomControl){const applyZoom=()=>{$("spread-preview").querySelector(".pdf-spread").style.width=zoomControl.value+"%";$("spread-preview").querySelector(".pdf-spread").style.minWidth="0";$("zoom-value").textContent=zoomControl.value+"%"};zoomControl.addEventListener("input",applyZoom);applyZoom();}
