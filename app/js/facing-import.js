@@ -2089,7 +2089,7 @@ function refreshMetadataDialog(){
   content.append(panel);
  }
 }
-$("view-metadata").addEventListener("click",()=>{refreshMetadataDialog();$("metadata-dialog").show()});
+$("view-metadata").addEventListener("click",()=>{refreshMetadataDialog();$("metadata-dialog").showModal()});
 $("close-metadata").addEventListener("click",()=>$("metadata-dialog").close());
 function displayMetadata(){
  for(let i=0;i<2;i++){
