@@ -233,7 +233,7 @@ $("export-pdf").addEventListener("click",async()=>{
  if(!sourcePdfBytes||!csvRows)return;
  try{
   const doc=await PDFLib.PDFDocument.load(sourcePdfBytes.slice());
-  await doc.attach(new TextEncoder().encode("\uFEFF"+csvText()),"SH-FE_edited_cues.csv",{mimeType:"text/csv",description:"Edited siddur intake cues; no highlights applied"});
+
   downloadBytes(await doc.save(),sourcePdfName.replace(/\.pdf$/i,"")+"_edited_cues.pdf","application/pdf");await saveIntakeProject();
  }catch(err){$("status").textContent="PDF export failed: "+err.message}
 });
