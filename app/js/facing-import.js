@@ -2073,7 +2073,6 @@ async function createPdf(bytes){
  pageMetadata=records.map(r=>makeIntakeRecord(r.meta,r.sourceIndex));
  pageMetadata.forEach(r=>{r.leadership.highlights=[];r.leadership.role=roleConfig.id});
  if(serviceManifest?.pages){for(let i=0;i<pageMetadata.length;i++){const sourcePage=records[i].sourceIndex+1,entry=serviceManifest.pages.find(p=>p.outputPage===sourcePage);if(!entry)continue;const record=pageMetadata[i];record.source.serviceReference=entry.reference;record.source.originalPageNumber=entry.kind==="printed"?String(entry.reference):"SUP";record.identification.binderOrder=sourcePage;record.source.sourceId=entry.reference;const original=entry.sourcePage;const pair=servicePageMapping?.[String(entry.reference).split("-")[0]];if(pair&&original){const language=Number(pair.e)===original?"English":Number(pair.h)===original?"Hebrew":null;if(language){record.source.language=language;record.source.languageCode=language==="English"?"E":"H";}}}}
- applyImportedCues();
  for(let i=0;i<pageMetadata.length;i++){
   const embedded=embeddedPageRecords[records[i].sourceIndex];
   if(!embedded)continue;
@@ -2094,6 +2093,11 @@ async function createPdf(bytes){
    highlights:[]
   }));
  }
+ // Embedded records are fallback only: use the canonical CSV after page identity is finalized.
+ // This prevents empty/stale embedded cue arrays from silently erasing imported cues.
+ const embeddedCueFallback=pageMetadata.map(record=>record.leadership.cues);
+ applyImportedCues();
+ pageMetadata.forEach((record,i)=>{if(!record.leadership.cues.length)record.leadership.cues=embeddedCueFallback[i];});
  applyCueTextEdits();
  storeMasterRoles(out);
  for(let i=0;i<records.length;i++){
