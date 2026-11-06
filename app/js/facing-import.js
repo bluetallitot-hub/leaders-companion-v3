@@ -287,7 +287,7 @@ function applyImportedCues(){
   const matches=importedCues.filter(c=>{
    const ref=String(c.source_page||c.printed_page||"").trim();
    const manifestRef=String(record.source.serviceReference||"").trim();
-   const range=value=>{const m=value.match(/^(\\d+)(?:-(\\d+))?$/);return m?[Number(m[1]),Number(m[2]||m[1])]:null};
+   const range=value=>{const m=value.match(/^(\d+)(?:-(\d+))?$/);return m?[Number(m[1]),Number(m[2]||m[1])]:null};
    const cueRange=range(ref),pageRange=range(manifestRef);
    const sameReference=!!manifestRef&&(ref===manifestRef||(cueRange&&pageRange&&cueRange[0]<=pageRange[1]&&pageRange[0]<=cueRange[1]));
    const page=Number(number);
@@ -346,7 +346,9 @@ function cueCsvUpdate(cueId,start,end,role){
  const row=cueCsvRows.find(c=>(c.cue_id||c.test_id)===cueId);
  if(!row)return false;
  row.begin_cue=start;row.end_cue=end;
- if("cue_left" in row)row.cue_left=start;if("cue_right" in row)row.cue_right=end;
+ const lang=String(row.language||"").toUpperCase();
+ if("cue_left" in row)row.cue_left=lang==="H"?end:start;
+ if("cue_right" in row)row.cue_right=lang==="H"?start:end;
  if("begin_cue_hebrew" in row)row.begin_cue_hebrew=/[\u0590-\u05ff]/u.test(start)?start:"";
  if("end_cue_hebrew" in row)row.end_cue_hebrew=/[\u0590-\u05ff]/u.test(end)?end:"";
  if(role)row.leader_role=role;
@@ -509,7 +511,9 @@ function renderPageCueEditor(){
     if(!start||!end){$("page-cue-editor-status").textContent="Both beginning and ending cues are required.";return}
     cueTextEdits.set(cue.cueId,{start,end});
     for(const record of pageMetadata)if(record.leadership.cues.some(c=>c.cueId===cue.cueId))record.leadership.highlightConfirmed=false;
-    for(const c of importedCues)if((c.cue_id||c.test_id)===cue.cueId){c.begin_cue=start;c.end_cue=end;c.cue_left=start;c.cue_right=end;c.begin_cue_hebrew=/[\u0590-\u05ff]/u.test(start)?start:"";c.end_cue_hebrew=/[\u0590-\u05ff]/u.test(end)?end:"";}
+    for(const c of importedCues)if((c.cue_id||c.test_id)===cue.cueId){c.begin_cue=start;c.end_cue=end;
+      if(String(c.language||"").toUpperCase()==="H"){c.cue_left=end;c.cue_right=start;}
+      else{c.cue_left=start;c.cue_right=end;}c.begin_cue_hebrew=/[\u0590-\u05ff]/u.test(start)?start:"";c.end_cue_hebrew=/[\u0590-\u05ff]/u.test(end)?end:"";}
     if(!cueCsvUpdate(cue.cueId,start,end,cue.role)){$("page-cue-editor-status").textContent="Cue not found in source CSV; changes were not saved.";return}
     applyCueTextEdits();button.disabled=true;$("page-cue-editor-status").textContent="Saving cue CSV and rematching…";
     try{await saveCueCsvHandoff();downloadUpdatedCueCsv()}catch(e){$("page-cue-editor-status").textContent="CSV save failed: "+e.message;button.disabled=false;return}
