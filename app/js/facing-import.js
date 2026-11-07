@@ -1134,6 +1134,16 @@ function isolatedHebrewCueMatch(side,cue,ocr){
    coordinateSystem:"normalized-top-left",visibleInPdf:false,tentative:true};
  });
 }
+// Page furniture is never part of a cue, even when geometry falls inside
+// the start/end vertical span. Identify isolated printed page numbers from OCR.
+function isPageNumberLine(line,ocr,record){
+ const candidates=(ocr||[]).filter(t=>t.id===line.id);
+ const printed=String(record?.source?.originalPageNumber||"").trim();
+ return candidates.some(t=>{
+  const value=String(t.text||"").trim().replace(/[.\s]/g,"");
+  return /^\d{1,4}$/.test(value)&&(value===printed||value.length<=4);
+ });
+}
 function assignCueHighlights(side){
  const record=pageMetadata[side],ocr=sourceTextLines[side]||[],geometry=detectedLines[side]||[];
  if(!record)return 0;
@@ -1175,7 +1185,7 @@ function assignCueHighlights(side){
    if(!Number.isFinite(startY)||!Number.isFinite(endY)||endY<startY){
     cue.matchStatus="spanning-page-body-review-required";continue;
    }
-   const selected=lines.filter(l=>l.y+l.height/2>=startY-.012&&l.y+l.height/2<=endY+.012
+   const selected=lines.filter(l=>!isPageNumberLine(l,ocr,record)&&l.y+l.height/2>=startY-.012&&l.y+l.height/2<=endY+.012
     // Printed page numbers and template headings are outside the prayer body.
     &&l.y>.18&&l.y<.88);
    if(!selected.length){cue.matchStatus="spanning-page-empty-review-required";continue}
@@ -1213,6 +1223,7 @@ function assignCueHighlights(side){
   const startY=first.y+((geometry.find(l=>l.id===first.id)?.height||0)/2),endY=last.y+((geometry.find(l=>l.id===last.id)?.height||0)/2);
   if(rankA===rankB&&endY+.008<startY){cue.matchStatus="reverse-anchor-review-required";continue}
   const selected=geometry.filter(l=>{
+   if(isPageNumberLine(l,ocr,record))return false;
    const rank=columnRank(l.column),center=l.y+l.height/2;
    if(rank<rankA||rank>rankB)return false;
    if(rankA===rankB)return center>=startY-.012&&center<=endY+.012;
