@@ -1086,36 +1086,56 @@ function isolatedHebrewCueMatch(side,cue,ocr){
  }
  if(fullEnds.length>1&&fullEnds[0].confidence-fullEnds[1].confidence<.08)return null;
  if(first.ri>last.ri||(first.ri===last.ri&&first.offset>last.offset))return null;
+ // Anchors are found with OCR, but the passage is filled from printed ink,
+ // not from whichever intermediate lines OCR happened to recognize.
+ const firstRow=rows[first.ri],lastRow=rows[last.ri];
+ const startCol=firstRow.line.column,endCol=lastRow.line.column;
+ const startY=firstRow.line.y+firstRow.line.height/2;
+ const endY=lastRow.line.y+lastRow.line.height/2;
+ if(startCol<endCol)return null; // Hebrew moves right column (1) to left (0).
+ const geometryRows=[];
+ for(const column of [1,0]){
+  const inColumn=words.filter(w=>{
+   const c=w.column===0||w.column===1?w.column:(w.x+w.width/2>=.5?1:0);
+   return c===column&&w.y>=.19&&w.y+w.height<=.91;
+  }).sort((a,b)=>(a.y+a.height/2)-(b.y+b.height/2));
+  const grouped=[];
+  for(const word of inColumn){
+   const cy=word.y+word.height/2;
+   const row=grouped.find(g=>Math.abs(g.cy-cy)<=Math.max(.006,Math.min(g.height,word.height)*.48));
+   if(row){row.words.push(word);row.cy=(row.cy*(row.words.length-1)+cy)/row.words.length;row.height=Math.max(row.height,word.height)}
+   else grouped.push({cy,height:word.height,words:[word]});
+  }
+  for(const row of grouped)geometryRows.push({...row,column});
+ }
+ const inPassage=row=>{
+  if(startCol===endCol)return row.column===startCol&&row.cy>=startY-.012&&row.cy<=endY+.012;
+  return (row.column===startCol&&row.cy>=startY-.012)||
+   (row.column===endCol&&row.cy<=endY+.012);
+ };
  const chosen=[];
- for(let ri=first.ri;ri<=last.ri;ri++){
-  const row=rows[ri];
-  if(!row.boxes.length)continue;
-  // Entire intermediate printed lines are selected as one continuous strip.
-  // On the first and last line, use actual OCR word coordinates when present;
-  // never equate OCR token indices with Rivok box indices.
-  let selected=row.boxes;
-  if(ri===first.ri||ri===last.ri){
-   const start=ri===first.ri?first.offset:0;
-   const end=ri===last.ri?last.offset+endWordCount-1:row.tokens.length-1;
-   if(row.ocrWords.length){
-    const rightToken=row.ocrWords[Math.min(start,row.ocrWords.length-1)];
-    const leftToken=row.ocrWords[Math.min(end,row.ocrWords.length-1)];
-    const rightBox=row.boxes.reduce((best,w)=>!best||Math.abs(w.x-rightToken.x)<Math.abs(best.x-rightToken.x)?w:best,null);
-    const leftBox=row.boxes.reduce((best,w)=>!best||Math.abs(w.x-leftToken.x)<Math.abs(best.x-leftToken.x)?w:best,null);
-    const a=row.boxes.indexOf(rightBox),b=row.boxes.indexOf(leftBox);
-    if(a>b)return null;
-    selected=row.boxes.slice(a,b+1);
-   }else{
-    // Line OCR supplies words without word coordinates. Keep the full
-    // printed line instead of guessing a false partial-word boundary.
-    selected=row.boxes;
+ const selectedRows=geometryRows.filter(inPassage).sort((a,b)=>b.column-a.column||a.cy-b.cy);
+ for(let i=0;i<selectedRows.length;i++){
+  const row=selectedRows[i];
+  let selected=row.words.slice().sort((a,b)=>b.x-a.x);
+  // Trim only the anchor lines, using actual OCR x coordinates if available.
+  const boundary=row.column===startCol&&Math.abs(row.cy-startY)<.013?"start":
+   row.column===endCol&&Math.abs(row.cy-endY)<.013?"end":null;
+  if(boundary){
+   const anchor=boundary==="start"?first:first.ri===last.ri?last:last;
+   const source=boundary==="start"?firstRow:lastRow;
+   const index=boundary==="start"?first.offset:last.offset+endWordCount-1;
+   const word=source.ocrWords[index];
+   if(word){
+    const near=selected.reduce((best,w)=>!best||Math.abs(w.x-word.x)<Math.abs(best.x-word.x)?w:best,null);
+    if(near)selected=selected.filter(w=>boundary==="start"?w.x<=near.x+.002:w.x>=near.x-.002);
    }
   }
   if(!selected.length)continue;
   const x=Math.min(...selected.map(w=>w.x)),y=Math.min(...selected.map(w=>w.y));
   const right=Math.max(...selected.map(w=>w.x+w.width));
   const bottom=Math.max(...selected.map(w=>w.y+w.height));
-  chosen.push({highlightId:"HL-"+cue.cueId+"-"+row.line.id,lineId:row.line.id,
+  chosen.push({highlightId:"HL-"+cue.cueId+"-ink-"+i,lineId:"ink-row-"+row.column+"-"+i,
    cueId:cue.cueId,roleId:cue.role,x,y,width:right-x,height:bottom-y,
    coordinateSystem:"normalized-top-left",visibleInPdf:false,tentative:true});
  }
