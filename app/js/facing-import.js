@@ -1002,7 +1002,7 @@ function tentativeEnglishHighlights(side,cue,ocr,geometry){
 }
 // Isolated Hebrew engine v1: Rivok geometry + OCR text, no legacy Hebrew matcher.
 const hebrewOcrTokens=[[],[]];
-function isolatedHebrewCueMatch(side,cue,ocr){
+function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
  const words=rivokWordsBySide[side]||[],lines=detectedLines[side]||[];
  if(!words.length||!lines.length)return null;
  const tokenize=hebrewMatchTokens;
@@ -1064,15 +1064,18 @@ function isolatedHebrewCueMatch(side,cue,ocr){
   return results.sort((a,b)=>b.confidence-a.confidence);
  };
  const starts=candidates(begin);
- if(!starts.length)return null;
- if(starts.length>1&&starts[0].confidence-starts[1].confidence<.08)return null;
- const first=starts[0];
+ if(!starts.length&&spanBoundary!=="end")return null;
+ if(starts.length>1&&starts[0].confidence-starts[1].confidence<.08&&spanBoundary!=="end")return null;
+ const first=spanBoundary==="end"?{ri:0,offset:0,confidence:1}:starts[0];
  // A Hebrew maqaf may be OCR'd as a space, punctuation, or no separator.
  // Match the complete ending first, then its distinctive final word. Only
  // accept a unique fallback after the beginning cue in printed reading order.
  const afterStart=c=>c.ri>first.ri||(c.ri===first.ri&&c.offset>=first.offset);
  const fullEnds=candidates(finish).filter(afterStart);
  let last=fullEnds[0],endWordCount=finish.length;
+ if(!last&&spanBoundary==="start"){
+  last={ri:rows.length-1,offset:Math.max(0,rows[rows.length-1].tokens.length-1),confidence:1};endWordCount=1;
+ }
  if(!last){
   const finalWord=finish[finish.length-1];
   if(finalWord.length<4)return null;
@@ -1092,15 +1095,15 @@ function isolatedHebrewCueMatch(side,cue,ocr){
   if(alternatives.length!==1)return null;
   last=alternatives[0];endWordCount=1;
  }
- if(fullEnds.length>1&&fullEnds[0].confidence-fullEnds[1].confidence<.08)return null;
+ if(fullEnds.length>1&&fullEnds[0].confidence-fullEnds[1].confidence<.08&&spanBoundary!=="start")return null;
  if(first.ri>last.ri||(first.ri===last.ri&&first.offset>last.offset))return null;
  // Anchors are found with OCR, but the passage is filled from printed ink,
  // not from whichever intermediate lines OCR happened to recognize.
  const firstRow=rows[first.ri],lastRow=rows[last.ri];
- const startY=firstRow.line.y+firstRow.line.height/2;
- const endY=lastRow.line.y+lastRow.line.height/2;
- const startX=firstRow.line.x+firstRow.line.width/2;
- const endX=lastRow.line.x+lastRow.line.width/2;
+ const startY=spanBoundary==="end"?.19:firstRow.line.y+firstRow.line.height/2;
+ const endY=spanBoundary==="start"?.91:lastRow.line.y+lastRow.line.height/2;
+ const startX=spanBoundary==="end"?1:firstRow.line.x+firstRow.line.width/2;
+ const endX=spanBoundary==="start"?0:lastRow.line.x+lastRow.line.width/2;
  // Reject reverse anchors, but permit right-to-left travel on the same row.
  if(startY>endY+.015)return null;
  if(Math.abs(startY-endY)<=.015&&startX<endX)return null;
@@ -1124,9 +1127,9 @@ function isolatedHebrewCueMatch(side,cue,ocr){
  }
  // Compare row first, then horizontal position. The end may be in the left
  // half of the SAME printed row as the beginning.
- const geometryAfterStart=row=>row.cy>startY+.012||
+ const geometryAfterStart=row=>spanBoundary==="end"||row.cy>startY+.012||
   (Math.abs(row.cy-startY)<=.012&&row.x<=startX+.035);
- const beforeEnd=row=>row.cy<endY-.012||
+ const beforeEnd=row=>spanBoundary==="start"||row.cy<endY-.012||
   (Math.abs(row.cy-endY)<=.012&&row.x>=endX-.035);
  const selectedRows=geometryRows.filter(row=>geometryAfterStart(row)&&beforeEnd(row))
   .sort((a,b)=>a.cy-b.cy||b.x-a.x);
@@ -1135,8 +1138,8 @@ function isolatedHebrewCueMatch(side,cue,ocr){
   const row=selectedRows[i];
   let selected=row.words.slice().sort((a,b)=>b.x-a.x);
   // Trim only the anchor lines, using actual OCR x coordinates if available.
-  const boundary=Math.abs(row.cy-startY)<.013&&Math.abs(row.x-startX)<.18?"start":
-   Math.abs(row.cy-endY)<.013&&Math.abs(row.x-endX)<.18?"end":null;
+  const boundary=spanBoundary!=="end"&&Math.abs(row.cy-startY)<.013&&Math.abs(row.x-startX)<.18?"start":
+   spanBoundary!=="start"&&Math.abs(row.cy-endY)<.013&&Math.abs(row.x-endX)<.18?"end":null;
   if(boundary){
    const source=boundary==="start"?firstRow:lastRow;
    const index=boundary==="start"?first.offset:last.offset+endWordCount-1;
@@ -1178,14 +1181,21 @@ function assignCueHighlights(side){
     cue.matchStatus="missing-Hebrew-cue-review-required";
     continue;
    }
-   const highlights=isolatedHebrewCueMatch(side,cue,ocr);
+   const sourceRow=importedCues.find(c=>(c.cue_id||c.test_id)===cue.cueId);
+   const span=String(sourceRow?.source_page||"").match(/^(\d+)-(\d+)$/);
+   const printed=Number(record.source.originalPageNumber);
+   const spanBoundary=span&&Number.isFinite(printed)&&Number(span[1])<Number(span[2])&&printed>=Number(span[1])&&printed<=Number(span[2])
+    ?(printed===Number(span[1])?"start":printed===Number(span[2])?"end":"middle"):null;
+   // A range cue has a beginning on its first page and an ending on its last.
+   // Never demand both anchors from either page.
+   const highlights=spanBoundary==="middle"?null:isolatedHebrewCueMatch(side,cue,ocr,spanBoundary);
    if(highlights?.length){
     const suppressed=record.leadership.suppressedAutoHighlights||[];
     const allowed=highlights.filter(h=>!suppressed.some(v=>v.cueId===h.cueId&&
      Math.abs((v.y+v.height/2)-(h.y+h.height/2))<.012&&
      Math.max(0,Math.min(v.x+v.width,h.x+h.width)-Math.max(v.x,h.x))>Math.min(v.width,h.width)*.25));
     record.leadership.highlights.push(...allowed);
-    cue.matchStatus="isolated-rivok-candidate-review-required";matches++;
+    cue.matchStatus=spanBoundary?"spanning-Hebrew-"+spanBoundary+"-candidate-review-required":"isolated-rivok-candidate-review-required";matches++;
    }
    else cue.matchStatus=rivokWordsBySide[side]?.length?"rivok-anchor-pair-not-found":"rivok-unavailable";
    continue;
