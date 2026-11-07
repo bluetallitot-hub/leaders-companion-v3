@@ -2287,7 +2287,7 @@ async function loadSelectedSpread(){
  // Individual-page download controls were retired; the working PDF is the only export.
  applyCueRoleEdits();
  const saved=spreadEdits.get(selectedSpreadFirst);
- if(saved){pageMetadata.forEach((record,i)=>{const prior=saved.pages?.[i];if(record&&prior){record.leadership=JSON.parse(JSON.stringify(prior.leadership));record.leadership.highlights=record.leadership.highlights||[];record.prayerTitle=prior.prayerTitle;if(prior.identification)record.identification=JSON.parse(JSON.stringify(prior.identification))}});selectedCueBySide=[...(saved.selectedCues||["",""])];await autoMatchCues();renderPageCueEditor();drawHighlights()}else selectedCueBySide=["",""];
+ if(saved){pageMetadata.forEach((record,i)=>{const prior=saved.pages?.[i];if(record&&prior){record.leadership=JSON.parse(JSON.stringify(prior.leadership));record.leadership.highlights=record.leadership.highlights||[];record.prayerTitle=prior.prayerTitle;if(prior.identification)record.identification=JSON.parse(JSON.stringify(prior.identification))}});selectedCueBySide=[...(saved.selectedCues||["",""])];renderPageCueEditor();drawHighlights()}else selectedCueBySide=["",""];
  if($("metadata-dialog").open)refreshMetadataDialog();
  $("download").disabled=false;
  status(cueMatchReport);updateSpanStatus();
