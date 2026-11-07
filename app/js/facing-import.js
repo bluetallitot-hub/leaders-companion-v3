@@ -1008,10 +1008,18 @@ function isolatedHebrewCueMatch(side,cue,ocr){
  const tokenize=hebrewMatchTokens;
  const begin=tokenize(cue.startCueHebrew),finish=tokenize(cue.endCueHebrew);
  if(!begin.length||!finish.length)return null;
- // Hebrew reads the right column top-to-bottom, then the left column.
- // Never mix page headings, central ornaments, or the other column into a line.
- const body=lines.filter(l=>(l.column===0||l.column===1)&&l.y>=.19&&l.y+l.height<=.91).sort((a,b)=>
-  b.column-a.column||a.y-b.y||b.x-a.x);
+ // Read across each physical row, right-to-left, THEN advance downward.
+ // Printed half-lines may have slightly different baselines; group by proximity.
+ const bodyLines=lines.filter(l=>(l.column===0||l.column===1)&&l.y>=.19&&l.y+l.height<=.91);
+ const physicalRows=[];
+ for(const line of bodyLines.slice().sort((a,b)=>(a.y+a.height/2)-(b.y+b.height/2))){
+  const cy=line.y+line.height/2;
+  const row=physicalRows.find(r=>Math.abs(r.cy-cy)<=Math.max(.009,Math.min(r.height,line.height)*.7));
+  if(row){row.lines.push(line);row.cy=(row.cy*(row.lines.length-1)+cy)/row.lines.length;row.height=Math.max(row.height,line.height);}
+  else physicalRows.push({cy,height:line.height,lines:[line]});
+ }
+ const body=physicalRows.sort((a,b)=>a.cy-b.cy)
+  .flatMap(r=>r.lines.sort((a,b)=>(b.x+b.width/2)-(a.x+a.width/2)));
  const ocrByLine=new Map(ocr.map(item=>[item.id,item.text]));
  const rows=body.map(line=>{
   const boxes=words.filter(w=>w.lineId===line.id).sort((a,b)=>b.x-a.x);
@@ -1089,10 +1097,16 @@ function isolatedHebrewCueMatch(side,cue,ocr){
  // Anchors are found with OCR, but the passage is filled from printed ink,
  // not from whichever intermediate lines OCR happened to recognize.
  const firstRow=rows[first.ri],lastRow=rows[last.ri];
- const startCol=firstRow.line.column,endCol=lastRow.line.column;
  const startY=firstRow.line.y+firstRow.line.height/2;
  const endY=lastRow.line.y+lastRow.line.height/2;
- if(startCol<endCol)return null; // Hebrew moves right column (1) to left (0).
+ const startX=firstRow.line.x+firstRow.line.width/2;
+ const endX=lastRow.line.x+lastRow.line.width/2;
+ // Reject reverse anchors, but permit right-to-left travel on the same row.
+ if(startY>endY+.015)return null;
+ if(Math.abs(startY-endY)<=.015&&startX<endX)return null;
+ // Geometry is grouped independently from OCR. One physical row may contain
+ // two printed halves; preserve them as separate segments to avoid painting
+ // the whitespace between them.
  const geometryRows=[];
  for(const column of [1,0]){
   const inColumn=words.filter(w=>{
@@ -1102,27 +1116,28 @@ function isolatedHebrewCueMatch(side,cue,ocr){
   const grouped=[];
   for(const word of inColumn){
    const cy=word.y+word.height/2;
-   const row=grouped.find(g=>Math.abs(g.cy-cy)<=Math.max(.006,Math.min(g.height,word.height)*.48));
+   const row=grouped.find(g=>Math.abs(g.cy-cy)<=Math.max(.009,Math.min(g.height,word.height)*.65));
    if(row){row.words.push(word);row.cy=(row.cy*(row.words.length-1)+cy)/row.words.length;row.height=Math.max(row.height,word.height)}
    else grouped.push({cy,height:word.height,words:[word]});
   }
-  for(const row of grouped)geometryRows.push({...row,column});
+  for(const row of grouped)geometryRows.push({...row,column,x:row.words.reduce((a,w)=>a+w.x+w.width/2,0)/row.words.length});
  }
- const inPassage=row=>{
-  if(startCol===endCol)return row.column===startCol&&row.cy>=startY-.012&&row.cy<=endY+.012;
-  return (row.column===startCol&&row.cy>=startY-.012)||
-   (row.column===endCol&&row.cy<=endY+.012);
- };
+ // Compare row first, then horizontal position. The end may be in the left
+ // half of the SAME printed row as the beginning.
+ const afterStart=row=>row.cy>startY+.012||
+  (Math.abs(row.cy-startY)<=.012&&row.x<=startX+.035);
+ const beforeEnd=row=>row.cy<endY-.012||
+  (Math.abs(row.cy-endY)<=.012&&row.x>=endX-.035);
+ const selectedRows=geometryRows.filter(row=>afterStart(row)&&beforeEnd(row))
+  .sort((a,b)=>a.cy-b.cy||b.x-a.x);
  const chosen=[];
- const selectedRows=geometryRows.filter(inPassage).sort((a,b)=>b.column-a.column||a.cy-b.cy);
  for(let i=0;i<selectedRows.length;i++){
   const row=selectedRows[i];
   let selected=row.words.slice().sort((a,b)=>b.x-a.x);
   // Trim only the anchor lines, using actual OCR x coordinates if available.
-  const boundary=row.column===startCol&&Math.abs(row.cy-startY)<.013?"start":
-   row.column===endCol&&Math.abs(row.cy-endY)<.013?"end":null;
+  const boundary=Math.abs(row.cy-startY)<.013&&Math.abs(row.x-startX)<.18?"start":
+   Math.abs(row.cy-endY)<.013&&Math.abs(row.x-endX)<.18?"end":null;
   if(boundary){
-   const anchor=boundary==="start"?first:first.ri===last.ri?last:last;
    const source=boundary==="start"?firstRow:lastRow;
    const index=boundary==="start"?first.offset:last.offset+endWordCount-1;
    const word=source.ocrWords[index];
