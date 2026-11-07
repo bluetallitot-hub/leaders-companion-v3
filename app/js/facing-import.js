@@ -280,6 +280,10 @@ function parseCsv(text){
  const headers=(rows.shift()||[]).map(v=>v.replace(/^\uFEFF/,"").trim().toLowerCase());
  return rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()])));
 }
+function cueHasHebrewScript(cue){
+ return /[\u05d0-\u05ea]/.test([cue.startCueHebrew,cue.endCueHebrew,cue.startCue,cue.endCue,cue.begin_cue,cue.end_cue,cue.begin_cue_hebrew,cue.end_cue_hebrew].filter(Boolean).join(" "));
+}
+function pageHasHebrewCue(record){return (record?.leadership?.cues||[]).some(cueHasHebrewScript);}
 function applyImportedCues(){
  if(!pageMetadata.length)return;
  for(const record of pageMetadata){
@@ -300,13 +304,13 @@ function applyImportedCues(){
   // V2 stores physical LEFT and RIGHT cue boundaries for human reading.
   // Hebrew begins on the RIGHT and ends on the LEFT; English is the reverse.
   record.leadership.cues=matches.map((c,i)=>{
-   const isHebrew=code==="H";
+   const isHebrew=/[\u05d0-\u05ea]/.test([c.begin_cue,c.end_cue,c.begin_cue_hebrew,c.end_cue_hebrew].join(" "));
    const left=c.cue_left||"",right=c.cue_right||"";
    // The canonical CSV's Hebrew begin_cue/end_cue values are stored in visual
    // left-to-right order; the Hebrew reading begins at the rightmost (end_cue).
    const hasVisualColumns=!!(left||right);
-   const beginning=isHebrew?(right||(hasVisualColumns?c.begin_cue:c.end_cue)||""):(left||c.begin_cue||"");
-   const ending=isHebrew?(left||(hasVisualColumns?c.end_cue:c.begin_cue)||""):(right||c.end_cue||"");
+   const beginning=isHebrew?(right||c.begin_cue||""):(left||c.begin_cue||"");
+   const ending=isHebrew?(left||c.end_cue||""):(right||c.end_cue||"");
    return {
     cueId:c.cue_id||c.test_id||"import-"+i,service:c.service_name||c.service||null,role:c.leader_role||c.role_name||c.role_code||c.role||null,
     style:c.performance_style||c.style||null,styleSlot:null,startCue:beginning,endCue:ending,
@@ -1108,8 +1112,8 @@ function assignCueHighlights(side){
  const record=pageMetadata[side],ocr=sourceTextLines[side]||[],geometry=detectedLines[side]||[];
  if(!record)return 0;
  let matches=0;
- const hebrew=record.source.languageCode==="H";
  for(const cue of record.leadership.cues){
+  const hebrew=cueHasHebrewScript(cue);
   if(hebrew){
    if(!String(cue.startCueHebrew||"").trim()||!String(cue.endCueHebrew||"").trim()){
     cue.matchStatus="missing-Hebrew-cue-review-required";
@@ -1599,7 +1603,7 @@ function parseOcrTsv(tsv){
 async function recognizeCueLines(side){
  const canvas=$(side===0?"output-left":"output-right"),record=pageMetadata[side];
  if(!canvas||!record||!window.Tesseract){rawOcrDiagnostics[side]="OCR unavailable: missing canvas, page record or Tesseract.";return [];}
- const lang=record.source.languageCode==="H"?"heb":"eng";
+ const lang=pageHasHebrewCue(record)?"heb":"eng";
  const region=REGIONS[side],x=Math.round(region.x),y=Math.round(H-region.y-region.h);
  const analysis=enhancedAnalysisCanvas(canvas,2);
  const factor=analysis.width/canvas.width;
@@ -2048,7 +2052,7 @@ async function autoMatchCuesForSide(side){
  status("Matching "+(side===0?"left":"right")+" page cues…");
  try{
   sourceTextLines[side]=await recognizeCueLines(side);
-  if(record.source.languageCode==="H")sourceTextLines[side]=await secondPassHebrewLines(side,sourceTextLines[side]);
+  if(pageHasHebrewCue(record))sourceTextLines[side]=await secondPassHebrewLines(side,sourceTextLines[side]);
   assignCueHighlights(side);
  }catch(e){rawOcrDiagnostics[side]="OCR error: "+e.message;assignCueHighlights(side)}
  refreshCueVisibilityPicker();renderPageCueEditor();drawHighlights();displayMetadata();
@@ -2065,7 +2069,7 @@ async function autoMatchCues(){
   if(!pageMetadata[side].leadership.cues.length){if(progress)progress.value=side+1;continue;}
   if(progressLabel)progressLabel.textContent="Matching highlights: page "+(side+1)+" of "+pageMetadata.length+"…";
   status("Reading "+(side===0?"left":"right")+" page for cue anchors...");
-  try{sourceTextLines[side]=await recognizeCueLines(side);if(pageMetadata[side].source.languageCode==="H"){status("Running independent Hebrew line OCR before cue matching...");sourceTextLines[side]=await secondPassHebrewLines(side,sourceTextLines[side]);}total+=assignCueHighlights(side)}
+  try{sourceTextLines[side]=await recognizeCueLines(side);if(pageHasHebrewCue(pageMetadata[side])){status("Running independent Hebrew line OCR before cue matching...");sourceTextLines[side]=await secondPassHebrewLines(side,sourceTextLines[side]);}total+=assignCueHighlights(side)}
   catch(e){rawOcrDiagnostics[side]="OCR error: "+e.message;console.warn("Cue OCR unavailable",e);total+=assignCueHighlights(side);for(const cue of pageMetadata[side].leadership.cues)if(cue.matchStatus==="unmatched-review-required")cue.matchStatus="ocr-error: "+e.message}
  }
  // Deduplicate OCR/Rivok overlaps within each cue before rendering.
@@ -2279,20 +2283,19 @@ for(const mode of ["line","word"]){$("mode-"+mode).addEventListener("click",()=>
 installHighlightSelection();
 async function runRivokAutomatically(){
  const report=$("rivok-status");
- const side=pageMetadata.findIndex(p=>p?.source?.languageCode==="H");
- if(side<0)return;
+ const sides=pageMetadata.map((p,i)=>pageHasHebrewCue(p)?i:-1).filter(i=>i>=0);
+ if(!sides.length)return;
  if(!window.RivokBrowser){report.textContent="Rivok module unavailable; Hebrew automatic detection could not start.";return;}
- const canvas=$(side===0?"output-left":"output-right");
- try{
-  const result=await RivokBrowser.detect(canvas,msg=>{report.textContent=msg;});
-  rivokOverlay={side,width:result.imageWidth,height:result.imageHeight,words:result.words};
-  installRivokSelectionGeometry(side,result);
-  drawHighlights();
-  report.textContent="Automatic Rivok detection: "+result.words.length+" Hebrew word candidates. Purple outlines show results; no extra click required.";
- }catch(error){
-  console.error("Automatic Rivok detection",error);
-  report.textContent="Automatic Rivok detection failed: "+error.message;
+ for(const side of sides){
+  const canvas=$(side===0?"output-left":"output-right");
+  try{
+   const result=await RivokBrowser.detect(canvas,msg=>{report.textContent=msg;});
+   rivokOverlay={side,width:result.imageWidth,height:result.imageHeight,words:result.words};
+   installRivokSelectionGeometry(side,result);
+   report.textContent="Hebrew word detection ready for "+(side===0?"left":"right")+" page: "+result.words.length+" candidates.";
+  }catch(error){console.error("Automatic Rivok detection",error);report.textContent="Hebrew word detection failed: "+error.message;}
  }
+ drawHighlights();
 }
 $("rivok-run").addEventListener("click",async()=>{
  const button=$("rivok-run"),report=$("rivok-status");
