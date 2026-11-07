@@ -1120,6 +1120,41 @@ function assignCueHighlights(side){
    else cue.matchStatus=rivokWordsBySide[side]?.length?"rivok-anchor-pair-not-found":"rivok-unavailable";
    continue;
   }
+  // A cue whose source_page is a printed-page range has only one anchor
+  // on each boundary page. Match each page independently, including across spreads.
+  const sourceRow=importedCues.find(c=>(c.cue_id||c.test_id)===cue.cueId);
+  const span=String(sourceRow?.source_page||"").match(/^(\\d+)-(\\d+)$/);
+  const printed=Number(record.source.originalPageNumber);
+  if(span&&!hebrew&&Number.isFinite(printed)&&Number(span[1])<Number(span[2])&&printed>=Number(span[1])&&printed<=Number(span[2])){
+   const firstPage=printed===Number(span[1]),lastPage=printed===Number(span[2]);
+   const begin=firstPage?matchingCueLine(ocr,cue.startCue):null;
+   const end=lastPage?matchingCueLine(ocr,cue.endCue):null;
+   const anchor=firstPage?ocr[begin]:ocr[end];
+   if(!anchor||(!firstPage&&!lastPage)){
+    cue.matchStatus="spanning-page-anchor-review-required";
+    continue;
+   }
+   const col=anchor.column;
+   const lines=geometry.filter(l=>l.column===col).sort((a,b)=>a.y-b.y);
+   if(!lines.length){cue.matchStatus="spanning-page-geometry-review-required";continue}
+   // On continuation pages start at the first recognized body-text line in
+   // the ending anchor's column, not at the running header or a blank margin.
+   const body=ocr.filter(l=>l.column===col&&!/^(sabbath eve service|psalm \\d+|\\d+)$/i.test(String(l.text||"").trim())).sort((a,b)=>a.y-b.y);
+   const startY=firstPage?anchor.y:(body.length?body[0].y:NaN);
+   const endY=lastPage?anchor.y:lines[lines.length-1].y+lines[lines.length-1].height;
+   if(!Number.isFinite(startY)||!Number.isFinite(endY)||endY<startY){
+    cue.matchStatus="spanning-page-body-review-required";continue;
+   }
+   const selected=lines.filter(l=>l.y+l.height/2>=startY-.012&&l.y+l.height/2<=endY+.012);
+   if(!selected.length){cue.matchStatus="spanning-page-empty-review-required";continue}
+   for(const line of selected)record.leadership.highlights.push({
+    highlightId:"HL-"+cue.cueId+"-"+line.id,lineId:line.id,cueId:cue.cueId,roleId:cue.role,
+    x:line.x,y:line.y,width:line.width,height:line.height,
+    coordinateSystem:"normalized-top-left",visibleInPdf:false
+   });
+   cue.matchStatus="spanning-page-candidate-review-required";
+   matches++;continue;
+  }
   // Never convert ambiguous OCR into a guessed selection.
   const begin=matchingCueLine(ocr,hebrew?(cue.startCueHebrew):cue.startCue),
         end=matchingCueLine(ocr,hebrew?(cue.endCueHebrew):cue.endCue);
