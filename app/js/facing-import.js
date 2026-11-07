@@ -1164,7 +1164,14 @@ function assignCueHighlights(side){
     continue;
    }
    const highlights=isolatedHebrewCueMatch(side,cue,ocr);
-   if(highlights?.length){record.leadership.highlights.push(...highlights);cue.matchStatus="isolated-rivok-candidate-review-required";matches++;}
+   if(highlights?.length){
+    const suppressed=record.leadership.suppressedAutoHighlights||[];
+    const allowed=highlights.filter(h=>!suppressed.some(v=>v.cueId===h.cueId&&
+     Math.abs((v.y+v.height/2)-(h.y+h.height/2))<.012&&
+     Math.max(0,Math.min(v.x+v.width,h.x+h.width)-Math.max(v.x,h.x))>Math.min(v.width,h.width)*.25));
+    record.leadership.highlights.push(...allowed);
+    cue.matchStatus="isolated-rivok-candidate-review-required";matches++;
+   }
    else cue.matchStatus=rivokWordsBySide[side]?.length?"rivok-anchor-pair-not-found":"rivok-unavailable";
    continue;
   }
@@ -1540,7 +1547,24 @@ function installHighlightSelection(){
    const from=ordered.findIndex(x=>x.id===start.id),to=ordered.findIndex(x=>x.id===end.id);
    const chosen=from===to?[start]:ordered.slice(Math.min(from,to),Math.max(from,to)+1).filter(l=>l.column===start.column);
    const highlights=pageMetadata[i].leadership.highlights;
+   // Automatic cue highlights have generated ink-row IDs, not detection-line IDs.
+   // Clicking their painted geometry must still be able to remove them.
+   const suppressed=pageMetadata[i].leadership.suppressedAutoHighlights||=[];
+   pageMetadata[i].leadership.suppressedAutoHighlights=suppressed;
    for(const item of chosen){
+    const overlap=h=>{
+     const x=Math.max(0,Math.min(h.x+h.width,item.x+item.width)-Math.max(h.x,item.x));
+     const y=Math.max(0,Math.min(h.y+h.height,item.y+item.height)-Math.max(h.y,item.y));
+     return x*y>0&&y/Math.max(.001,Math.min(h.height,item.height))>.35;
+    };
+    const automatic=highlights.filter(h=>h.cueId&&!h.manualApproved&&overlap(h));
+    if(automatic.length){
+     for(const h of automatic){
+      suppressed.push({cueId:h.cueId,x:h.x,y:h.y,width:h.width,height:h.height});
+      const idx=highlights.indexOf(h);if(idx>=0)highlights.splice(idx,1);
+     }
+     continue;
+    }
     const role=pageMetadata[i].leadership.cues.find(c=>c.cueId===visibleCueId)?.role||pageMetadata[i].leadership.cues[0]?.role||roleConfig.id;
     if(selectionMode==="word"){
      const lineId=item.lineId;
