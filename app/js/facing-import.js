@@ -662,6 +662,13 @@ let rawOcrDiagnostics=["",""];
 let ocrWordGeometry=[new Map(),new Map()];
 let cueMatchReport="Automatic cue matching has not run.";
 function normalizeCueText(s){return String(s||"").normalize("NFKD").replace(/[\u0591-\u05c7]/g,"").replace(/[‘’“”"'.,:;!?—–-]/g," ").replace(/\s+/g," ").trim().toLowerCase()}
+// Canonical comparison only: preserve original CSV spelling and OCR text.
+function normalizeHebrewMatchText(s){
+ return normalizeCueText(s).replace(/(^|[^\u05d0-\u05ea])(?:יהוה|יי)(?=$|[^\u05d0-\u05ea])/g,(_,prefix)=>prefix+"יי");
+}
+function hebrewMatchTokens(s){
+ return normalizeHebrewMatchText(hebrewCueAlias(s)).replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
+}
 function cueSimilarity(a,b){
  const x=normalizeCueText(a),y=normalizeCueText(b);
  if(!x||!y)return 0;
@@ -692,7 +699,7 @@ function hebrewCueSimilarity(a,b){
 // Compare Hebrew cue phrases against short windows inside longer printed lines.
 // Normalize common divine-name print forms and tolerate minor OCR letter errors.
 function hebrewAnchorScore(text,phrase){
- const clean=v=>normalizeCueText(v).replace(/יהוה|יְיָ|יי/g,"יי").replace(/[^\u05d0-\u05ea ]/g," ").replace(/\s+/g," ").trim();
+ const clean=v=>hebrewMatchTokens(v).join(" ");
  const a=clean(text),b=clean(phrase);
  if(!a||!b)return 0;
  const target=b.replace(/ /g,""),words=a.split(" ").filter(Boolean);
@@ -731,7 +738,7 @@ function matchingCueLine(lines,phrase){
  // English: require every cue word in order and adjacent, not a bag-of-words score.
  // Reject ambiguous repeated occurrences rather than selecting a plausible location.
  if(!/[\u0590-\u05ff]/u.test(needle)){
-  const tokens=t=>normalizeCueText(t).replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(Boolean);
+  const tokens=hebrewMatchTokens;
   const target=tokens(needle),stream=[];
   for(let i=0;i<lines.length;i++)for(const word of tokens(lines[i].text))stream.push({word,line:i,column:lines[i].column});
   if(!target.length)return null;
@@ -993,8 +1000,7 @@ const hebrewOcrTokens=[[],[]];
 function isolatedHebrewCueMatch(side,cue,ocr){
  const words=rivokWordsBySide[side],lines=detectedLines[side];
  if(!words?.length||!lines?.length)return null;
- const tokenize=t=>normalizeCueText(hebrewCueAlias(t)).replace(/יהוה/g,"יי")
-  .replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
+ const tokenize=hebrewMatchTokens;
  const start=tokenize(cue.startCueHebrew),end=tokenize(cue.endCueHebrew);
  const similarity=(a,b)=>{
   const dp=Array.from({length:b.length+1},(_,i)=>i);
