@@ -664,7 +664,8 @@ let cueMatchReport="Automatic cue matching has not run.";
 function normalizeCueText(s){return String(s||"").normalize("NFKD").replace(/[\u0591-\u05c7]/g,"").replace(/[‘’“”"'.,:;!?—–-]/g," ").replace(/\s+/g," ").trim().toLowerCase()}
 // Canonical comparison only: preserve original CSV spelling and OCR text.
 function normalizeHebrewMatchText(s){
- return normalizeCueText(s).replace(/(^|[^\u05d0-\u05ea])(?:יהוה|יי)(?=$|[^\u05d0-\u05ea])/g,(_,prefix)=>prefix+"יי");
+ return normalizeCueText(String(s||"").normalize("NFKD").replace(/[\u0591-\u05c7]/g,"").replace(/י[\u05f3\u05f4׳״\u0027" ]+י/g,"יי"))
+  .replace(/(^|[^\u05d0-\u05ea])(?:יהוה|יי)(?=$|[^\u05d0-\u05ea])/g,(_,prefix)=>prefix+"יי");
 }
 function hebrewMatchTokens(s){
  return normalizeHebrewMatchText(hebrewCueAlias(s)).replace(/[^\u05d0-\u05ea ]/g," ").split(/\s+/).filter(Boolean);
