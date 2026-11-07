@@ -244,12 +244,7 @@ function cueRef(r){return String(r.source_page||r.printed_page||r.printed_page_n
 function refKind(ref){return /^SUP(?:-|$)/i.test(ref)?"supplement":/^I-\d+(?:-\d+)?$/i.test(ref)?"internal":/^X-/i.test(ref)?"external":/^\d+(?:-\d+)?$/i.test(ref)?"printed":"unknown"}
 function expandRef(ref){const m=String(ref).match(/^(?:I-)?(\d+)(?:-(\d+))?$/i);if(!m)return [];const start=+m[1],end=m[2]?+m[2]:start;if(end<start||end-start>1000)return [];return Array.from({length:end-start+1},(_,i)=>String(start+i))}
 function expandSupplementSpan(ref){const m=String(ref).match(/^(SUP-.+)-(\d+)-(\d+)$/i);if(!m)return [ref];const start=Number(m[2]),end=Number(m[3]);if(end<start||end-start>20)throw Error("Invalid supplement span: "+ref);return Array.from({length:end-start+1},(_,i)=>m[1]+"-"+(start+i))}
-function orderedRefs(){const seen=new Set(),out=[];for(const r of [...(csvRows||[])].sort((a,b)=>Number(a.sequence||0)-Number(b.sequence||0))){for(const ref of expandSupplementSpan(cueRef(r))){if(ref&&!seen.has(ref)){seen.add(ref);out.push(ref)}}}
- // SH service sequence: Candle Lighting precedes Prayer for Israel.
- const candle=out.findIndex(ref=>/^SUP-SH-Candle$/i.test(ref));
- const israel=out.findIndex(ref=>/^SUP-ISRAEL$/i.test(ref));
- if(candle>=0&&israel>=0&&candle>israel){const [ref]=out.splice(candle,1);out.splice(israel,0,ref)}
- return out}
+function orderedRefs(){const seen=new Set(),out=[];for(const r of [...(csvRows||[])].sort((a,b)=>Number(a.sequence||0)-Number(b.sequence||0))){for(const ref of expandSupplementSpan(cueRef(r))){if(ref&&!seen.has(ref)){seen.add(ref);out.push(ref)}}}return out}
 function isSupplement(ref){return refKind(ref)==="supplement"}
 function siddurPages(){return [...new Set(orderedRefs().filter(r=>refKind(r)==="printed").flatMap(expandRef))]}
 function syncSupplementCsv(){for(const r of csvRows||[]){const ref=cueRef(r);r.page_type=refKind(ref);r.supplement_file=isSupplement(ref)?expandSupplementSpan(ref).map(x=>supplements[x]?.name||"").filter(Boolean).join("; "):""}}
