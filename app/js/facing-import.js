@@ -1382,74 +1382,31 @@ function highlightFill(h){const hex=roleColor(h.roleId);const v=hex.replace("#",
 function drawHighlights(){
  for(let i=0;i<2;i++){
   const overlay=$("highlight-"+i),base=$(i===0?"output-left":"output-right");
-  if(!overlay||!base)return;
+  if(!overlay||!base)continue;
   overlay.width=base.width;overlay.height=base.height;
-  const ctx=overlay.getContext("2d");ctx.clearRect(0,0,overlay.width,overlay.height);
-  if(rivokOverlay&&i===rivokOverlay.side&&highlightView==="detection"){
-   ctx.save();
-   for(const word of rivokOverlay.words){
-    const [x0,y0,x1,y1]=word.bbox;
-    ctx.strokeStyle="#8a32bf";ctx.lineWidth=1.5;
-    ctx.strokeRect(x0/rivokOverlay.width*overlay.width,y0/rivokOverlay.height*overlay.height,
-      (x1-x0)/rivokOverlay.width*overlay.width,(y1-y0)/rivokOverlay.height*overlay.height);
+  const ctx=overlay.getContext("2d");
+  ctx.clearRect(0,0,overlay.width,overlay.height);
+  if(highlightView==="detection"){
+   // Detection is a geometry diagnostic ONLY: never color text or cues.
+   // In particular, titles and page numbers may be detected but are not prayers.
+   ctx.save();ctx.strokeStyle="rgba(138,50,191,.8)";ctx.lineWidth=1;
+   for(const line of detectedLines[i]||[]){
+    const candidates=selectionMode==="word"?wordCandidates(i,line):[line];
+    for(const box of candidates)ctx.strokeRect(box.x*overlay.width,box.y*overlay.height,
+     box.width*overlay.width,box.height*overlay.height);
    }
    ctx.restore();
+   continue;
   }
-  const pageCue=selectedCueBySide[i];
-  const selected=(pageMetadata[i]?.leadership?.highlights||[]).filter(h=>!pageCue||h.cueId===pageCue||!h.cueId);
-  for(const line of detectedLines[i]){
-   const lineHighlight=selected.find(h=>!h.wordId&&h.lineId===line.id);
-   const wordOverrides=selected.filter(h=>h.wordId&&h.lineId===line.id);
-   // A line without word edits is rendered once. After the first word edit,
-   // individual word selections replace the full-line rectangle.
-   if(!wordOverrides.length){
-    if((lineHighlight&&!(Number.isFinite(lineHighlight.x)&&Number.isFinite(lineHighlight.y)))||highlightView==="detection"){
-     ctx.fillStyle=lineHighlight?highlightFill(lineHighlight):"rgba(24,105,160,.19)";
-     ctx.fillRect(line.x*overlay.width,line.y*overlay.height,line.width*overlay.width,line.height*overlay.height);
-    }
-   }else{
-    const words=wordCandidates(i,line);
-    for(const word of words){
-     const h=wordOverrides.find(v=>v.wordId===word.id);
-     if(!h&&highlightView!=="detection")continue;
-     ctx.fillStyle=h?highlightFill(h):"rgba(24,105,160,.19)";
-     ctx.fillRect(word.x*overlay.width,word.y*overlay.height,word.width*overlay.width,word.height*overlay.height);
-    }
-   }
-  }
-  // Draw matched cue coordinates DIRECTLY, independent of detectedLines IDs.
-  // Previously the renderer only painted highlights whose line/word IDs
-  // still matched the current detector output. That could hide valid matches.
-  if(highlightView!=="detection"){
-   for(const h of selected){
-    if(!Number.isFinite(h.x)||!Number.isFinite(h.y)||!Number.isFinite(h.width)||!Number.isFinite(h.height))continue;
-    if(h.width<=0||h.height<=0)continue;
-    ctx.fillStyle=highlightFill(h);
-    ctx.fillRect(h.x*overlay.width,h.y*overlay.height,h.width*overlay.width,h.height*overlay.height);
-   }
-  }
-  // V3.59 reconstructed Hebrew lines: diagnostic overlay only.
-  if(highlightView==="detection"&&pageMetadata[i]?.source?.languageCode==="H"&&hebrewReconstructionPreview[i]?.length){
-   ctx.save();ctx.lineWidth=2;
-   for(const line of hebrewReconstructionPreview[i]){
-    ctx.strokeStyle=line.kind==="ocr"?"rgba(0,150,70,.95)":"rgba(240,135,0,.9)";
-    ctx.strokeRect(line.x*overlay.width,line.y*overlay.height,line.width*overlay.width,line.height*overlay.height);
-   }
-   ctx.restore();
-  }
-  // Diagnostic: in Detection + Word mode, outline the actual word candidates.
-  // This is preview-only and does not modify selection metadata or PDF export.
-  if(highlightView==="detection"&&selectionMode==="word"&&pageMetadata[i]?.source?.languageCode==="H"){
-   const candidates=getWordGeometry(i);
-   ctx.save();ctx.strokeStyle="rgba(215,45,35,.95)";ctx.lineWidth=1.5;
-   ctx.font="11px sans-serif";ctx.fillStyle="rgba(155,20,20,.95)";
-   for(const word of candidates){
-    const x=word.x*overlay.width,y=word.y*overlay.height;
-    ctx.strokeRect(x,y,word.width*overlay.width,word.height*overlay.height);
-    const number=word.id.split("-word-").pop();
-    ctx.fillText(number,x+2,Math.max(10,y-2));
-   }
-   ctx.restore();
+  const record=pageMetadata[i];
+  const activeId=selectedCueBySide[i]||record?.leadership?.cues?.[0]?.cueId||"";
+  const selected=(record?.leadership?.highlights||[]).filter(h=>!h.cueId||h.cueId===activeId);
+  // Paint each actual cue rectangle exactly once. Previously the renderer
+  // painted selected geometry twice, making it darker and fragmented.
+  for(const h of selected){
+   if(![h.x,h.y,h.width,h.height].every(Number.isFinite)||h.width<=0||h.height<=0)continue;
+   ctx.fillStyle=highlightFill(h);
+   ctx.fillRect(h.x*overlay.width,h.y*overlay.height,h.width*overlay.width,h.height*overlay.height);
   }
  }
 }
