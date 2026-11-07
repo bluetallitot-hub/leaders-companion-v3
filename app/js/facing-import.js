@@ -1145,7 +1145,9 @@ function assignCueHighlights(side){
    if(!Number.isFinite(startY)||!Number.isFinite(endY)||endY<startY){
     cue.matchStatus="spanning-page-body-review-required";continue;
    }
-   const selected=lines.filter(l=>l.y+l.height/2>=startY-.012&&l.y+l.height/2<=endY+.012);
+   const selected=lines.filter(l=>l.y+l.height/2>=startY-.012&&l.y+l.height/2<=endY+.012
+    // Printed page numbers and template headings are outside the prayer body.
+    &&l.y>.18&&l.y<.88);
    if(!selected.length){cue.matchStatus="spanning-page-empty-review-required";continue}
    for(const line of selected)record.leadership.highlights.push({
     highlightId:"HL-"+cue.cueId+"-"+line.id,lineId:line.id,cueId:cue.cueId,roleId:cue.role,
@@ -2053,14 +2055,30 @@ async function autoMatchCuesForSide(side){
 }
 async function autoMatchCues(){
  if(!pageMetadata.length||!importedCues.length)return;
+ const progress=document.getElementById("highlight-loading-progress");
+ const progressLabel=document.getElementById("highlight-loading-label");
+ if(progress){progress.hidden=false;progress.max=pageMetadata.length;progress.value=0}
+ if(progressLabel)progressLabel.textContent="Recognizing cue text and preparing highlights…";
  let total=0;
  for(const record of pageMetadata){record.leadership.highlights=record.leadership.highlights.filter(h=>!h.cueId)}
  for(let side=0;side<pageMetadata.length;side++){
-  if(!pageMetadata[side].leadership.cues.length)continue;
+  if(!pageMetadata[side].leadership.cues.length){if(progress)progress.value=side+1;continue;}
+  if(progressLabel)progressLabel.textContent="Matching highlights: page "+(side+1)+" of "+pageMetadata.length+"…";
   status("Reading "+(side===0?"left":"right")+" page for cue anchors...");
   try{sourceTextLines[side]=await recognizeCueLines(side);if(pageMetadata[side].source.languageCode==="H"){status("Running independent Hebrew line OCR before cue matching...");sourceTextLines[side]=await secondPassHebrewLines(side,sourceTextLines[side]);}total+=assignCueHighlights(side)}
   catch(e){rawOcrDiagnostics[side]="OCR error: "+e.message;console.warn("Cue OCR unavailable",e);total+=assignCueHighlights(side);for(const cue of pageMetadata[side].leadership.cues)if(cue.matchStatus==="unmatched-review-required")cue.matchStatus="ocr-error: "+e.message}
  }
+ // Deduplicate OCR/Rivok overlaps within each cue before rendering.
+ for(const record of pageMetadata){
+  const unique=new Map();
+  for(const h of record.leadership.highlights){
+   const key=[h.cueId||"",h.wordId||"",h.lineId||"",...["x","y","width","height"].map(k=>Number(h[k]||0).toFixed(4))].join("|");
+   if(!unique.has(key))unique.set(key,h);
+  }
+  record.leadership.highlights=[...unique.values()];
+ }
+ if(progress)progress.value=pageMetadata.length;
+ if(progressLabel)progressLabel.textContent="Highlights ready — review both pages.";
  total+=matchCrossPageEnglishCues();
  $("ocr-diagnostics").textContent=pageMetadata.map((r,i)=>"Page "+(r.source.sourcePage||i+1)+" OCR ("+(sourceTextLines[i]||[]).length+" mapped lines):\\n"+(sourceTextLines[i]||[]).map(l=>l.text).join("\\n")+"\\n\\nRAW OCR DIAGNOSTICS:\\n"+(rawOcrDiagnostics[i]||"Not run")).join("\\n\\n");
  cueMatchReport=total+" of "+pageMetadata.reduce((n,r)=>n+r.leadership.cues.length,0)+" cues automatically matched. "+pageMetadata.flatMap(r=>r.leadership.cues.map(c=>c.cueId+": "+c.matchStatus)).join("; ");
