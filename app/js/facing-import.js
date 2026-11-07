@@ -1123,7 +1123,7 @@ function assignCueHighlights(side){
   // A cue whose source_page is a printed-page range has only one anchor
   // on each boundary page. Match each page independently, including across spreads.
   const sourceRow=importedCues.find(c=>(c.cue_id||c.test_id)===cue.cueId);
-  const span=String(sourceRow?.source_page||"").match(/^(\\d+)-(\\d+)$/);
+  const span=String(sourceRow?.source_page||"").match(/^(\d+)-(\d+)$/);
   const printed=Number(record.source.originalPageNumber);
   if(span&&!hebrew&&Number.isFinite(printed)&&Number(span[1])<Number(span[2])&&printed>=Number(span[1])&&printed<=Number(span[2])){
    const firstPage=printed===Number(span[1]),lastPage=printed===Number(span[2]);
@@ -1139,7 +1139,7 @@ function assignCueHighlights(side){
    if(!lines.length){cue.matchStatus="spanning-page-geometry-review-required";continue}
    // On continuation pages start at the first recognized body-text line in
    // the ending anchor's column, not at the running header or a blank margin.
-   const body=ocr.filter(l=>l.column===col&&!/^(sabbath eve service|psalm \\d+|\\d+)$/i.test(String(l.text||"").trim())).sort((a,b)=>a.y-b.y);
+   const body=ocr.filter(l=>l.column===col&&!/^(sabbath eve service|psalm \d+|\d+)$/i.test(String(l.text||"").trim())).sort((a,b)=>a.y-b.y);
    const startY=firstPage?anchor.y:(body.length?body[0].y:NaN);
    const endY=lastPage?anchor.y:lines[lines.length-1].y+lines[lines.length-1].height;
    if(!Number.isFinite(startY)||!Number.isFinite(endY)||endY<startY){
