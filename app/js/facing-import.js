@@ -1055,12 +1055,36 @@ function isolatedHebrewCueMatch(side,cue,ocr){
   }
   return results.sort((a,b)=>b.confidence-a.confidence);
  };
- const starts=candidates(begin),ends=candidates(finish);
- if(!starts.length||!ends.length)return null;
- // Reject ambiguous anchors rather than coloring an unrelated passage.
+ const starts=candidates(begin);
+ if(!starts.length)return null;
  if(starts.length>1&&starts[0].confidence-starts[1].confidence<.08)return null;
- if(ends.length>1&&ends[0].confidence-ends[1].confidence<.08)return null;
- const first=starts[0],last=ends[0];
+ const first=starts[0];
+ // A Hebrew maqaf may be OCR'd as a space, punctuation, or no separator.
+ // Match the complete ending first, then its distinctive final word. Only
+ // accept a unique fallback after the beginning cue in printed reading order.
+ const afterStart=c=>c.ri>first.ri||(c.ri===first.ri&&c.offset>=first.offset);
+ const fullEnds=candidates(finish).filter(afterStart);
+ let last=fullEnds[0],endWordCount=finish.length;
+ if(!last){
+  const finalWord=finish[finish.length-1];
+  if(finalWord.length<4)return null;
+  const alternatives=[];
+  for(let ri=first.ri;ri<rows.length;ri++){
+   const tokens=rows[ri].tokens;
+   for(let offset=0;offset<tokens.length;offset++){
+    if(!afterStart({ri,offset}))continue;
+    const word=tokens[offset],confidence=score(finalWord,word);
+    if(confidence>=.83)alternatives.push({ri,offset,confidence});
+    // Fused maqaf form: אלמנוחתי matches final word מנוחתי.
+    else if(word.endsWith(finalWord)&&word.length-finalWord.length<=3)
+     alternatives.push({ri,offset,confidence:.88});
+   }
+  }
+  alternatives.sort((a,b)=>b.confidence-a.confidence);
+  if(alternatives.length!==1)return null;
+  last=alternatives[0];endWordCount=1;
+ }
+ if(fullEnds.length>1&&fullEnds[0].confidence-fullEnds[1].confidence<.08)return null;
  if(first.ri>last.ri||(first.ri===last.ri&&first.offset>last.offset))return null;
  const chosen=[];
  for(let ri=first.ri;ri<=last.ri;ri++){
@@ -1072,7 +1096,7 @@ function isolatedHebrewCueMatch(side,cue,ocr){
   let selected=row.boxes;
   if(ri===first.ri||ri===last.ri){
    const start=ri===first.ri?first.offset:0;
-   const end=ri===last.ri?last.offset+finish.length-1:row.tokens.length-1;
+   const end=ri===last.ri?last.offset+endWordCount-1:row.tokens.length-1;
    if(row.ocrWords.length){
     const rightToken=row.ocrWords[Math.min(start,row.ocrWords.length-1)];
     const leftToken=row.ocrWords[Math.min(end,row.ocrWords.length-1)];
