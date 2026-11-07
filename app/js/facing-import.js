@@ -1016,22 +1016,26 @@ function isolatedHebrewCueMatch(side,cue,ocr){
   return (ac>=.5?0:1)-(bc>=.5?0:1)||a.y-b.y||bc-ac;
  });
  const rank=new Map(ordered.map((line,i)=>[line.id,i]));
- const tokens=(hebrewOcrTokens[side]||[]).filter(t=>rank.has(t.lineId))
-  .sort((a,b)=>rank.get(a.lineId)-rank.get(b.lineId)||b.x-a.x);
- // Combine word OCR and independent line OCR. Partial word recognition must
- // not suppress a usable line-level anchor. Keep both candidates per page.
- for(const line of ordered){
-  for(const observation of ocr.filter(o=>o.id===line.id)){
-   const wordsOnLine=tokenize(observation.text);
-   const boxes=words.filter(w=>w.lineId===line.id).sort((a,b)=>b.x-a.x);
-   wordsOnLine.forEach((text,index)=>{
-    const box=boxes[Math.min(index,Math.max(0,boxes.length-1))];
-    tokens.push({text,lineId:line.id,x:box?.x??line.x,y:line.y,source:"line-ocr"});
-   });
-  }
- }
+ // Keep OCR tokens in physical Hebrew reading order. Appending line OCR after
+ // word OCR used to create a second, out-of-order copy of the page; the
+ // "ending after beginning" test could then reject a valid pair.
+ const observations=new Map();
+ for(const item of ocr)if(rank.has(item.id))observations.set(item.id,item.text);
  const expanded=[];
- for(const t of tokens)for(const word of tokenize(t.text))expanded.push({...t,word});
+ for(const line of ordered){
+  const wordTokens=(hebrewOcrTokens[side]||[]).filter(t=>t.lineId===line.id)
+   .sort((a,b)=>b.x-a.x);
+  const lineWords=tokenize(observations.get(line.id)||"");
+  const boxes=words.filter(w=>w.lineId===line.id).sort((a,b)=>b.x-a.x);
+  // Word OCR is preferred when it covers a line; otherwise the independent
+  // line OCR provides the reading text with positions inferred from Rivok.
+  const useWord=wordTokens.filter(t=>tokenize(t.text).length);
+  const source=useWord.length>=Math.max(2,Math.ceil(lineWords.length*.65))?
+   useWord.flatMap(t=>tokenize(t.text).map(word=>({word,lineId:line.id,x:t.x,y:t.y}))):
+   lineWords.map((word,index)=>({word,lineId:line.id,
+    x:boxes[Math.min(index,boxes.length-1)]?.x??line.x,y:line.y}));
+  expanded.push(...source);
+ }
  // Match a phrase progressively: every cue word is eligible, including short
  // words; joined OCR tokens can contain the cue word as a substring.
  const wordScore=(needle,hay)=>{
@@ -1105,8 +1109,8 @@ function isolatedHebrewCueMatch(side,cue,ocr){
   const row=rivokByLine(ordered[lineIndex].id);
   if(!row.length)continue;
   let from=0,to=row.length-1;
-  if(lineIndex===firstRank&&startWord){const pos=row.findIndex(w=>w.id===startWord.id);if(pos>=0)from=pos}
-  if(lineIndex===lastRank&&endWord){const pos=row.findIndex(w=>w.id===endWord.id);if(pos>=0)to=pos}
+  if(lineIndex===firstRank&&startWord){const pos=row.findIndex(w=>w.id===startWord.id);if(pos>=0)from=Math.max(0,pos-beginning.anchorIndex)}
+  if(lineIndex===lastRank&&endWord){const pos=row.findIndex(w=>w.id===endWord.id);if(pos>=0)to=Math.min(row.length-1,pos+(end.length-1-ending.anchorIndex))}
   if(from>to)return null;
   for(let j=from;j<=to;j++)include(row[j]);
  }
