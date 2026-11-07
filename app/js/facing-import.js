@@ -1124,11 +1124,11 @@ function isolatedHebrewCueMatch(side,cue,ocr){
  }
  // Compare row first, then horizontal position. The end may be in the left
  // half of the SAME printed row as the beginning.
- const afterStart=row=>row.cy>startY+.012||
+ const geometryAfterStart=row=>row.cy>startY+.012||
   (Math.abs(row.cy-startY)<=.012&&row.x<=startX+.035);
  const beforeEnd=row=>row.cy<endY-.012||
   (Math.abs(row.cy-endY)<=.012&&row.x>=endX-.035);
- const selectedRows=geometryRows.filter(row=>afterStart(row)&&beforeEnd(row))
+ const selectedRows=geometryRows.filter(row=>geometryAfterStart(row)&&beforeEnd(row))
   .sort((a,b)=>a.cy-b.cy||b.x-a.x);
  const chosen=[];
  for(let i=0;i<selectedRows.length;i++){
