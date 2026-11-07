@@ -739,7 +739,7 @@ function matchingCueLine(lines,phrase){
  // English: require every cue word in order and adjacent, not a bag-of-words score.
  // Reject ambiguous repeated occurrences rather than selecting a plausible location.
  if(!/[\u0590-\u05ff]/u.test(needle)){
-  const tokens=hebrewMatchTokens;
+  const tokens=t=>normalizeCueText(t).split(/\s+/).filter(Boolean);
   const target=tokens(needle),stream=[];
   for(let i=0;i<lines.length;i++)for(const word of tokens(lines[i].text))stream.push({word,line:i,column:lines[i].column});
   if(!target.length)return null;
