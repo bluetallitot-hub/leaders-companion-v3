@@ -2093,9 +2093,9 @@ async function autoMatchCues(){
    "Beginning: "+c.startCueHebrew+" | "+JSON.stringify(check(c.startCueHebrew)),
    "Ending: "+c.endCueHebrew+" | "+JSON.stringify(check(c.endCueHebrew)),
    "Hebrew OCR word tokens: "+tokens.length,
-   "Detected Hebrew word boxes: "+(rivokWordsBySide[i]?.length||0)].join("\\n");
- })).join("\\n\\n");
- $("ocr-diagnostics").textContent="HEBREW CUE ANCHOR DIAGNOSTICS\\n"+(hebrewAnchorReport||"No Hebrew-script cues attached.")+"\\n\\n"+pageMetadata.map((r,i)=>"Page "+(r.source.sourcePage||i+1)+" OCR ("+(sourceTextLines[i]||[]).length+" mapped lines):\\n"+(sourceTextLines[i]||[]).map(l=>l.text).join("\\n")+"\\n\\nRAW OCR DIAGNOSTICS:\\n"+(rawOcrDiagnostics[i]||"Not run")).join("\\n\\n");
+   "Detected Hebrew word boxes: "+(rivokWordsBySide[i]?.length||0)].join("\n");
+ })).join("\n\n");
+ $("ocr-diagnostics").textContent="HEBREW CUE ANCHOR DIAGNOSTICS\n"+(hebrewAnchorReport||"No Hebrew-script cues attached.")+"\n\n"+pageMetadata.map((r,i)=>"Page "+(r.source.sourcePage||i+1)+" OCR ("+(sourceTextLines[i]||[]).length+" mapped lines):\n"+(sourceTextLines[i]||[]).map(l=>l.text).join("\n")+"\n\nRAW OCR DIAGNOSTICS:\n"+(rawOcrDiagnostics[i]||"Not run")).join("\n\n");
  cueMatchReport=total+" of "+pageMetadata.reduce((n,r)=>n+r.leadership.cues.length,0)+" cues automatically matched. "+pageMetadata.flatMap(r=>r.leadership.cues.map(c=>c.cueId+": "+c.matchStatus)).join("; ");
  refreshCueVisibilityPicker();renderPageCueEditor();renderFacingInstructions();drawHighlights();displayMetadata();if($("cue-summary"))$("cue-summary").textContent=cueMatchReport;status(cueMatchReport);
 }
