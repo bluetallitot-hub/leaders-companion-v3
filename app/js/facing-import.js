@@ -2431,7 +2431,7 @@ async function exportEditedSinglePage(side){
 
  return {bytes:new Uint8Array(await out.save()),index:index+1,marks:marks.length};
 }
-for(let side=0;side<2;side++)$("download-page-"+side).addEventListener("click",async()=>{
+for(let side=0;side<2;side++)$("download-page-"+side)?.addEventListener("click",async()=>{
  const button=$("download-page-"+side);button.disabled=true;
  try{
   const result=await exportEditedSinglePage(side),url=URL.createObjectURL(new Blob([result.bytes],{type:"application/pdf"}));
