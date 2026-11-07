@@ -1486,7 +1486,7 @@ function drawHighlights(){
   }
   const record=pageMetadata[i];
   const activeId=selectedCueBySide[i]||record?.leadership?.cues?.[0]?.cueId||"";
-  const selected=(record?.leadership?.highlights||[]).filter(h=>!h.cueId||h.cueId===activeId);
+  const selected=(record?.leadership?.highlights||[]).filter(h=>!h.cueId||visibleCueId==="__all__"||(visibleCueId&&h.cueId===visibleCueId)||(!visibleCueId&&h.cueId===activeId));
   // Paint each actual cue rectangle exactly once. Previously the renderer
   // painted selected geometry twice, making it darker and fragmented.
   for(const h of selected){
@@ -2287,7 +2287,7 @@ async function loadSelectedSpread(){
  // Individual-page download controls were retired; the working PDF is the only export.
  applyCueRoleEdits();
  const saved=spreadEdits.get(selectedSpreadFirst);
- if(saved){pageMetadata.forEach((record,i)=>{const prior=saved.pages?.[i];if(record&&prior){record.leadership=JSON.parse(JSON.stringify(prior.leadership));record.leadership.highlights=(record.leadership.highlights||[]).filter(h=>!h.cueId||h.manualApproved);record.prayerTitle=prior.prayerTitle;if(prior.identification)record.identification=JSON.parse(JSON.stringify(prior.identification))}});selectedCueBySide=[...(saved.selectedCues||["",""])];await autoMatchCues();renderPageCueEditor();drawHighlights()}else selectedCueBySide=["",""];
+ if(saved){pageMetadata.forEach((record,i)=>{const prior=saved.pages?.[i];if(record&&prior){record.leadership=JSON.parse(JSON.stringify(prior.leadership));record.leadership.highlights=record.leadership.highlights||[];record.prayerTitle=prior.prayerTitle;if(prior.identification)record.identification=JSON.parse(JSON.stringify(prior.identification))}});selectedCueBySide=[...(saved.selectedCues||["",""])];await autoMatchCues();renderPageCueEditor();drawHighlights()}else selectedCueBySide=["",""];
  if($("metadata-dialog").open)refreshMetadataDialog();
  $("download").disabled=false;
  status(cueMatchReport);updateSpanStatus();
@@ -2434,6 +2434,33 @@ function exportProgress(done,total,stage){
 async function exportEntireService(){
  if(!sourcePdfBytes)throw Error("No service PDF loaded.");
  saveCurrentSpreadEdits();
+ // Every spread must be recognized before full-service export. Do not silently
+ // ship unvisited pages without highlighting. Preserve the user's current spread.
+ const originalSpread=selectedSpreadFirst;
+ try{
+  for(let first=1;first<=sourcePdfPages;first+=2){
+   if(!spreadEdits.has(first)){
+    exportProgress(Math.min(first-1,sourcePdfPages),sourcePdfPages,"Recognizing all service pages");
+    selectedSpreadFirst=first;
+    await loadSelectedSpread();
+    saveCurrentSpreadEdits();
+   }
+  }
+ }finally{
+  if(selectedSpreadFirst!==originalSpread){
+   selectedSpreadFirst=originalSpread;
+   await loadSelectedSpread();
+  }
+ }
+ const missing=[];
+ for(let first=1;first<=sourcePdfPages;first+=2){
+  const saved=spreadEdits.get(first);
+  for(let side=0;side<2&&first+side<=sourcePdfPages;side++){
+   const entry=manifestEntry(first+side),cues=cuesForExportPage(first+side);
+   if(cues.length&&!saved?.pages?.[side])missing.push(first+side);
+  }
+ }
+ if(missing.length)throw Error("Cannot export: pages not processed: "+missing.join(", "));
  const original=await PDFLib.PDFDocument.load(sourcePdfBytes.slice()),result=await PDFLib.PDFDocument.create();
  const total=original.getPageCount(),quality=$("export-quality")?.value||"original";
  const font=await result.embedFont(PDFLib.StandardFonts.Helvetica);
@@ -2459,7 +2486,8 @@ async function exportEntireService(){
    const copied=await result.copyPages(original,[i]);page=result.addPage(copied[0]);
   }
   const width=page.getWidth(),height=page.getHeight(),spread=2*Math.floor(i/2)+1,side=i%2;
-  const edits=spreadEdits.get(spread)?.[side]||[];
+  const savedPage=spreadEdits.get(spread)?.pages?.[side];
+  const edits=savedPage?.leadership?.highlights||[];
   for(const mark of edits){
    if(![mark.x,mark.y,mark.width,mark.height].every(Number.isFinite)||mark.width<=0||mark.height<=0)continue;
    const hex=roleColor(mark.roleId).replace("#",""),value=parseInt(hex,16);
