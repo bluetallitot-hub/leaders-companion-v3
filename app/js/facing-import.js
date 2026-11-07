@@ -2084,7 +2084,18 @@ async function autoMatchCues(){
  if(progress)progress.value=pageMetadata.length;
  if(progressLabel)progressLabel.textContent="Highlights ready — review both pages.";
  total+=matchCrossPageEnglishCues();
- $("ocr-diagnostics").textContent=pageMetadata.map((r,i)=>"Page "+(r.source.sourcePage||i+1)+" OCR ("+(sourceTextLines[i]||[]).length+" mapped lines):\\n"+(sourceTextLines[i]||[]).map(l=>l.text).join("\\n")+"\\n\\nRAW OCR DIAGNOSTICS:\\n"+(rawOcrDiagnostics[i]||"Not run")).join("\\n\\n");
+ const hebrewAnchorReport=pageMetadata.flatMap((r,i)=>(r.leadership.cues||[]).filter(cueHasHebrewScript).map(c=>{
+  const normalize=t=>normalizeCueText(t).replace(/יהוה/g,"יי").replace(/[^\u05d0-\u05ea ]/g," ").replace(/\s+/g," ").trim();
+  const recognized=(sourceTextLines[i]||[]).map(l=>normalize(l.text)).filter(Boolean);
+  const tokens=(hebrewOcrTokens[i]||[]).map(t=>normalize(t.text)).filter(Boolean);
+  const check=(value)=>{const words=normalize(value).split(" ").filter(Boolean);return words.map(w=>({word:w,found:recognized.some(t=>t.includes(w))||tokens.some(t=>t.includes(w))}));};
+  return ["Page "+(i===0?"left":"right")+" — "+c.cueId+" — "+c.matchStatus,
+   "Beginning: "+c.startCueHebrew+" | "+JSON.stringify(check(c.startCueHebrew)),
+   "Ending: "+c.endCueHebrew+" | "+JSON.stringify(check(c.endCueHebrew)),
+   "Hebrew OCR word tokens: "+tokens.length,
+   "Detected Hebrew word boxes: "+(rivokWordsBySide[i]?.length||0)].join("\\n");
+ })).join("\\n\\n");
+ $("ocr-diagnostics").textContent="HEBREW CUE ANCHOR DIAGNOSTICS\\n"+(hebrewAnchorReport||"No Hebrew-script cues attached.")+"\\n\\n"+pageMetadata.map((r,i)=>"Page "+(r.source.sourcePage||i+1)+" OCR ("+(sourceTextLines[i]||[]).length+" mapped lines):\\n"+(sourceTextLines[i]||[]).map(l=>l.text).join("\\n")+"\\n\\nRAW OCR DIAGNOSTICS:\\n"+(rawOcrDiagnostics[i]||"Not run")).join("\\n\\n");
  cueMatchReport=total+" of "+pageMetadata.reduce((n,r)=>n+r.leadership.cues.length,0)+" cues automatically matched. "+pageMetadata.flatMap(r=>r.leadership.cues.map(c=>c.cueId+": "+c.matchStatus)).join("; ");
  refreshCueVisibilityPicker();renderPageCueEditor();renderFacingInstructions();drawHighlights();displayMetadata();if($("cue-summary"))$("cue-summary").textContent=cueMatchReport;status(cueMatchReport);
 }
