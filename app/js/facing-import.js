@@ -2588,6 +2588,30 @@ async function restoreSiddurIntake(){
  const data=await new Promise((resolve,reject)=>{const tx=db.transaction("projects","readonly");const q=tx.objectStore("projects").get("handoff");q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error)});db.close();
  if(!data?.pdf)throw Error("No saved PDF found. Return to Siddur Intake and save the project again.");
  const rows=data.csv?parseCsv(data.csv):[];
+ // The browser handoff may predate the logical begin/end correction.
+ // Repair only a provably reversed pair against the canonical repository CSV.
+ // Never replace a distinct intentional edit or discard other handoff fields.
+ try{
+  const response=await fetch("../../data/SH-FE_V3_Intake_v2.0.csv",{cache:"no-store"});
+  if(response.ok){
+   const canonical=parseCsv(await response.text());
+   const byId=new Map(canonical.map(c=>[c.cue_id||c.test_id,c]));
+   let repaired=0;
+   for(const row of rows){
+    const reference=byId.get(row.cue_id||row.test_id);
+    if(!reference)continue;
+    const a=String(row.begin_cue||"").trim(),b=String(row.end_cue||"").trim();
+    const correctA=String(reference.begin_cue||"").trim(),correctB=String(reference.end_cue||"").trim();
+    if(a&&b&&a===correctB&&b===correctA&&correctA!==correctB){
+     row.begin_cue=correctA;row.end_cue=correctB;
+     if("begin_cue_hebrew" in row)row.begin_cue_hebrew=correctA;
+     if("end_cue_hebrew" in row)row.end_cue_hebrew=correctB;
+     repaired++;
+    }
+   }
+   if(repaired)status("Corrected "+repaired+" reversed legacy cue pairs in the loaded Intake handoff (in memory).");
+  }
+ }catch(error){console.warn("Canonical cue comparison unavailable; retained saved Intake cues.",error)}
  cueCsvRows=rows.map(row=>({...row}));cueCsvHeaders=(data.csv?.split(/\r?\n/)[0]||"").split(",").map(h=>h.replace(/^"|"$/g,"").trim().toLowerCase());
  importedCues=rows.filter(c=>c.source_page||c.printed_page);
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
