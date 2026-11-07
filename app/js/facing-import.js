@@ -533,8 +533,12 @@ function renderPageCueEditor(){
   for(const [control,mode] of [[line,"line"],[word,"word"]])control.onclick=()=>{selectionMode=mode;$("selection-mode").value=mode;renderPageCueEditor();drawHighlights()};
   const manual=document.createElement("button");manual.type="button";manual.textContent="Save manual highlight";manual.onclick=()=>{
    if(!record){return}
+   const selected=record.leadership.highlights.filter(h=>h.cueId===active.cueId);
+   if(!selected.length){$("page-cue-editor-status").textContent="No highlights for this cue to save. Select the prayer text first.";return;}
+   for(const h of selected){h.manualApproved=true;h.tentative=false;}
+   active.matchStatus="manual-selection-preserved";
    saveCurrentSpreadEdits();record.leadership.highlightConfirmed=false;
-   $("page-cue-editor-status").textContent=(side===0?"Left":"Right")+" page manual highlights saved in this editing session. Review and approve before export.";
+   $("page-cue-editor-status").textContent="Saved "+selected.length+" manual rectangles for "+(active.prayer||active.cueId)+". Automatic rematching will preserve this cue.";
   };
   actions.append(button,line,word,manual);wrap.append(actions);panel.append(wrap);root.append(panel);
  }
@@ -1093,6 +1097,7 @@ function assignCueHighlights(side){
  if(!record)return 0;
  let matches=0;
  for(const cue of record.leadership.cues){
+  if(record.leadership.highlights.some(h=>h.cueId===cue.cueId&&h.manualApproved)){cue.matchStatus="manual-selection-preserved";matches++;continue;}
   const hebrew=cueHasHebrewScript(cue);
   if(hebrew){
    if(!String(cue.startCueHebrew||"").trim()||!String(cue.endCueHebrew||"").trim()){
@@ -1986,7 +1991,7 @@ function matchCrossPageEnglishCues(){
 }
 async function autoMatchCuesForSide(side){
  const record=pageMetadata[side];if(!record)return;
- record.leadership.highlights=record.leadership.highlights.filter(h=>!h.cueId);
+ record.leadership.highlights=record.leadership.highlights.filter(h=>!h.cueId||h.manualApproved);
  status("Matching "+(side===0?"left":"right")+" page cues…");
  try{
   sourceTextLines[side]=await recognizeCueLines(side);
@@ -2002,7 +2007,7 @@ async function autoMatchCues(){
  if(progress){progress.hidden=false;progress.max=pageMetadata.length;progress.value=0}
  if(progressLabel)progressLabel.textContent="Recognizing cue text and preparing highlights…";
  let total=0;
- for(const record of pageMetadata){record.leadership.highlights=record.leadership.highlights.filter(h=>!h.cueId)}
+ for(const record of pageMetadata){record.leadership.highlights=record.leadership.highlights.filter(h=>!h.cueId||h.manualApproved)}
  for(let side=0;side<pageMetadata.length;side++){
   if(!pageMetadata[side].leadership.cues.length){if(progress)progress.value=side+1;continue;}
   if(progressLabel)progressLabel.textContent="Matching highlights: page "+(side+1)+" of "+pageMetadata.length+"…";
@@ -2184,7 +2189,7 @@ async function loadSelectedSpread(){
  // Individual-page download controls were retired; the working PDF is the only export.
  applyCueRoleEdits();
  const saved=spreadEdits.get(selectedSpreadFirst);
- if(saved){pageMetadata.forEach((record,i)=>{const prior=saved.pages?.[i];if(record&&prior){record.leadership=JSON.parse(JSON.stringify(prior.leadership));record.leadership.highlights=(record.leadership.highlights||[]).filter(h=>!h.cueId);record.prayerTitle=prior.prayerTitle;if(prior.identification)record.identification=JSON.parse(JSON.stringify(prior.identification))}});selectedCueBySide=[...(saved.selectedCues||["",""])];await autoMatchCues();renderPageCueEditor();drawHighlights()}else selectedCueBySide=["",""];
+ if(saved){pageMetadata.forEach((record,i)=>{const prior=saved.pages?.[i];if(record&&prior){record.leadership=JSON.parse(JSON.stringify(prior.leadership));record.leadership.highlights=(record.leadership.highlights||[]).filter(h=>!h.cueId||h.manualApproved);record.prayerTitle=prior.prayerTitle;if(prior.identification)record.identification=JSON.parse(JSON.stringify(prior.identification))}});selectedCueBySide=[...(saved.selectedCues||["",""])];await autoMatchCues();renderPageCueEditor();drawHighlights()}else selectedCueBySide=["",""];
  if($("metadata-dialog").open)refreshMetadataDialog();
  $("download").disabled=false;
  status(cueMatchReport);updateSpanStatus();
