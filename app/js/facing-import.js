@@ -1010,17 +1010,18 @@ function isolatedHebrewCueMatch(side,cue,ocr){
  if(!begin.length||!finish.length)return null;
  // Hebrew reads the right column top-to-bottom, then the left column.
  // Never mix page headings, central ornaments, or the other column into a line.
- const body=lines.filter(l=>l.column===0||l.column===1).sort((a,b)=>
+ const body=lines.filter(l=>(l.column===0||l.column===1)&&l.y>=.19&&l.y+l.height<=.91).sort((a,b)=>
   b.column-a.column||a.y-b.y||b.x-a.x);
  const ocrByLine=new Map(ocr.map(item=>[item.id,item.text]));
  const rows=body.map(line=>{
   const boxes=words.filter(w=>w.lineId===line.id).sort((a,b)=>b.x-a.x);
-  const wordOcr=(hebrewOcrTokens[side]||[]).filter(t=>t.lineId===line.id)
-   .sort((a,b)=>b.x-a.x).flatMap(t=>tokenize(t.text));
+  const ocrWords=(hebrewOcrTokens[side]||[]).filter(t=>t.lineId===line.id)
+   .sort((a,b)=>b.x-a.x).flatMap(t=>tokenize(t.text).map(word=>({word,x:t.x})));
+  const wordOcr=ocrWords.map(t=>t.word);
   const lineOcr=tokenize(ocrByLine.get(line.id)||"");
   // Use one reading of each line, never a concatenation of OCR passes.
   const tokens=wordOcr.length>=Math.max(2,Math.ceil(lineOcr.length*.7))?wordOcr:lineOcr;
-  return {line,boxes,tokens};
+  return {line,boxes,tokens,ocrWords:tokens===wordOcr?ocrWords:[]};
  });
  const similarity=(a,b)=>{
   if(a===b)return 1;
@@ -1065,13 +1066,27 @@ function isolatedHebrewCueMatch(side,cue,ocr){
  for(let ri=first.ri;ri<=last.ri;ri++){
   const row=rows[ri];
   if(!row.boxes.length)continue;
-  let from=ri===first.ri?first.offset:0;
-  let to=ri===last.ri?last.offset+finish.length-1:row.boxes.length-1;
-  // OCR may omit a word. Do not extend beyond the actual ink.
-  from=Math.max(0,Math.min(from,row.boxes.length-1));
-  to=Math.max(0,Math.min(to,row.boxes.length-1));
-  if(to<from)return null;
-  const selected=row.boxes.slice(from,to+1);
+  // Entire intermediate printed lines are selected as one continuous strip.
+  // On the first and last line, use actual OCR word coordinates when present;
+  // never equate OCR token indices with Rivok box indices.
+  let selected=row.boxes;
+  if(ri===first.ri||ri===last.ri){
+   const start=ri===first.ri?first.offset:0;
+   const end=ri===last.ri?last.offset+finish.length-1:row.tokens.length-1;
+   if(row.ocrWords.length){
+    const rightToken=row.ocrWords[Math.min(start,row.ocrWords.length-1)];
+    const leftToken=row.ocrWords[Math.min(end,row.ocrWords.length-1)];
+    const rightBox=row.boxes.reduce((best,w)=>!best||Math.abs(w.x-rightToken.x)<Math.abs(best.x-rightToken.x)?w:best,null);
+    const leftBox=row.boxes.reduce((best,w)=>!best||Math.abs(w.x-leftToken.x)<Math.abs(best.x-leftToken.x)?w:best,null);
+    const a=row.boxes.indexOf(rightBox),b=row.boxes.indexOf(leftBox);
+    if(a>b)return null;
+    selected=row.boxes.slice(a,b+1);
+   }else{
+    // Line OCR supplies words without word coordinates. Keep the full
+    // printed line instead of guessing a false partial-word boundary.
+    selected=row.boxes;
+   }
+  }
   if(!selected.length)continue;
   const x=Math.min(...selected.map(w=>w.x)),y=Math.min(...selected.map(w=>w.y));
   const right=Math.max(...selected.map(w=>w.x+w.width));
