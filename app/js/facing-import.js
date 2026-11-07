@@ -2104,11 +2104,11 @@ async function createPdf(bytes){
   const png=await out.embedPng(await (await fetch(cleaned.toDataURL("image/png"))).arrayBuffer());
   records.push({meta,png,sourceIndex:first+i});
  }
- // A right-to-left supplement spread places the second source PDF page on the left.
- // Preserve original source indices so cue metadata remains tied to its actual PDF page.
- const rtlSupplementPair=records.length===2&&serviceManifest?.pages&&records.every(r=>String(serviceManifest.pages.find(p=>p.outputPage===r.sourceIndex+1)?.reference||"").toUpperCase().startsWith("SUP-"));
- if(rtlSupplementPair)records.reverse();
- else if(records.length===2&&records[0].meta.language==="Hebrew"&&records[1].meta.language==="English")records.reverse();
+ // Facing placement follows the document's reading direction, never prayer identity.
+ // The first PDF page of a Hebrew-direction spread appears on the right.
+ // Preserve sourceIndex so cues and metadata remain attached to the original PDF page.
+ const facingDirection=String(serviceManifest?.facingPageDirection||"hebrew").toLowerCase();
+ if(records.length===2&&facingDirection==="hebrew")records.reverse();
  pageMetadata=records.map(r=>makeIntakeRecord(r.meta,r.sourceIndex));
  pageMetadata.forEach(r=>{r.leadership.highlights=[];r.leadership.role=roleConfig.id});
  if(serviceManifest?.pages)for(let i=0;i<pageMetadata.length;i++){
