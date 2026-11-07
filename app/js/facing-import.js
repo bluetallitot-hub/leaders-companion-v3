@@ -301,16 +301,12 @@ function applyImportedCues(){
    const languageMatches=!language||!code||language===code||language==="BOTH"||language==="E/H"||language==="H+E"||language==="H/L";
    return (supplement?ref.toUpperCase()===manifestRef.toUpperCase():(sameReference||(!manifestRef&&inRange)))&&languageMatches;
   });
-  // V2 stores physical LEFT and RIGHT cue boundaries for human reading.
-  // Hebrew begins on the RIGHT and ends on the LEFT; English is the reverse.
+  // Canonical CSV begin_cue/end_cue are logical reading boundaries.
+  // Physical cue_left/cue_right are used only when explicitly supplied.
   record.leadership.cues=matches.map((c,i)=>{
    const isHebrew=/[\u05d0-\u05ea]/.test([c.begin_cue,c.end_cue,c.begin_cue_hebrew,c.end_cue_hebrew].join(" "));
-   const left=c.cue_left||"",right=c.cue_right||"";
-   // The canonical CSV's Hebrew begin_cue/end_cue values are stored in visual
-   // left-to-right order; the Hebrew reading begins at the rightmost (end_cue).
-   const hasVisualColumns=!!(left||right);
-   const beginning=isHebrew?(right||c.begin_cue||""):(left||c.begin_cue||"");
-   const ending=isHebrew?(left||c.end_cue||""):(right||c.end_cue||"");
+   const beginning=String(c.begin_cue||c.begin_cue_hebrew||(isHebrew?c.cue_right:c.cue_left)||"");
+   const ending=String(c.end_cue||c.end_cue_hebrew||(isHebrew?c.cue_left:c.cue_right)||"");
    return {
     cueId:c.cue_id||c.test_id||"import-"+i,service:c.service_name||c.service||null,role:c.leader_role||c.role_name||c.role_code||c.role||null,
     style:c.performance_style||c.style||null,styleSlot:null,startCue:beginning,endCue:ending,
