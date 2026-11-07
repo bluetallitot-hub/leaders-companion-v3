@@ -2065,8 +2065,8 @@ function matchCrossPageEnglishCues(){
   const firstAnchor=firstLines[start],lastAnchor=secondLines[end];
   if(!firstAnchor||!lastAnchor)continue;
   const selections=[
-   (detectedLines[0]||[]).filter(l=>l.column===firstAnchor.column&&l.y+l.height/2>=firstAnchor.y-.012),
-   (detectedLines[1]||[]).filter(l=>l.column===lastAnchor.column&&l.y+l.height/2<=lastAnchor.y+.012)
+   (detectedLines[0]||[]).filter(l=>!isPageNumberLine(l,firstLines,a)&&l.column===firstAnchor.column&&l.y+l.height/2>=firstAnchor.y-.012),
+   (detectedLines[1]||[]).filter(l=>!isPageNumberLine(l,secondLines,b)&&l.column===lastAnchor.column&&l.y+l.height/2<=lastAnchor.y+.012)
   ];
   if(selections.some(lines=>!lines.length))continue;
   for(let side=0;side<2;side++){
