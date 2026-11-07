@@ -999,140 +999,84 @@ function tentativeEnglishHighlights(side,cue,ocr,geometry){
 // Isolated Hebrew engine v1: Rivok geometry + OCR text, no legacy Hebrew matcher.
 const hebrewOcrTokens=[[],[]];
 function isolatedHebrewCueMatch(side,cue,ocr){
- const words=rivokWordsBySide[side],lines=detectedLines[side];
- if(!words?.length||!lines?.length)return null;
+ const words=rivokWordsBySide[side]||[],lines=detectedLines[side]||[];
+ if(!words.length||!lines.length)return null;
  const tokenize=hebrewMatchTokens;
- const start=tokenize(cue.startCueHebrew),end=tokenize(cue.endCueHebrew);
- const similarity=(a,b)=>{
-  const dp=Array.from({length:b.length+1},(_,i)=>i);
-  for(let i=1;i<=a.length;i++){let prev=dp[0];dp[0]=i;
-   for(let j=1;j<=b.length;j++){const old=dp[j];dp[j]=Math.min(dp[j]+1,dp[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=old;}}
-  return 1-dp[b.length]/Math.max(a.length,b.length,1);
- };
- // Build a forward reading stream from OCR word positions. Rivok alone
- // supplies all highlight rectangles; OCR boxes only associate text to ink.
- const ordered=lines.slice().sort((a,b)=>{
-  const ac=a.x+a.width/2,bc=b.x+b.width/2;
-  return (ac>=.5?0:1)-(bc>=.5?0:1)||a.y-b.y||bc-ac;
- });
- const rank=new Map(ordered.map((line,i)=>[line.id,i]));
- // Keep OCR tokens in physical Hebrew reading order. Appending line OCR after
- // word OCR used to create a second, out-of-order copy of the page; the
- // "ending after beginning" test could then reject a valid pair.
- const observations=new Map();
- for(const item of ocr)if(rank.has(item.id))observations.set(item.id,item.text);
- const expanded=[];
- for(const line of ordered){
-  const wordTokens=(hebrewOcrTokens[side]||[]).filter(t=>t.lineId===line.id)
-   .sort((a,b)=>b.x-a.x);
-  const lineWords=tokenize(observations.get(line.id)||"");
+ const begin=tokenize(cue.startCueHebrew),finish=tokenize(cue.endCueHebrew);
+ if(!begin.length||!finish.length)return null;
+ // Hebrew reads the right column top-to-bottom, then the left column.
+ // Never mix page headings, central ornaments, or the other column into a line.
+ const body=lines.filter(l=>l.column===0||l.column===1).sort((a,b)=>
+  b.column-a.column||a.y-b.y||b.x-a.x);
+ const ocrByLine=new Map(ocr.map(item=>[item.id,item.text]));
+ const rows=body.map(line=>{
   const boxes=words.filter(w=>w.lineId===line.id).sort((a,b)=>b.x-a.x);
-  // Word OCR is preferred when it covers a line; otherwise the independent
-  // line OCR provides the reading text with positions inferred from Rivok.
-  const useWord=wordTokens.filter(t=>tokenize(t.text).length);
-  const source=useWord.length>=Math.max(2,Math.ceil(lineWords.length*.65))?
-   useWord.flatMap(t=>tokenize(t.text).map(word=>({word,lineId:line.id,x:t.x,y:t.y}))):
-   lineWords.map((word,index)=>({word,lineId:line.id,
-    x:boxes[Math.min(index,boxes.length-1)]?.x??line.x,y:line.y}));
-  expanded.push(...source);
- }
- // Match a phrase progressively: every cue word is eligible, including short
- // words; joined OCR tokens can contain the cue word as a substring.
- const wordScore=(needle,hay)=>{
-  if(!needle||!hay)return 0;
-  if(needle===hay)return 1;
-  if(hay.includes(needle)&&needle.length>=2)return .9;
-  if(needle.includes(hay)&&hay.length>=2)return .76;
-  return similarity(needle,hay);
+  const wordOcr=(hebrewOcrTokens[side]||[]).filter(t=>t.lineId===line.id)
+   .sort((a,b)=>b.x-a.x).flatMap(t=>tokenize(t.text));
+  const lineOcr=tokenize(ocrByLine.get(line.id)||"");
+  // Use one reading of each line, never a concatenation of OCR passes.
+  const tokens=wordOcr.length>=Math.max(2,Math.ceil(lineOcr.length*.7))?wordOcr:lineOcr;
+  return {line,boxes,tokens};
+ });
+ const similarity=(a,b)=>{
+  if(a===b)return 1;
+  if(!a||!b)return 0;
+  const d=Array.from({length:b.length+1},(_,i)=>i);
+  for(let i=1;i<=a.length;i++){let prev=d[0];d[0]=i;
+   for(let j=1;j<=b.length;j++){const old=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=old;}}
+  return 1-d[b.length]/Math.max(a.length,b.length);
  };
- const locate=(phrase,from)=>{
-  const candidates=[];
-  for(let i=from;i<expanded.length;i++){
-   for(let k=0;k<phrase.length;k++){
-    const first=wordScore(phrase[k],expanded[i].word);
-    if(first< (phrase[k].length<=2?.85:.65))continue;
-    let score=first,matched=1;
-    // Nearby confirming words help disambiguate repeated Hebrew words.
-    for(let j=k+1;j<phrase.length;j++){
-     const nearby=expanded.slice(i+1,Math.min(expanded.length,i+5+j-k));
-     const best=Math.max(0,...nearby.map(t=>wordScore(phrase[j],t.word)));
-     if(best>=.65){score+=best;matched++;}
+ const score=(a,b)=>similarity(a,b)>=.83?similarity(a,b):0;
+ // Find an ordered phrase in one printed line. A three-word cue may
+ // tolerate one unreadable word, but never an arbitrary one-word match.
+ const candidates=phrase=>{
+  const results=[];
+  for(let ri=0;ri<rows.length;ri++){
+   const row=rows[ri],tokens=row.tokens;
+   if(!tokens.length)continue;
+   for(let offset=0;offset<tokens.length;offset++){
+    const matched=[];
+    for(let j=0;j<phrase.length;j++){
+     const value=tokens[offset+j];
+     matched.push(value?score(phrase[j],value):0);
     }
-    candidates.push({index:i,token:expanded[i],score:score+matched*.35-k*.12,matched,anchorIndex:k});
+    const hits=matched.filter(v=>v>=.83).length;
+    const required=phrase.length<=2?phrase.length:phrase.length-1;
+    if(hits<required)continue;
+    const confidence=matched.reduce((x,y)=>x+y,0)/phrase.length;
+    if(confidence<.65)continue;
+    results.push({ri,offset,confidence});
    }
   }
-  return candidates.sort((a,b)=>b.score-a.score||a.index-b.index)[0]||null;
+  return results.sort((a,b)=>b.confidence-a.confidence);
  };
- const beginning=locate(start,0);
- if(!beginning)return null;
- // End is searched ONLY after the beginning's position in the reading stream.
- const ending=locate(end,beginning.index+1);
- if(!ending)return null; // Both Hebrew anchors are mandatory; never highlight only the start.
- // Map the OCR cue's word span onto Rivok word boxes. OCR identifies
- // positions; only Rivok rectangles are ever used for the overlay.
- const rivokByLine=id=>words.filter(w=>w.lineId===id).sort((a,b)=>b.x-a.x);
- const closestRivok=t=>{
-  const candidates=rivokByLine(t.lineId);
-  return candidates.sort((a,b)=>Math.abs(a.x+a.width/2-t.x)-Math.abs(b.x+b.width/2-t.x))[0];
- };
- const selection=new Map();
- const include=(w)=>{if(w)selection.set(w.id,w);};
- const endpoint=(match,phrase)=>{
-  if(!match)return;
-  const lineId=match.token.lineId;
-  const row=rivokByLine(lineId);
-  if(!row.length)return;
-  const anchor=closestRivok(match.token);
-  if(!anchor)return;
-  const anchorPos=row.findIndex(w=>w.id===anchor.id);
-  // In Hebrew visual reading order, subsequent words are to the left.
-  // Estimate missing OCR words using adjacent Rivok boxes, never OCR rectangles.
-  const first=Math.max(0,anchorPos-match.anchorIndex);
-  const last=Math.min(row.length-1,first+phrase.length-1);
-  for(let i=first;i<=last;i++)include(row[i]);
-  // Include independently recognized cue tokens on this line when available.
-  const from=Math.max(0,match.index-match.anchorIndex);
-  for(const t of expanded.slice(from,Math.min(expanded.length,from+phrase.length+2))){
-   if(t.lineId!==lineId)break;
-   const target=closestRivok(t);
-   if(target)include(target);
-  }
- };
- endpoint(beginning,start);
- endpoint(ending,end);
- // Fill the intervening printed Hebrew words, not only the two anchor phrases.
- // Read in visual RTL order and retain the actual Rivok word rectangles.
- const firstRank=rank.get(beginning.token.lineId),lastRank=rank.get(ending.token.lineId);
- if(firstRank===undefined||lastRank===undefined||lastRank<firstRank)return null;
- const startWord=closestRivok(beginning.token),endWord=closestRivok(ending.token);
- for(let lineIndex=firstRank;lineIndex<=lastRank;lineIndex++){
-  const row=rivokByLine(ordered[lineIndex].id);
-  if(!row.length)continue;
-  let from=0,to=row.length-1;
-  if(lineIndex===firstRank&&startWord){const pos=row.findIndex(w=>w.id===startWord.id);if(pos>=0)from=Math.max(0,pos-beginning.anchorIndex)}
-  if(lineIndex===lastRank&&endWord){const pos=row.findIndex(w=>w.id===endWord.id);if(pos>=0)to=Math.min(row.length-1,pos+(end.length-1-ending.anchorIndex))}
-  if(from>to)return null;
-  for(let j=from;j<=to;j++)include(row[j]);
+ const starts=candidates(begin),ends=candidates(finish);
+ if(!starts.length||!ends.length)return null;
+ // Reject ambiguous anchors rather than coloring an unrelated passage.
+ if(starts.length>1&&starts[0].confidence-starts[1].confidence<.08)return null;
+ if(ends.length>1&&ends[0].confidence-ends[1].confidence<.08)return null;
+ const first=starts[0],last=ends[0];
+ if(first.ri>last.ri||(first.ri===last.ri&&first.offset>last.offset))return null;
+ const chosen=[];
+ for(let ri=first.ri;ri<=last.ri;ri++){
+  const row=rows[ri];
+  if(!row.boxes.length)continue;
+  let from=ri===first.ri?first.offset:0;
+  let to=ri===last.ri?last.offset+finish.length-1:row.boxes.length-1;
+  // OCR may omit a word. Do not extend beyond the actual ink.
+  from=Math.max(0,Math.min(from,row.boxes.length-1));
+  to=Math.max(0,Math.min(to,row.boxes.length-1));
+  if(to<from)return null;
+  const selected=row.boxes.slice(from,to+1);
+  if(!selected.length)continue;
+  const x=Math.min(...selected.map(w=>w.x)),y=Math.min(...selected.map(w=>w.y));
+  const right=Math.max(...selected.map(w=>w.x+w.width));
+  const bottom=Math.max(...selected.map(w=>w.y+w.height));
+  chosen.push({highlightId:"HL-"+cue.cueId+"-"+row.line.id,lineId:row.line.id,
+   cueId:cue.cueId,roleId:cue.role,x,y,width:right-x,height:bottom-y,
+   coordinateSystem:"normalized-top-left",visibleInPdf:false,tentative:true});
  }
- const chosen=[...selection.values()];
- if(!chosen.length)return null;
- // The automatic output is line-based: use the union of selected Rivok
- // words on each line, not one independent colored box per word.
- // Preserve partial first/last lines by taking only the selected words.
- const byLine=new Map();
- for(const w of chosen){
-  if(!byLine.has(w.lineId))byLine.set(w.lineId,[]);
-  byLine.get(w.lineId).push(w);
- }
- return [...byLine].map(([lineId,selectedWords])=>{
-  const x=Math.min(...selectedWords.map(w=>w.x));
-  const y=Math.min(...selectedWords.map(w=>w.y));
-  const right=Math.max(...selectedWords.map(w=>w.x+w.width));
-  const bottom=Math.max(...selectedWords.map(w=>w.y+w.height));
-  return {highlightId:"HL-"+cue.cueId+"-"+lineId,lineId,cueId:cue.cueId,roleId:cue.role,
-   x,y,width:right-x,height:bottom-y,
-   coordinateSystem:"normalized-top-left",visibleInPdf:false,tentative:true};
- });
+ return chosen.length?chosen:null;
 }
 // Page furniture is never part of a cue, even when geometry falls inside
 // the start/end vertical span. Identify isolated printed page numbers from OCR.
