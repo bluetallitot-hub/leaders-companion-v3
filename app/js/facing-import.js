@@ -1018,10 +1018,16 @@ function isolatedHebrewCueMatch(side,cue,ocr){
  const rank=new Map(ordered.map((line,i)=>[line.id,i]));
  const tokens=(hebrewOcrTokens[side]||[]).filter(t=>rank.has(t.lineId))
   .sort((a,b)=>rank.get(a.lineId)-rank.get(b.lineId)||b.x-a.x);
- // Fall back to mapped OCR line text when individual word boxes are absent.
- if(!tokens.length)for(const line of ordered){
+ // Combine word OCR and independent line OCR. Partial word recognition must
+ // not suppress a usable line-level anchor. Keep both candidates per page.
+ for(const line of ordered){
   for(const observation of ocr.filter(o=>o.id===line.id)){
-   for(const text of tokenize(observation.text))tokens.push({text,lineId:line.id,x:line.x,y:line.y});
+   const wordsOnLine=tokenize(observation.text);
+   const boxes=words.filter(w=>w.lineId===line.id).sort((a,b)=>b.x-a.x);
+   wordsOnLine.forEach((text,index)=>{
+    const box=boxes[Math.min(index,Math.max(0,boxes.length-1))];
+    tokens.push({text,lineId:line.id,x:box?.x??line.x,y:line.y,source:"line-ocr"});
+   });
   }
  }
  const expanded=[];
@@ -1106,10 +1112,23 @@ function isolatedHebrewCueMatch(side,cue,ocr){
  }
  const chosen=[...selection.values()];
  if(!chosen.length)return null;
- return chosen.map(w=>({highlightId:"HL-"+cue.cueId+"-"+w.id,
-  lineId:w.lineId,wordId:w.id,cueId:cue.cueId,roleId:cue.role,
-  x:w.x,y:w.y,width:w.width,height:w.height,
-  coordinateSystem:"normalized-top-left",visibleInPdf:false,tentative:true}));
+ // The automatic output is line-based: use the union of selected Rivok
+ // words on each line, not one independent colored box per word.
+ // Preserve partial first/last lines by taking only the selected words.
+ const byLine=new Map();
+ for(const w of chosen){
+  if(!byLine.has(w.lineId))byLine.set(w.lineId,[]);
+  byLine.get(w.lineId).push(w);
+ }
+ return [...byLine].map(([lineId,selectedWords])=>{
+  const x=Math.min(...selectedWords.map(w=>w.x));
+  const y=Math.min(...selectedWords.map(w=>w.y));
+  const right=Math.max(...selectedWords.map(w=>w.x+w.width));
+  const bottom=Math.max(...selectedWords.map(w=>w.y+w.height));
+  return {highlightId:"HL-"+cue.cueId+"-"+lineId,lineId,cueId:cue.cueId,roleId:cue.role,
+   x,y,width:right-x,height:bottom-y,
+   coordinateSystem:"normalized-top-left",visibleInPdf:false,tentative:true};
+ });
 }
 function assignCueHighlights(side){
  const record=pageMetadata[side],ocr=sourceTextLines[side]||[],geometry=detectedLines[side]||[];
