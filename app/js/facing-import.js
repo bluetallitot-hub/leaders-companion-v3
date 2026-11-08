@@ -499,7 +499,7 @@ function renderFacingInstructions(){
   const unresolved=warnings.filter(w=>!state.instructionOverrides[w]);
   const confirm=document.createElement("label");confirm.style.display="block";
   const check=document.createElement("input");check.type="checkbox";check.checked=pageApprovalCurrent(record);check.disabled=unresolved.length>0;
-  check.onchange=()=>{state.highlightConfirmed=check.checked;state.confirmedFingerprint=check.checked?pageApprovalFingerprint(record):null;renderFacingInstructions()};
+  check.onchange=()=>{state.highlightConfirmed=check.checked;state.confirmedFingerprint=check.checked?pageApprovalFingerprint(record):null;saveCurrentSpreadEdits();renderFacingInstructions()};
   confirm.append(check,document.createTextNode(" Confirm Highlight and page instructions"));panel.append(confirm);
   const note=document.createElement("p");note.textContent=unresolved.length?unresolved.length+" unresolved warning(s); confirmation blocked.":pageApprovalCurrent(record)?"Page confirmed for download.":"Review the highlights, then confirm.";panel.append(note);
   root.append(panel);
@@ -2611,24 +2611,19 @@ async function exportVerifiedWorkingCopy(){
  cover.drawText("Pending pages: "+(sourcePdfPages-pages.length),{x:54,y:510,size:12,font,color:ink});
  cover.drawText("Generated: "+new Date().toISOString().slice(0,19)+" UTC",{x:54,y:480,size:11,font,color:ink});
  cover.drawText("Only confirmed pages are included. Original siddur text is preserved.",{x:54,y:420,size:10,font,color:ink});
- const toc=out.addPage([pw,ph]);
- toc.drawText("CONTENTS — VERIFIED PAGES",{x:48,y:736,size:19,font:bold,color:ink});
- toc.drawText("Siddur source page", {x:48,y:702,size:11,font:bold,color:ink});
- toc.drawText("Leader copy page", {x:350,y:702,size:11,font:bold,color:ink});
- let y=677;
- for(let j=0;j<pages.length;j++){
-  const [sourceIndex,record]=pages[j];
-  if(y<55){y=736;const extra=out.addPage([pw,ph]);extra.drawText("CONTENTS (continued)",{x:48,y:757,size:16,font:bold,color:ink});}
-  const tocPage=out.getPage(out.getPageCount()-1);
-  const name=printable(record.prayerTitle||record.identification?.prayerName||"").slice(0,35);
-  tocPage.drawText("Source "+sourceIndex+"  "+name,{x:48,y,size:10,font,color:ink});
-  tocPage.drawText(String(j+3),{x:350,y,size:10,font,color:ink});y-=19;
- }
- const frontPages=out.getPageCount();
- // Fix contents numbering if its table overflowed onto extra pages.
- if(frontPages>2){
-  // The listed page numbers are informational; rebuild the labels on a single
-  // contents page in a later revision if a service exceeds one contents page.
+ const tocPages=Math.max(1,Math.ceil(pages.length/33));
+ for(let t=0;t<tocPages;t++){
+  const toc=out.addPage([pw,ph]);
+  toc.drawText(t===0?"CONTENTS — VERIFIED PAGES":"CONTENTS (continued)",{x:48,y:736,size:19,font:bold,color:ink});
+  toc.drawText("Siddur source page",{x:48,y:702,size:11,font:bold,color:ink});
+  toc.drawText("Leader copy page",{x:350,y:702,size:11,font:bold,color:ink});
+  for(let k=0;k<33;k++){
+   const j=t*33+k;if(j>=pages.length)break;
+   const [sourceIndex,record]=pages[j],y=677-k*19;
+   const name=printable(record.prayerTitle||record.identification?.prayerName||"").slice(0,35);
+   toc.drawText("Source "+sourceIndex+"  "+name,{x:48,y,size:10,font,color:ink});
+   toc.drawText(String(j+2+tocPages),{x:350,y,size:10,font,color:ink});
+  }
  }
  for(let j=0;j<pages.length;j++){
   const [sourceIndex,record]=pages[j];
