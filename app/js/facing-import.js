@@ -1228,6 +1228,27 @@ function isPageNumberLine(line,ocr,record){
   return /^\d{1,4}$/.test(value)&&(value===printed||value.length<=4);
  });
 }
+// Shared cue lifecycle for both scripts: one span classifier, one acceptance
+// gate, one metadata format. Script-specific OCR and reading order remain separate.
+function cueSpanPosition(record,cue){
+ const source=importedCues.find(c=>(c.cue_id||c.test_id)===cue.cueId);
+ const range=String(source?.source_page||"").match(/^(\d+)-(\d+)$/);
+ const page=Number(record?.source?.originalPageNumber);
+ if(!range||!Number.isFinite(page)||Number(range[1])>=Number(range[2])||
+    page<Number(range[1])||page>Number(range[2]))return null;
+ return page===Number(range[1])?"start":page===Number(range[2])?"end":"middle";
+}
+function recordCueMatch(record,cue,method,boundary,boxes){
+ const valid=boxes.length>0&&boxes.every(h=>[h.x,h.y,h.width,h.height].every(Number.isFinite)&&
+  h.width>0&&h.height>0&&h.x>=0&&h.y>=0&&h.x+h.width<=1.01&&h.y+h.height<=1.01);
+ cue.highlightMethod=valid?method:"unmatched";
+ cue.highlightVerification={geometryValid:valid,geometry:"printed-ink",boundary,
+  rectangles:boxes.length,reviewRequired:true};
+ if(!valid){cue.matchStatus="geometry-validation-review-required";return false;}
+ record.leadership.highlights.push(...boxes);
+ cue.matchStatus=method+"-candidate-review-required";
+ return true;
+}
 function assignCueHighlights(side){
  const record=pageMetadata[side],ocr=sourceTextLines[side]||[],geometry=detectedLines[side]||[];
  if(!record)return 0;
@@ -1240,11 +1261,7 @@ function assignCueHighlights(side){
     cue.matchStatus="missing-Hebrew-cue-review-required";
     continue;
    }
-   const sourceRow=importedCues.find(c=>(c.cue_id||c.test_id)===cue.cueId);
-   const span=String(sourceRow?.source_page||"").match(/^(\d+)-(\d+)$/);
-   const printed=Number(record.source.originalPageNumber);
-   const spanBoundary=span&&Number.isFinite(printed)&&Number(span[1])<Number(span[2])&&printed>=Number(span[1])&&printed<=Number(span[2])
-    ?(printed===Number(span[1])?"start":printed===Number(span[2])?"end":"middle"):null;
+   const spanBoundary=cueSpanPosition(record,cue);
    // A range cue has a beginning on its first page and an ending on its last.
    // Never demand both anchors from either page.
    const highlights=spanBoundary==="middle"?null:isolatedHebrewCueMatch(side,cue,ocr,spanBoundary);
@@ -1264,11 +1281,9 @@ function assignCueHighlights(side){
   }
   // A cue whose source_page is a printed-page range has only one anchor
   // on each boundary page. Match each page independently, including across spreads.
-  const sourceRow=importedCues.find(c=>(c.cue_id||c.test_id)===cue.cueId);
-  const span=String(sourceRow?.source_page||"").match(/^(\d+)-(\d+)$/);
-  const printed=Number(record.source.originalPageNumber);
-  if(span&&!hebrew&&Number.isFinite(printed)&&Number(span[1])<Number(span[2])&&printed>=Number(span[1])&&printed<=Number(span[2])){
-   const firstPage=printed===Number(span[1]),lastPage=printed===Number(span[2]);
+  const spanBoundary=cueSpanPosition(record,cue);
+  if(spanBoundary){
+   const firstPage=spanBoundary==="start",lastPage=spanBoundary==="end";
    const begin=firstPage?matchingCueLine(ocr,cue.startCue):null;
    const end=lastPage?matchingCueLine(ocr,cue.endCue):null;
    const anchor=firstPage?ocr[begin]:ocr[end];
@@ -1291,13 +1306,14 @@ function assignCueHighlights(side){
     // Printed page numbers and template headings are outside the prayer body.
     &&l.y>.18&&l.y<.88);
    if(!selected.length){cue.matchStatus="spanning-page-empty-review-required";continue}
-   for(const line of selected)record.leadership.highlights.push({
+   const boxes=selected.map(line=>({
     highlightId:"HL-"+cue.cueId+"-"+line.id,lineId:line.id,cueId:cue.cueId,roleId:cue.role,
     x:line.x,y:line.y,width:line.width,height:line.height,
     coordinateSystem:"normalized-top-left",visibleInPdf:false
-   });
-   cue.matchStatus="spanning-page-candidate-review-required";
-   matches++;continue;
+   }));
+   if(recordCueMatch(record,cue,"english-ocr-spanning-"+spanBoundary,
+      firstPage?"start-anchor":"end-anchor",boxes))matches++;
+   continue;
   }
   // Never convert ambiguous OCR into a guessed selection.
   const begin=matchingCueLine(ocr,hebrew?(cue.startCueHebrew):cue.startCue),
@@ -1340,13 +1356,10 @@ function assignCueHighlights(side){
    if(exact)selected.push(exact);
    else {cue.matchStatus="geometry-review-required";rawOcrDiagnostics[side]+="\\nGEOMETRY "+cue.cueId+" start="+first.id+" col="+first.column+" y="+first.y+" end="+last.id+" col="+last.column+" y="+last.y+" rank="+rankA+".."+rankB;continue;}
   }
-  for(const line of selected){
-   if(!record.leadership.highlights.some(h=>h.lineId===line.id)){
-    record.leadership.highlights.push({highlightId:"HL-"+cue.cueId+"-"+line.id,lineId:line.id,cueId:cue.cueId,roleId:cue.role,
-      x:line.x,y:line.y,width:line.width,height:line.height,coordinateSystem:"normalized-top-left",visibleInPdf:false});
-   }
-  }
-  cue.matchStatus="candidate-review-required";cue.highlightMethod="english-ocr-boundary-and-geometry";cue.highlightVerification={boundary:"both-anchors",rectangles:selected.length,reviewRequired:true};matches++;
+  const boxes=selected.filter(line=>!record.leadership.highlights.some(h=>h.cueId===cue.cueId&&h.lineId===line.id))
+   .map(line=>({highlightId:"HL-"+cue.cueId+"-"+line.id,lineId:line.id,cueId:cue.cueId,roleId:cue.role,
+      x:line.x,y:line.y,width:line.width,height:line.height,coordinateSystem:"normalized-top-left",visibleInPdf:false}));
+  if(recordCueMatch(record,cue,"english-ocr-boundary-and-geometry","both-anchors",boxes))matches++;
  }
  return matches;
 }
