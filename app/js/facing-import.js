@@ -2447,6 +2447,7 @@ function saveCurrentSpreadEdits(){
 function updateSpreadNavigation(){updateSpanStatus();const total=Math.ceil(sourcePdfPages/2),current=Math.ceil(selectedSpreadFirst/2),percent=Math.round(Math.min(sourcePdfPages,selectedSpreadFirst+1)/Math.max(1,sourcePdfPages)*100);$("spread-position").textContent="Spread "+current+" of "+(total||"—")+" · PDF pages "+selectedSpreadFirst+(selectedSpreadFirst+1<=sourcePdfPages?"–"+(selectedSpreadFirst+1):"")+" · "+percent+"% through service";const progress=$("review-progress");if(progress)progress.value=percent;$("previous-spread").disabled=!sourcePdfBytes||current<=1;$("next-spread").disabled=!sourcePdfBytes||current>=total;}
 // Section boundaries are explicit, confirmed intake records; never infer from prayer titles.
 const reviewedSectionTransitions=new Set();
+function approvedPrayerName(record){return record?.leadership?.instructionPrayer||record?.prayerTitle||record?.identification?.prayerName||record?.identification?.prayerTitle||"";}
 function confirmedSections(){return (serviceManifest?.sections||[]).filter(s=>s.status==="confirmed").sort((a,b)=>a.startOutputPage-b.startOutputPage)}
 function sectionForPage(page){return confirmedSections().filter(s=>s.startOutputPage<=page).at(-1)||null}
 function renamePrayerInSavedRecord(record,newName){
