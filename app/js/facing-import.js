@@ -2687,24 +2687,25 @@ function pdfWrapLines(text,font,size,maxWidth){
  if(line)lines.push(line);return lines;
 }
 function drawLeaderPageFooter(page,record,font,bold){
- const width=page.getWidth(),margin=38,ink=PDFLib.rgb(.13,.23,.28);
- const state=record.leadership||{},name=printable(state.instructionPrayer||record.prayerTitle||record.identification?.prayerName||"Untitled prayer");
+ const width=page.getWidth(),ink=PDFLib.rgb(.13,.23,.28),state=record.leadership||{};
+ const name=printable(state.instructionPrayer||record.prayerTitle||record.identification?.prayerName||"Untitled prayer");
+ const left=38,right=316;
  page.drawRectangle({x:26,y:17,width:width-52,height:115,color:PDFLib.rgb(.96,.97,.96),borderColor:PDFLib.rgb(.68,.75,.72),borderWidth:.6});
- page.drawText("LEADER CUES  |  "+name.slice(0,60),{x:margin,y:115,size:10,font:bold,color:ink});
+ page.drawText("PRAYER: "+name.slice(0,76),{x:left,y:115,size:9,font:bold,color:ink});
+ page.drawText("CUES",{x:left,y:96,size:8,font:bold,color:ink});
+ page.drawText("LEADER INSTRUCTIONS",{x:right,y:96,size:8,font:bold,color:ink});
  const cues=state.cues||[];
- let y=98;
- if(!cues.length){page.drawText("No cues assigned to this page.",{x:margin,y,size:8,font,color:ink});y-=12;}
- for(const cue of cues.slice(0,3)){
-  const matched=(state.highlights||[]).some(h=>h.cueId===cue.cueId);
-  const line=(cue.cueId||"Cue")+"  "+(matched?"MATCHED":"MISSING")+"  "+printable(cue.prayer||name).slice(0,55);
-  page.drawText(line.slice(0,92),{x:margin,y,size:8,font,color:ink});y-=12;
+ if(!cues.length)page.drawText("No cues assigned.",{x:left,y:82,size:7.5,font,color:ink});
+ for(let i=0;i<Math.min(5,cues.length);i++){
+  const cue=cues[i],matched=(state.highlights||[]).some(h=>h.cueId===cue.cueId);
+  const label=printable(cue.cueId||"Cue")+" - "+(matched?"matched":"MISSING");
+  page.drawText(label.slice(0,38),{x:left,y:82-i*12,size:7.5,font,color:ink});
  }
- if(cues.length>3){page.drawText("+"+(cues.length-3)+" additional cue(s)",{x:margin,y,size:8,font,color:ink});y-=12;}
- const instructions=instructionTextForPage(state);
- const instructionLines=instructions.flatMap(t=>pdfWrapLines(t,font,7.5,width-2*margin));
- if(instructionLines.length){page.drawText("INSTRUCTIONS",{x:margin,y:Math.min(y-2,54),size:8,font:bold,color:ink});
-  let iy=Math.min(y-14,43);for(const line of instructionLines.slice(0,3)){if(iy<20)break;page.drawText(line,{x:margin,y:iy,size:7.5,font,color:ink});iy-=10;}}
- else page.drawText("INSTRUCTIONS: None assigned",{x:margin,y:25,size:7.5,font,color:ink});
+ if(cues.length>5)page.drawText("+"+(cues.length-5)+" more cues",{x:left,y:22,size:7,font,color:ink});
+ const lines=instructionTextForPage(state).flatMap(t=>pdfWrapLines(t,font,7.5,258));
+ if(!lines.length)page.drawText("No instructions assigned.",{x:right,y:82,size:7.5,font,color:ink});
+ for(let i=0;i<Math.min(5,lines.length);i++)page.drawText(lines[i],{x:right,y:82-i*12,size:7.5,font,color:ink});
+ if(lines.length>5)page.drawText("Additional instructions in project metadata.",{x:right,y:22,size:7,font,color:ink});
 }
 async function exportVerifiedWorkingCopy(){
  if(!sourcePdfBytes)throw Error("Load the source siddur first.");
