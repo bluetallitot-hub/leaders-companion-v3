@@ -1586,7 +1586,7 @@ function drawHighlights(){
   }
   const record=pageMetadata[i];
   const activeId=selectedCueBySide[i]||record?.leadership?.cues?.[0]?.cueId||"";
-  const selected=(record?.leadership?.highlights||[]).filter(h=>!h.cueId||visibleCueId==="__all__"||(visibleCueId&&h.cueId===visibleCueId)||(!visibleCueId&&h.cueId===activeId));
+  const selected=(record?.leadership?.highlights||[]).filter(h=>visibleCueId==="__all__"||h.cueId===(visibleCueId||activeId));
   // Merge all rectangles of the same role into a single opaque mask,
   // then tint that union once. Overlapping cues and repeated OCR boxes
   // must never darken the page by painting the same ink twice.
@@ -1669,6 +1669,7 @@ function installHighlightSelection(){
    const from=ordered.findIndex(x=>x.id===start.id),to=ordered.findIndex(x=>x.id===end.id);
    const chosen=from===to?[start]:ordered.slice(Math.min(from,to),Math.max(from,to)+1).filter(l=>l.column===start.column);
    const highlights=pageMetadata[i].leadership.highlights;
+   const activeCueId=selectedCueBySide[i]||((visibleCueId!=="__all__")?visibleCueId:"")||pageMetadata[i].leadership.cues[0]?.cueId||null;
    // Automatic cue highlights have generated ink-row IDs, not detection-line IDs.
    // Clicking their painted geometry must still be able to remove them.
    const suppressed=pageMetadata[i].leadership.suppressedAutoHighlights||=[];
@@ -1679,7 +1680,7 @@ function installHighlightSelection(){
      const y=Math.max(0,Math.min(h.y+h.height,item.y+item.height)-Math.max(h.y,item.y));
      return x*y>0&&y/Math.max(.001,Math.min(h.height,item.height))>.35;
     };
-    const automatic=highlights.filter(h=>h.cueId&&!h.manualApproved&&overlap(h));
+    const automatic=highlights.filter(h=>h.cueId===activeCueId&&!h.manualApproved&&overlap(h));
     if(automatic.length){
      for(const h of automatic){
       suppressed.push({cueId:h.cueId,x:h.x,y:h.y,width:h.width,height:h.height});
@@ -1687,37 +1688,39 @@ function installHighlightSelection(){
      }
      continue;
     }
-    const role=pageMetadata[i].leadership.cues.find(c=>c.cueId===visibleCueId)?.role||pageMetadata[i].leadership.cues[0]?.role||roleConfig.id;
+    const role=pageMetadata[i].leadership.cues.find(c=>c.cueId===activeCueId)?.role||pageMetadata[i].leadership.cues[0]?.role||roleConfig.id;
     if(selectionMode==="word"){
      const lineId=item.lineId;
-     const lineIndex=highlights.findIndex(h=>!h.wordId&&h.lineId===lineId);
-     const wordHighlights=highlights.filter(h=>h.wordId&&h.lineId===lineId);
+     const lineIndex=highlights.findIndex(h=>h.cueId===activeCueId&&!h.wordId&&h.lineId===lineId);
+     const wordHighlights=highlights.filter(h=>h.cueId===activeCueId&&h.wordId&&h.lineId===lineId);
      if(lineIndex>=0){
       // Convert the entire line into word selections before toggling one word.
       const original=highlights.splice(lineIndex,1)[0];
       for(const word of wordCandidates(i,detectedLines[i].find(l=>l.id===lineId))){
-       if(!highlights.some(h=>h.wordId===word.id)){
-        highlights.push({highlightId:"HL-"+word.id,lineId,wordId:word.id,
+       if(!highlights.some(h=>h.cueId===activeCueId&&h.wordId===word.id)){
+        highlights.push({highlightId:"HL-"+(activeCueId||"unassigned")+"-"+word.id,cueId:activeCueId,lineId,wordId:word.id,
          roleId:original.roleId||role,x:word.x,y:word.y,width:word.width,height:word.height,
          coordinateSystem:"normalized-top-left",visibleInPdf:false});
        }
       }
      }
-     const old=highlights.findIndex(h=>h.wordId===item.id);
+     const old=highlights.findIndex(h=>h.cueId===activeCueId&&h.wordId===item.id);
      if(old>=0)highlights.splice(old,1);
-     else highlights.push({highlightId:"HL-"+item.id,lineId,wordId:item.id,roleId:role,
+     else highlights.push({highlightId:"HL-"+(activeCueId||"unassigned")+"-"+item.id,cueId:activeCueId,lineId,wordId:item.id,roleId:role,
       x:item.x,y:item.y,width:item.width,height:item.height,
       coordinateSystem:"normalized-top-left",visibleInPdf:false});
     }else{
      // Line click replaces any partial-word edits for this line.
-     const old=highlights.findIndex(h=>!h.wordId&&h.lineId===item.id);
-     for(let j=highlights.length-1;j>=0;j--)if(highlights[j].wordId&&highlights[j].lineId===item.id)highlights.splice(j,1);
-     if(old>=0){const idx=highlights.findIndex(h=>!h.wordId&&h.lineId===item.id);if(idx>=0)highlights.splice(idx,1)}
-     else highlights.push({highlightId:"HL-"+item.id,lineId:item.id,roleId:role,
+     const old=highlights.findIndex(h=>h.cueId===activeCueId&&!h.wordId&&h.lineId===item.id);
+     for(let j=highlights.length-1;j>=0;j--)if(highlights[j].cueId===activeCueId&&highlights[j].wordId&&highlights[j].lineId===item.id)highlights.splice(j,1);
+     if(old>=0){const idx=highlights.findIndex(h=>h.cueId===activeCueId&&!h.wordId&&h.lineId===item.id);if(idx>=0)highlights.splice(idx,1)}
+     else highlights.push({highlightId:"HL-"+(activeCueId||"unassigned")+"-"+item.id,cueId:activeCueId,lineId:item.id,roleId:role,
       x:item.x,y:item.y,width:item.width,height:item.height,
       coordinateSystem:"normalized-top-left",visibleInPdf:false});
     }
    }
+   pageMetadata[i].leadership.highlightConfirmed=false;
+   pageMetadata[i].leadership.confirmedFingerprint=null;
    start=null;drawHighlights();
    status(highlights.length+" selections on "+(i===0?"left":"right")+" page ("+selectionMode+" mode). Download to save metadata.");
   });
