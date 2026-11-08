@@ -2398,7 +2398,7 @@ async function checkpointWrite(){
  if(!sourcePdfBytes)throw Error("No source PDF loaded.");
  const snapshot={schema:"leaders-companion-checkpoint-v1",savedAt:new Date().toISOString(),
   filename,sourcePages:sourcePdfPages,sourceBytes:sourcePdfBytes.length,
-  spreads:[...spreadEdits.entries()],cueTextEdits:[...cueTextEdits.entries()],
+  coverMetadata,sections:serviceManifest?.sections||[],spreads:[...spreadEdits.entries()],cueTextEdits:[...cueTextEdits.entries()],
   cueRoleEdits:[...cueRoleEdits.entries()]};
  const db=await checkpointDb();
  try{
@@ -2420,6 +2420,8 @@ async function checkpointRead(){
   request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);
  });}finally{db.close();}
  if(!snapshot||snapshot.sourceBytes!==sourcePdfBytes.length||snapshot.sourcePages!==sourcePdfPages)return false;
+ coverMetadata=snapshot.coverMetadata||coverMetadata;
+ if(serviceManifest&&snapshot.sections)serviceManifest.sections=snapshot.sections;
  spreadEdits.clear();
  for(const [key,value] of snapshot.spreads||[])spreadEdits.set(Number(key),value);
  cueTextEdits.clear();for(const [key,value] of snapshot.cueTextEdits||[])cueTextEdits.set(key,value);
@@ -2696,18 +2698,79 @@ function workingCopyStatus(){
  if(label)label.textContent=processed+" processed / "+sourcePdfPages+" source pages; "+verified+" verified; "+(processed-verified)+" draft; "+(sourcePdfPages-processed)+" not yet processed.";
  cueCompletionReport();
 }
-async function createMasterFrontMatter(out){
- if(!window.LCV3Templates)throw Error("Approved master PDF configuration unavailable.");
- const masters=["cover","sectionTitle","sectionContents"];
- for(const key of masters){
-  const bytes=await window.LCV3Templates.load(key);
-  const master=await PDFLib.PDFDocument.load(bytes);
-  if(master.getPageCount()<1)throw Error("Empty PDF master: "+key);
-  const [copied]=await out.copyPages(master,[0]);
-  const page=out.addPage(copied);
-  // Preserve approved master artwork and geometry without arbitrary text overlays.
+// Metadata records are authoritative. Master text anchors supply positions and font sizes.
+let coverMetadata={serviceName:"",subtitle:"",congregation:"",edition:""};
+function effectiveCover(){return {...coverMetadata,serviceName:coverMetadata.serviceName||serviceManifest?.serviceName||filename};}
+function editableSectionRecords(){return confirmedSections();}
+async function masterWithFields(out,key,values){
+ const bytes=await window.LCV3Templates.load(key);
+ const template=await PDFLib.PDFDocument.load(bytes);
+ if(!template.getPageCount())throw Error("Empty master: "+key);
+ const [copied]=await out.copyPages(template,[0]);const page=out.addPage(copied);
+ const pdf=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
+ const text=await (await pdf.getPage(1)).getTextContent();
+ const font=await out.embedFont(PDFLib.StandardFonts.Helvetica);
+ const bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
+ const matches=[];
+ for(const item of text.items||[]){
+  const original=String(item.str||"").trim();
+  if(!original)continue;
+  for(const [pattern,value] of values){
+   if(!pattern.test(original))continue;
+   const size=Math.max(8,Math.min(28,Math.abs(item.transform?.[3]||12)));
+   const x=item.transform?.[4]||0,y=item.transform?.[5]||0;
+   const replacement=String(value??"").replace(/[^\\x20-\\x7e]/g,"").trim();
+   matches.push({original,x,y,size,replacement});
+   break;
+  }
  }
+ for(const m of matches){
+  const height=m.size*1.35;
+  page.drawRectangle({x:Math.max(0,m.x-2),y:Math.max(0,m.y-m.size*.2),width:Math.min(page.getWidth()-m.x,Math.max(m.size*2,font.widthOfTextAtSize(m.original,m.size)+10)),height,color:PDFLib.rgb(1,1,1)});
+  if(m.replacement)page.drawText(m.replacement.slice(0,95),{x:m.x,y:m.y,size:Math.min(m.size,Math.max(8,m.size*50/Math.max(50,m.replacement.length))),font:bold,color:PDFLib.rgb(0,0,0),maxWidth:Math.max(80,page.getWidth()-m.x-25)});
+ }
+ return {page,matched:matches.length};
 }
+async function createMasterFrontMatter(out,{includeSections=true}={}){
+ if(!window.LCV3Templates)throw Error("Approved master PDF configuration unavailable.");
+ const cover=effectiveCover(),today=new Date().toISOString().slice(0,10);
+ await masterWithFields(out,"cover",[
+  [/Friday Evening/i,cover.serviceName],
+  [/\\[YYYY-MM-DD\\]/i,today],
+  [/\\[BUILD VERSION\\]/i,"V3.298"],
+  [/\\[FINAL PDF PAGE COUNT\\]/i,String(out.getPageCount()+1)]
+ ]);
+ if(!includeSections)return;
+ const sections=editableSectionRecords();
+ const first=sections[0]||{title:"Section pending review",sectionId:"UNASSIGNED"};
+ await addSectionMasterPages(out,first,[]);
+}
+async function addSectionMasterPages(out,section,entries){
+ await masterWithFields(out,"sectionTitle",[[/\\[SECTION NAME\\]/i,section.title]]);
+ const replacements=entries.slice(0,3).map((entry,i)=>[
+  new RegExp("\\\\[Prayer Name "+(i+1)+"\\\\]","i"),
+  entry.title+" "+entry.page
+ ]);
+ for(let i=entries.length;i<3;i++)replacements.push([new RegExp("\\\\[Prayer Name "+(i+1)+"\\\\]","i"),""]);
+ await masterWithFields(out,"sectionContents",replacements);
+}
+function showCoverEditor(){
+ const prior=document.getElementById("cover-editor-dialog");if(prior)prior.remove();
+ const dialog=document.createElement("dialog");dialog.id="cover-editor-dialog";dialog.style.cssText="padding:24px;width:min(550px,90vw)";
+ const title=document.createElement("h2");title.textContent="Cover metadata";dialog.append(title);
+ const inputs={};
+ for(const [key,label] of [["serviceName","Service title"],["subtitle","Subtitle"],["congregation","Congregation"],["edition","Edition"]]){
+  const row=document.createElement("label");row.textContent=label+" ";const input=document.createElement("input");
+  input.value=effectiveCover()[key]||"";row.append(input);dialog.append(row,document.createElement("br"));inputs[key]=input;
+ }
+ const save=document.createElement("button");save.textContent="Save cover metadata";save.onclick=()=>{
+  for(const [key,input] of Object.entries(inputs))coverMetadata[key]=input.value.trim();
+  saveCheckpointNow().catch(e=>status(e.message));dialog.close();dialog.remove();
+ };dialog.append(save);document.body.append(dialog);dialog.showModal();
+}
+const coverButton=document.createElement("button");coverButton.type="button";coverButton.textContent="Edit cover metadata";
+coverButton.onclick=showCoverEditor;
+document.getElementById("download-front-matter")?.parentElement?.append(coverButton);
 async function exportFrontMatterTest(){
  const out=await PDFLib.PDFDocument.create();
  await createMasterFrontMatter(out);
@@ -2758,7 +2821,7 @@ async function exportVerifiedWorkingCopy(){
  const approved=verifiedWorkingPages();
  const source=await PDFLib.PDFDocument.load(sourcePdfBytes.slice());
  const out=await PDFLib.PDFDocument.create();
- await createMasterFrontMatter(out);
+ await createMasterFrontMatter(out,{includeSections:false});
  if(!window.LCV3Templates)throw Error("Approved Siddur Page Master is unavailable.");
  const masterBytes=await window.LCV3Templates.load("siddur");
  const master=await PDFLib.PDFDocument.load(masterBytes);
@@ -2766,7 +2829,16 @@ async function exportVerifiedWorkingCopy(){
  const font=await out.embedFont(PDFLib.StandardFonts.Helvetica);
  const bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
  const projectPages=[];
+ const sections=editableSectionRecords();
+ const sectionsInserted=new Set();
  for(let j=0;j<approved.length;j++){
+  const nextSection=sectionForPage(approved[j][0]);
+  if(nextSection&&!sectionsInserted.has(nextSection.sectionId)){
+   const nextIndex=sections.indexOf(nextSection),limit=sections[nextIndex+1]?.startOutputPage||Infinity;
+   const entries=approved.filter(([idx])=>idx>=nextSection.startOutputPage&&idx<limit).map(([idx,rec])=>({title:approvedPrayerName(rec),page:idx}));
+   await addSectionMasterPages(out,nextSection,entries);
+   sectionsInserted.add(nextSection.sectionId);
+  }
   const [sourceIndex,record]=approved[j];
   const side=Number(record?.source?.sideIndex ?? record?.sideIndex ?? ((sourceIndex-1)%2))===1?1:0;
   const masterIndex=master.getPageCount()>1?Math.min(side,master.getPageCount()-1):0;
@@ -2794,7 +2866,7 @@ async function exportVerifiedWorkingCopy(){
   exportProgress(j+1,approved.length,"Attaching approved pages to Siddur Page Master");
  }
  // Preserve the complete approved page records inside the PDF, not only a visual footer.
- const metadata=JSON.stringify({schema:"leaders-companion-v3-approved-export",version:"3.295",
+ const metadata=JSON.stringify({schema:"leaders-companion-v3-approved-export",version:"3.298",cover:effectiveCover(),sections:editableSectionRecords(),
   sourceFilename:filename,sourcePageCount:sourcePdfPages,approvedPages:projectPages});
  await out.attach(new TextEncoder().encode(metadata),"leaders-companion-project.json",
   {mimeType:"application/json",description:"Approved page metadata and cue geometry"});
