@@ -2653,16 +2653,13 @@ function workingCopyStatus(){
 async function createMasterFrontMatter(out){
  if(!window.LCV3Templates)throw Error("Approved master PDF configuration unavailable.");
  const masters=["cover","sectionTitle","sectionContents"];
- const font=await out.embedFont(PDFLib.StandardFonts.Helvetica);
  for(const key of masters){
   const bytes=await window.LCV3Templates.load(key);
   const master=await PDFLib.PDFDocument.load(bytes);
   if(master.getPageCount()<1)throw Error("Empty PDF master: "+key);
   const [copied]=await out.copyPages(master,[0]);
   const page=out.addPage(copied);
-  // Source identity is overlaid as metadata; master artwork is never redrawn.
-  const source=String(filename||"Siddur").replace(/[^\\x20-\\x7e]/g,"").slice(0,65);
-  if(source)page.drawText(source,{x:54,y:Math.min(230,page.getHeight()*.3),size:11,font,color:PDFLib.rgb(.13,.23,.28)});
+  // Preserve approved master artwork and geometry without arbitrary text overlays.
  }
 }
 async function exportFrontMatterTest(){
