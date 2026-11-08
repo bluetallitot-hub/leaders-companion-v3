@@ -499,7 +499,7 @@ function renderFacingInstructions(){
   const unresolved=warnings.filter(w=>!state.instructionOverrides[w]);
   const confirm=document.createElement("label");confirm.style.display="block";
   const check=document.createElement("input");check.type="checkbox";check.checked=pageApprovalCurrent(record);check.disabled=unresolved.length>0;
-  check.onchange=()=>{state.highlightConfirmed=check.checked;state.confirmedFingerprint=check.checked?pageApprovalFingerprint(record):null;saveCurrentSpreadEdits();renderFacingInstructions()};
+  check.onchange=()=>{state.highlightConfirmed=check.checked;state.confirmedFingerprint=check.checked?pageApprovalFingerprint(record):null;renderFacingInstructions();saveCheckpointNow().catch(e=>status("Verification save failed: "+e.message))};
   confirm.append(check,document.createTextNode(" Confirm Highlight and page instructions"));panel.append(confirm);
   const note=document.createElement("p");note.textContent=unresolved.length?unresolved.length+" unresolved warning(s); confirmation blocked.":pageApprovalCurrent(record)?"Page confirmed for download.":"Review the highlights, then confirm.";panel.append(note);
   root.append(panel);
@@ -2386,6 +2386,56 @@ async function preview(bytes,{reuseSaved=false}={}){
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null,serviceRoleOpacity=new Map(),serviceRoleAssignments=new Map(),serviceRoleDisplayNames=new Map(),serviceHighlightColors=["#F5D03C","#75C56A","#74B9E7","#F3A65B","#DA88B8","#AE93DC"],embeddedPageRecords=[];
 const spreadEdits=new Map();
+const CHECKPOINT_DB="leaders-companion-editor-checkpoints-v1";
+function checkpointKey(){return filename+"|"+sourcePdfPages+"|"+(sourcePdfBytes?.length||0);}
+function checkpointDb(){
+ return new Promise((resolve,reject)=>{
+  const request=indexedDB.open(CHECKPOINT_DB,1);
+  request.onupgradeneeded=()=>request.result.createObjectStore("checkpoints");
+  request.onsuccess=()=>resolve(request.result);
+  request.onerror=()=>reject(request.error);
+ });
+}
+async function checkpointWrite(){
+ if(!sourcePdfBytes)throw Error("No source PDF loaded.");
+ const snapshot={schema:"leaders-companion-checkpoint-v1",savedAt:new Date().toISOString(),
+  filename,sourcePages:sourcePdfPages,sourceBytes:sourcePdfBytes.length,
+  spreads:[...spreadEdits.entries()],cueTextEdits:[...cueTextEdits.entries()],
+  cueRoleEdits:[...cueRoleEdits.entries()]};
+ const db=await checkpointDb();
+ try{
+  await new Promise((resolve,reject)=>{
+   const tx=db.transaction("checkpoints","readwrite");
+   tx.objectStore("checkpoints").put(snapshot,checkpointKey());
+   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
+  });
+ }finally{db.close();}
+ const label=$("checkpoint-status");if(label)label.textContent="Saved locally: "+snapshot.savedAt+" — "+verifiedWorkingPages().length+" verified pages, "+spreadEdits.size+" spreads.";
+ return snapshot;
+}
+async function checkpointRead(){
+ if(!sourcePdfBytes)return false;
+ const db=await checkpointDb();
+ let snapshot;
+ try{snapshot=await new Promise((resolve,reject)=>{
+  const request=db.transaction("checkpoints","readonly").objectStore("checkpoints").get(checkpointKey());
+  request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);
+ });}finally{db.close();}
+ if(!snapshot||snapshot.sourceBytes!==sourcePdfBytes.length||snapshot.sourcePages!==sourcePdfPages)return false;
+ spreadEdits.clear();
+ for(const [key,value] of snapshot.spreads||[])spreadEdits.set(Number(key),value);
+ cueTextEdits.clear();for(const [key,value] of snapshot.cueTextEdits||[])cueTextEdits.set(key,value);
+ cueRoleEdits.clear();for(const [key,value] of snapshot.cueRoleEdits||[])cueRoleEdits.set(key,value);
+ const label=$("checkpoint-status");if(label)label.textContent="Restored local checkpoint from "+snapshot.savedAt+".";
+ workingCopyStatus();return true;
+}
+async function saveCheckpointNow(){
+ saveCurrentSpreadEdits();
+ const label=$("checkpoint-status");if(label)label.textContent="Saving checkpoint…";
+ try{await checkpointWrite()}catch(e){if(label)label.textContent="SAVE FAILED: "+e.message;throw e;}
+}
+$("save-checkpoint")?.addEventListener("click",()=>saveCheckpointNow().catch(e=>status("Save failed: "+e.message)));
+
 function saveCurrentSpreadEdits(){
  if(pageMetadata.length)spreadEdits.set(selectedSpreadFirst,{pages:pageMetadata.map(r=>r?{
   sourcePdfPage:r.source?.sourcePdfPage,
@@ -2424,9 +2474,7 @@ async function loadSelectedSpread(){
  output=await createPdf(sourcePdfBytes.slice());
  baseOutput=output.slice();
  const saved=spreadEdits.get(selectedSpreadFirst);
- const savedComplete=!!saved?.pages?.every(p=>!p||!(p.leadership?.cues||[]).some(c=>
-  c.highlightMethod==="unmatched"||!c.highlightMethod||
-  !p.leadership?.highlights?.some(h=>h.cueId===c.cueId)));
+ const savedComplete=!!saved?.pages?.length;
  await preview(output,{reuseSaved:savedComplete});
  // Individual-page download controls were retired; the working PDF is the only export.
  applyCueRoleEdits();
@@ -2453,6 +2501,7 @@ $("source").addEventListener("change",async()=>{
   const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
   sourcePdfPages=source.numPages;selectedSpreadFirst=1;selectedCueBySide=["",""];spreadEdits.clear();
   updateIntakeInventory();
+  await checkpointRead();
   await loadSelectedSpread();
  }catch(e){console.error(e);status("Import failed: "+e.message)}
 });
@@ -2869,6 +2918,7 @@ async function restoreSiddurIntake(){
  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
  sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();cueRoleEdits.clear();
  updateIntakeInventory();
+ await checkpointRead();
  await loadSelectedSpread();
  status("Restored "+data.pdfName+" and "+importedCues.length+" cue rows. The PDF contains selected service pages.");
 }
