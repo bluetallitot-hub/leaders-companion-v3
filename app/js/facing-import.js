@@ -498,10 +498,10 @@ function renderFacingInstructions(){
   }
   const unresolved=warnings.filter(w=>!state.instructionOverrides[w]);
   const confirm=document.createElement("label");confirm.style.display="block";
-  const check=document.createElement("input");check.type="checkbox";check.checked=pageApprovalCurrent(record);check.disabled=unresolved.length>0;
+  const check=document.createElement("input");check.type="checkbox";check.checked=pageApprovalCurrent(record);
   check.onchange=()=>{state.highlightConfirmed=check.checked;state.confirmedFingerprint=check.checked?pageApprovalFingerprint(record):null;renderFacingInstructions();saveCheckpointNow().catch(e=>status("Verification save failed: "+e.message))};
   confirm.append(check,document.createTextNode(" Confirm Highlight and page instructions"));panel.append(confirm);
-  const note=document.createElement("p");note.textContent=unresolved.length?unresolved.length+" unresolved warning(s); confirmation blocked.":pageApprovalCurrent(record)?"Page confirmed for download.":"Review the highlights, then confirm.";panel.append(note);
+  const note=document.createElement("p");note.textContent=unresolved.length?unresolved.length+" unmatched or unapproved item(s). Page can be saved and printed as a draft without overrides.":pageApprovalCurrent(record)?"Page confirmed for download.":"Review the highlights, then confirm.";panel.append(note);
   root.append(panel);
  }
  root.classList.add("instruction-two-pages");
@@ -2220,19 +2220,19 @@ async function autoMatchCues(){
  for(const record of pageMetadata){record.leadership.highlights=record.leadership.highlights.filter(h=>!h.cueId||h.manualApproved)}
  for(let side=0;side<pageMetadata.length;side++){
   if(!pageMetadata[side].leadership.cues.length){if(progress)progress.value=side+1;continue;}
-  if(progressLabel)progressLabel.textContent="Page "+(side+1)+": Stage 1/4 — recognizing printed text";
+  if(progressLabel)progressLabel.textContent="Page "+(side+1)+": Pass 1 — full-page "+(pageHasHebrewCue(pageMetadata[side])?"Hebrew":"English")+" OCR";
   if(progress)progress.value=side*4;
   status("Reading "+(side===0?"left":"right")+" page for cue anchors...");
   try{
    sourceTextLines[side]=await recognizeCueLines(side);
    if(progress){progress.value=side*4+1;}
-   if(progressLabel)progressLabel.textContent="Page "+(side+1)+": Stage 2/4 — "+(pageHasHebrewCue(pageMetadata[side])?"normalized Hebrew OCR":"preparing English cue tokens");
+   if(progressLabel)progressLabel.textContent="Page "+(side+1)+": Pass 2 — "+(pageHasHebrewCue(pageMetadata[side])?"line-by-line Hebrew OCR recovery":"English token normalization (no second OCR pass)");
    if(pageHasHebrewCue(pageMetadata[side]))sourceTextLines[side]=await secondPassHebrewLines(side,sourceTextLines[side]);
    if(progress)progress.value=side*4+2;
-   if(progressLabel)progressLabel.textContent="Page "+(side+1)+": Stage 3/4 — matching cue boundaries";
+   if(progressLabel)progressLabel.textContent="Page "+(side+1)+": Matching cue boundaries against recognized text";
    total+=assignCueHighlights(side);
    if(progress)progress.value=side*4+3;
-   if(progressLabel)progressLabel.textContent="Page "+(side+1)+": Stage 4/4 — checking matched geometry";
+   if(progressLabel)progressLabel.textContent="Page "+(side+1)+": Validating physical highlight geometry";
    for(const cue of pageMetadata[side].leadership.cues){
     const boxes=pageMetadata[side].leadership.highlights.filter(h=>h.cueId===cue.cueId);
     const valid=boxes.length>0&&boxes.every(h=>[h.x,h.y,h.width,h.height].every(Number.isFinite)&&h.width>0&&h.height>0);
@@ -2625,29 +2625,38 @@ function exportProgress(done,total,stage){
 }
 // Working leader copy: only explicitly verified pages are included.
 // Source page identity, not visual left/right position, determines attachment.
-function verifiedWorkingPages(){
+function workingPages(){
  const bySource=new Map();
  for(const saved of spreadEdits.values())for(const record of saved.pages||[]){
   if(!record)continue;
   const source=Number(record.sourcePdfPage||record.source?.sourcePdfPage);
-  if(!Number.isInteger(source)||source<1||source>sourcePdfPages)continue;
-  if(!pageApprovalCurrent(record))continue;
-  const unresolved=facingPageWarnings(record).filter(w=>!record.leadership?.instructionOverrides?.[w]);
-  if(unresolved.length)continue;
-  bySource.set(source,record);
+  if(Number.isInteger(source)&&source>=1&&source<=sourcePdfPages)bySource.set(source,record);
  }
  return [...bySource].sort((a,b)=>a[0]-b[0]);
 }
+function verifiedWorkingPages(){
+ return workingPages().filter(([,record])=>pageApprovalCurrent(record));
+}
+function cueCompletionReport(){
+ const pages=workingPages();
+ const missing=pages.flatMap(([index,record])=>(record.leadership?.cues||[])
+  .filter(c=>!(record.leadership?.highlights||[]).some(h=>h.cueId===c.cueId))
+  .map(c=>"PDF page "+index+": "+c.cueId+" ("+(c.matchStatus||"unmatched")+")"));
+ const el=$("cue-completion-status");
+ if(el)el.textContent=missing.length?missing.length+" cues missing geometry: "+missing.slice(0,16).join("; ")+(missing.length>16?" …":""):"All cues on processed pages have highlight geometry.";
+ return missing;
+}
 function workingCopyStatus(){
- const verified=verifiedWorkingPages().length;
+ const verified=verifiedWorkingPages().length,processed=workingPages().length;
  const label=$("working-copy-count");
- if(label)label.textContent=verified+" verified source pages / "+sourcePdfPages+" total; "+(sourcePdfPages-verified)+" pending. Working PDF: "+(verified+2)+" pages including cover and contents.";
+ if(label)label.textContent=processed+" processed / "+sourcePdfPages+" source pages; "+verified+" verified; "+(processed-verified)+" draft; "+(sourcePdfPages-processed)+" not yet processed.";
+ cueCompletionReport();
 }
 async function exportVerifiedWorkingCopy(){
  if(!sourcePdfBytes)throw Error("Load the source siddur first.");
  saveCurrentSpreadEdits();
- const pages=verifiedWorkingPages();
- if(!pages.length)throw Error("No pages have been explicitly verified yet. Confirm a page before creating the working copy.");
+ const pages=workingPages();
+ if(!pages.length)throw Error("No processed pages yet. Load a spread before downloading.");
  const source=await PDFLib.PDFDocument.load(sourcePdfBytes.slice());
  const out=await PDFLib.PDFDocument.create();
  const font=await out.embedFont(PDFLib.StandardFonts.Helvetica),bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
@@ -2656,21 +2665,21 @@ async function exportVerifiedWorkingCopy(){
  cover.drawText("LEADER'S COMPANION",{x:54,y:665,size:29,font:bold,color:ink});
  cover.drawText("Progressive Verified Leader Copy",{x:54,y:620,size:17,font,color:ink});
  cover.drawText("Source: "+printable(filename).slice(0,72),{x:54,y:566,size:12,font,color:ink});
- cover.drawText("Verified siddur pages: "+pages.length+" of "+sourcePdfPages,{x:54,y:535,size:14,font:bold,color:ink});
- cover.drawText("Pending pages: "+(sourcePdfPages-pages.length),{x:54,y:510,size:12,font,color:ink});
+ cover.drawText("Verified siddur pages: "+verifiedWorkingPages().length+" of "+sourcePdfPages,{x:54,y:535,size:14,font:bold,color:ink});
+ cover.drawText("Processed pages: "+pages.length+"; pending: "+(sourcePdfPages-pages.length),{x:54,y:510,size:12,font,color:ink});
  cover.drawText("Generated: "+new Date().toISOString().slice(0,19)+" UTC",{x:54,y:480,size:11,font,color:ink});
- cover.drawText("Only confirmed pages are included. Original siddur text is preserved.",{x:54,y:420,size:10,font,color:ink});
+ cover.drawText("DRAFT: unverified pages are included. Original siddur text is preserved.",{x:54,y:420,size:10,font,color:ink});
  const tocPages=Math.max(1,Math.ceil(pages.length/33));
  for(let t=0;t<tocPages;t++){
   const toc=out.addPage([pw,ph]);
-  toc.drawText(t===0?"CONTENTS — VERIFIED PAGES":"CONTENTS (continued)",{x:48,y:736,size:19,font:bold,color:ink});
+  toc.drawText(t===0?"CONTENTS — PROCESSED PAGES":"CONTENTS (continued)",{x:48,y:736,size:19,font:bold,color:ink});
   toc.drawText("Siddur source page",{x:48,y:702,size:11,font:bold,color:ink});
   toc.drawText("Leader copy page",{x:350,y:702,size:11,font:bold,color:ink});
   for(let k=0;k<33;k++){
    const j=t*33+k;if(j>=pages.length)break;
    const [sourceIndex,record]=pages[j],y=677-k*19;
    const name=printable(record.prayerTitle||record.identification?.prayerName||"").slice(0,35);
-   toc.drawText("Source "+sourceIndex+"  "+name,{x:48,y,size:10,font,color:ink});
+   toc.drawText("Source "+sourceIndex+" "+(pageApprovalCurrent(record)?"[verified]":"[DRAFT]")+" "+name,{x:48,y,size:10,font,color:ink});
    toc.drawText(String(j+2+tocPages),{x:350,y,size:10,font,color:ink});
   }
  }
@@ -2691,7 +2700,7 @@ async function exportVerifiedWorkingCopy(){
   }
   exportProgress(j+1,pages.length,"Attaching verified siddur pages");
  }
- return {bytes:new Uint8Array(await out.save()),verified:pages.length,pending:sourcePdfPages-pages.length,total:out.getPageCount()};
+ return {bytes:new Uint8Array(await out.save()),processed:pages.length,verified:verifiedWorkingPages().length,pending:sourcePdfPages-pages.length,total:out.getPageCount()};
 }
 async function exportEntireService(){
  if(!sourcePdfBytes)throw Error("No service PDF loaded.");
@@ -2854,7 +2863,7 @@ $("download").addEventListener("click",async()=>{
   const url=URL.createObjectURL(new Blob([result.bytes],{type:"application/pdf"}));
   const a=document.createElement("a");a.href=url;a.download=filename+"-leader-working-copy.pdf";
   document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-  status("Downloaded working copy: "+result.verified+" verified siddur pages, "+result.pending+" pending; "+result.total+" PDF pages including front matter.");
+  status("Downloaded printable working copy: "+result.processed+" processed, "+result.verified+" verified, "+result.pending+" not yet processed; "+result.total+" PDF pages.");
  }catch(e){console.error(e);status("Full-service export failed: "+e.message);$("export-status").textContent="Export failed: "+e.message}
  finally{button.disabled=false}
 });
