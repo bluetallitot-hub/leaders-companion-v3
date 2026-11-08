@@ -775,7 +775,7 @@ function buildReducedPdf(){
   }
  // A facing spread must never combine a supplement with a printed bilingual pair.
  for(let i=0;i<manifestPages.length;i+=2){const pair=manifestPages.slice(i,i+2);if(pair.some(p=>p.kind==="printed")&&(!pair.every(p=>p.kind==="printed")||pair[0].printedPage!==pair[1].printedPage||!pair[0].language||!pair[1].language||pair[0].language===pair[1].language))throw Error("Invalid bilingual spread at output pages "+(i+1)+"–"+(i+2)+": "+pair.map(p=>p.reference+" ("+(p.language||p.kind)+")").join(" / ")+".");}
- const sections=reviewedSectionRecords();
+ const sections=reviewedSectionRecords().map(sec=>({...sec,startOutputPage:manifestPages.find(p=>p.reference===sec.startReference)?.outputPage||1}));
  for(const entry of manifestPages){
   const matches=sections.filter(sec=>sec.startOutputPage<=entry.outputPage);
   const active=matches[matches.length-1];
