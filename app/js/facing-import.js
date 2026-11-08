@@ -2711,61 +2711,54 @@ function drawLeaderPageFooter(page,record,font,bold){
 async function exportVerifiedWorkingCopy(){
  if(!sourcePdfBytes)throw Error("Load the source siddur first.");
  saveCurrentSpreadEdits();
- const pages=workingPages();
- if(!pages.length)return {bytes:await exportFrontMatterTest(),processed:0,verified:0,pending:sourcePdfPages,total:3};
+ // Only explicitly approved, unchanged pages may enter the downloadable book.
+ const approved=verifiedWorkingPages();
  const source=await PDFLib.PDFDocument.load(sourcePdfBytes.slice());
  const out=await PDFLib.PDFDocument.create();
- const font=await out.embedFont(PDFLib.StandardFonts.Helvetica),bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
- const pw=612,ph=792,ink=PDFLib.rgb(.13,.23,.28);
- const cover=out.addPage([pw,ph]);
- cover.drawText("LEADER'S COMPANION",{x:54,y:665,size:29,font:bold,color:ink});
- cover.drawText("Progressive Verified Leader Copy",{x:54,y:620,size:17,font,color:ink});
- cover.drawText("Source: "+printable(filename).slice(0,72),{x:54,y:566,size:12,font,color:ink});
- cover.drawText("Verified siddur pages: "+verifiedWorkingPages().length+" of "+sourcePdfPages,{x:54,y:535,size:14,font:bold,color:ink});
- cover.drawText("Processed pages: "+pages.length+"; pending: "+(sourcePdfPages-pages.length),{x:54,y:510,size:12,font,color:ink});
- cover.drawText("Generated: "+new Date().toISOString().slice(0,19)+" UTC",{x:54,y:480,size:11,font,color:ink});
- cover.drawText("DRAFT: unverified pages are included. Original siddur text is preserved.",{x:54,y:420,size:10,font,color:ink});
- const tocPages=Math.max(1,Math.ceil(pages.length/33));
- const titlePage=out.addPage([pw,ph]);
- titlePage.drawText("LEADER'S COMPANION",{x:54,y:675,size:25,font:bold,color:ink});
- titlePage.drawText("Shabbat Service - Leader Edition",{x:54,y:630,size:17,font,color:ink});
- titlePage.drawText("Source: "+printable(filename).slice(0,70),{x:54,y:570,size:12,font,color:ink});
- for(let t=0;t<tocPages;t++){
-  const toc=out.addPage([pw,ph]);
-  toc.drawText(t===0?"CONTENTS - PROCESSED PAGES":"CONTENTS (continued)",{x:48,y:736,size:19,font:bold,color:ink});
-  toc.drawText("Siddur source page",{x:48,y:702,size:11,font:bold,color:ink});
-  toc.drawText("Leader copy page",{x:350,y:702,size:11,font:bold,color:ink});
-  for(let k=0;k<33;k++){
-   const j=t*33+k;if(j>=pages.length)break;
-   const [sourceIndex,record]=pages[j],y=677-k*19;
-   const name=printable(record.prayerTitle||record.identification?.prayerName||"").slice(0,35);
-   toc.drawText("Source "+sourceIndex+" "+(pageApprovalCurrent(record)?"[verified]":"[DRAFT]")+" "+name,{x:48,y,size:10,font,color:ink});
-   toc.drawText(String(j+3+tocPages),{x:350,y,size:10,font,color:ink});
-  }
- }
- for(let j=0;j<pages.length;j++){
-  const [sourceIndex,record]=pages[j];
+ await createMasterFrontMatter(out);
+ if(!window.LCV3Templates)throw Error("Approved Siddur Page Master is unavailable.");
+ const masterBytes=await window.LCV3Templates.load("siddur");
+ const master=await PDFLib.PDFDocument.load(masterBytes);
+ if(master.getPageCount()<1)throw Error("Approved Siddur Page Master is empty.");
+ const font=await out.embedFont(PDFLib.StandardFonts.Helvetica);
+ const bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
+ const projectPages=[];
+ for(let j=0;j<approved.length;j++){
+  const [sourceIndex,record]=approved[j];
+  const side=Number(record?.source?.sideIndex ?? record?.sideIndex ?? ((sourceIndex-1)%2))===1?1:0;
+  const masterIndex=master.getPageCount()>1?Math.min(side,master.getPageCount()-1):0;
+  const [masterPage]=await out.copyPages(master,[masterIndex]);
+  const page=out.addPage(masterPage);
+  const region=REGIONS[side],pad=6;
   const [embedded]=await out.embedPages([source.getPage(sourceIndex-1)]);
-  const page=out.addPage([612,792]),width=page.getWidth(),height=page.getHeight();
-  // Reserve a distinct footer region without obscuring the original siddur.
-  const scale=Math.min(560/embedded.width,625/embedded.height);
-  const pageX=(width-embedded.width*scale)/2,pageY=150;
-  page.drawPage(embedded,{x:pageX,y:pageY,width:embedded.width*scale,height:embedded.height*scale});
-  const marks=record.leadership?.highlights||[];
-  // One composited overlay per role avoids stacking repeated cue rectangles.
-  const roles=uniquePhysicalHighlights(marks);
-  for(const [key,rects] of roles){
+  const scale=Math.min((region.w-2*pad)/embedded.width,(region.h-2*pad)/embedded.height);
+  const width=embedded.width*scale,height=embedded.height*scale;
+  const pageX=region.x+(region.w-width)/2,pageY=region.y+(region.h-height)/2;
+  page.drawPage(embedded,{x:pageX,y:pageY,width,height});
+  for(const [key,rects] of uniquePhysicalHighlights(record.leadership?.highlights||[])){
    const [hex,opacity]=key.split("|"),n=parseInt(hex.slice(1),16);
+   if(!Number.isFinite(n))continue;
    for(const mark of rects)page.drawRectangle({
-    x:pageX+mark.x*embedded.width*scale,y:pageY+(1-mark.y-mark.height)*embedded.height*scale,width:mark.width*embedded.width*scale,height:mark.height*embedded.height*scale,
+    x:pageX+mark.x*width,y:pageY+(1-mark.y-mark.height)*height,
+    width:mark.width*width,height:mark.height*height,
     color:PDFLib.rgb(((n>>16)&255)/255,((n>>8)&255)/255,(n&255)/255),
     opacity:Number(opacity),blendMode:"Multiply"
    });
   }
-  drawLeaderPageFooter(page,record,font,bold);
-  exportProgress(j+1,pages.length,"Attaching processed siddur pages");
+  drawKnownFrameworkFields(page,record,side,font,bold);
+  projectPages.push({sourcePdfPage:sourceIndex,leaderPdfPage:out.getPageCount(),side,
+   record:JSON.parse(JSON.stringify(record))});
+  exportProgress(j+1,approved.length,"Attaching approved pages to Siddur Page Master");
  }
- return {bytes:new Uint8Array(await out.save()),processed:pages.length,verified:verifiedWorkingPages().length,pending:sourcePdfPages-pages.length,total:out.getPageCount()};
+ // Preserve the complete approved page records inside the PDF, not only a visual footer.
+ const metadata=JSON.stringify({schema:"leaders-companion-v3-approved-export",version:"3.295",
+  sourceFilename:filename,sourcePageCount:sourcePdfPages,approvedPages:projectPages});
+ await out.attach(new TextEncoder().encode(metadata),"leaders-companion-project.json",
+  {mimeType:"application/json",description:"Approved page metadata and cue geometry"});
+ out.setCreator("Leader's Companion V3.295");
+ out.setSubject("Approved master-template Leader's Companion");
+ return {bytes:new Uint8Array(await out.save()),processed:workingPages().length,
+  verified:approved.length,pending:sourcePdfPages-approved.length,total:out.getPageCount()};
 }
 async function exportEntireService(){
  if(!sourcePdfBytes)throw Error("No service PDF loaded.");
@@ -2926,9 +2919,9 @@ $("download").addEventListener("click",async()=>{
  try{
   const result=await exportVerifiedWorkingCopy();
   const url=URL.createObjectURL(new Blob([result.bytes],{type:"application/pdf"}));
-  const a=document.createElement("a");a.href=url;a.download=filename+"-leader-working-copy.pdf";
+  const a=document.createElement("a");a.href=url;a.download=filename+"-leader-approved-copy.pdf";
   document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-  status("Downloaded printable working copy: "+result.processed+" processed, "+result.verified+" verified, "+result.pending+" not yet processed; "+result.total+" PDF pages.");
+  status("Downloaded approved master-template PDF: "+result.verified+" approved pages, "+result.total+" total PDF pages. Drafts excluded.");
  }catch(e){console.error(e);status("Full-service export failed: "+e.message);$("export-status").textContent="Export failed: "+e.message}
  finally{button.disabled=false}
 });
