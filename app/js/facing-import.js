@@ -485,23 +485,18 @@ function renderFacingInstructions(){
   const selected=document.createElement("div");
   for(const id of state.instructionIds){
    const line=document.createElement("div");line.className="instruction-selected";const entry=(facingInstructionLibrary?.prayers||[]).flatMap(p=>p.instructions||[]).find(ins=>Number(ins.instruction_id)===id);line.textContent=entry?.text||"Selected instruction";
-   const remove=document.createElement("button");remove.type="button";remove.textContent="Remove";remove.onclick=()=>{state.instructionIds=state.instructionIds.filter(x=>x!==id);state.highlightConfirmed=false;renderFacingInstructions()};line.append(remove);selected.append(line);
+   const remove=document.createElement("button");remove.type="button";remove.textContent="Remove";remove.onclick=()=>{state.instructionIds=state.instructionIds.filter(x=>x!==id);state.highlightConfirmed=false;renderFacingInstructions();saveCheckpointNow().catch(e=>status("Instruction removal save failed: "+e.message))};line.append(remove);selected.append(line);
   }
   panel.append(selected);
   state.instructionPageNumber=String(record.source.originalPageNumber||record.source.sourcePdfPage||"");
   const warnings=facingPageWarnings(record);
-  for(const warning of warnings){
-   const label=document.createElement("label");label.style.display="block";
-   const checkbox=document.createElement("input");checkbox.type="checkbox";checkbox.checked=!!state.instructionOverrides[warning];
-   checkbox.onchange=()=>{state.instructionOverrides[warning]=checkbox.checked;state.highlightConfirmed=false;renderFacingInstructions()};
-   label.append(checkbox,document.createTextNode(" Override review warning: "+warning));panel.append(label);
-  }
-  const unresolved=warnings.filter(w=>!state.instructionOverrides[w]);
+  if(warnings.length){const notice=document.createElement("p");notice.textContent="Needs review: "+warnings.join("; ");panel.append(notice);}
+  const unresolved=warnings;
   const confirm=document.createElement("label");confirm.style.display="block";
   const check=document.createElement("input");check.type="checkbox";check.checked=pageApprovalCurrent(record);
   check.onchange=()=>{state.highlightConfirmed=check.checked;state.confirmedFingerprint=check.checked?pageApprovalFingerprint(record):null;renderFacingInstructions();saveCheckpointNow().catch(e=>status("Verification save failed: "+e.message))};
   confirm.append(check,document.createTextNode(" Confirm Highlight and page instructions"));panel.append(confirm);
-  const note=document.createElement("p");note.textContent=unresolved.length?unresolved.length+" unmatched or unapproved item(s). Page can be saved and printed as a draft without overrides.":pageApprovalCurrent(record)?"Page confirmed for download.":"Review the highlights, then confirm.";panel.append(note);
+  const note=document.createElement("p");note.textContent=unresolved.length?unresolved.length+" item(s) need review. Printing remains available without overrides.":pageApprovalCurrent(record)?"Page confirmed for download.":"Review the highlights, then confirm.";panel.append(note);
   root.append(panel);
  }
  root.classList.add("instruction-two-pages");
