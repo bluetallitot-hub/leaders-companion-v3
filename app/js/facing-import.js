@@ -2731,14 +2731,17 @@ async function masterWithFields(out,key,values){
  }
  return {page,matched:matches.length};
 }
-async function createMasterFrontMatter(out,{includeSections=true}={}){
+async function createMasterFrontMatter(out,{includeSections=true,totalPages=null}={}){
  if(!window.LCV3Templates)throw Error("Approved master PDF configuration unavailable.");
  const cover=effectiveCover(),today=new Date().toISOString().slice(0,10);
  await masterWithFields(out,"cover",[
   [/Friday Evening/i,cover.serviceName],
   [/\\[YYYY-MM-DD\\]/i,today],
   [/\\[BUILD VERSION\\]/i,"V3.298"],
-  [/\\[FINAL PDF PAGE COUNT\\]/i,String(out.getPageCount()+1)]
+  [/\\[FINAL PDF PAGE COUNT\\]/i,String(totalPages??out.getPageCount()+1)],
+  [/\\[CONGREGATION\\]/i,cover.congregation],
+  [/\\[SUBTITLE\\]/i,cover.subtitle],
+  [/\\[EDITION\\]/i,cover.edition]
  ]);
  if(!includeSections)return;
  const sections=editableSectionRecords();
@@ -2821,7 +2824,8 @@ async function exportVerifiedWorkingCopy(){
  const approved=verifiedWorkingPages();
  const source=await PDFLib.PDFDocument.load(sourcePdfBytes.slice());
  const out=await PDFLib.PDFDocument.create();
- await createMasterFrontMatter(out,{includeSections:false});
+ const approvedSectionIds=new Set(approved.map(([idx])=>sectionForPage(idx)?.sectionId).filter(Boolean));
+ await createMasterFrontMatter(out,{includeSections:false,totalPages:1+approved.length+2*approvedSectionIds.size});
  if(!window.LCV3Templates)throw Error("Approved Siddur Page Master is unavailable.");
  const masterBytes=await window.LCV3Templates.load("siddur");
  const master=await PDFLib.PDFDocument.load(masterBytes);
