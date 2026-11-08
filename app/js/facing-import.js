@@ -2653,7 +2653,7 @@ function workingCopyStatus(){
  cueCompletionReport();
 }
 async function exportFrontMatterTest(){
- // First intake-to-print benchmark: exactly two PDF pages, no siddur content.
+ // Initial benchmark: three front-matter pages.
  const out=await PDFLib.PDFDocument.create();
  const regular=await out.embedFont(PDFLib.StandardFonts.Helvetica);
  const bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
@@ -2669,6 +2669,9 @@ async function exportFrontMatterTest(){
  title.drawText("Verified pages: 0",{x:54,y:530,size:12,font:regular,color:ink});
  title.drawText("Siddur pages included: 0",{x:54,y:505,size:12,font:regular,color:ink});
  title.drawText("This initial PDF verifies Apple Preview opening and printing.",{x:54,y:450,size:10,font:regular,color:ink});
+ const contents=out.addPage([612,792]);
+ contents.drawText("CONTENTS",{x:54,y:675,size:25,font:bold,color:ink});
+ contents.drawText("No siddur spreads added yet.",{x:54,y:620,size:13,font:regular,color:ink});
  return new Uint8Array(await out.save());
 }
 $("download-front-matter")?.addEventListener("click",async()=>{
@@ -2676,9 +2679,9 @@ $("download-front-matter")?.addEventListener("click",async()=>{
  try{
   const bytes=await exportFrontMatterTest();
   const url=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));
-  const a=document.createElement("a");a.href=url;a.download="leaders-companion-front-matter-print-test.pdf";
+  const a=document.createElement("a");a.href=url;a.download="leaders-companion-front-matter-3-pages.pdf";
   document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-  const label=$("export-status");if(label)label.textContent="Front-matter PDF generated: 2 pages, 0 siddur pages. Open in Apple Preview and test printing.";
+  const label=$("export-status");if(label)label.textContent="Front-matter PDF generated: 3 pages, 0 siddur pages. Open in Apple Preview and test printing.";
  }catch(e){const label=$("export-status");if(label)label.textContent="Front-matter PDF failed: "+e.message;console.error(e)}
  finally{button.disabled=false}
 });
@@ -2686,7 +2689,7 @@ async function exportVerifiedWorkingCopy(){
  if(!sourcePdfBytes)throw Error("Load the source siddur first.");
  saveCurrentSpreadEdits();
  const pages=workingPages();
- if(!pages.length)throw Error("No processed pages yet. Load a spread before downloading.");
+ if(!pages.length)return {bytes:await exportFrontMatterTest(),processed:0,verified:0,pending:sourcePdfPages,total:3};
  const source=await PDFLib.PDFDocument.load(sourcePdfBytes.slice());
  const out=await PDFLib.PDFDocument.create();
  const font=await out.embedFont(PDFLib.StandardFonts.Helvetica),bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
@@ -2700,6 +2703,10 @@ async function exportVerifiedWorkingCopy(){
  cover.drawText("Generated: "+new Date().toISOString().slice(0,19)+" UTC",{x:54,y:480,size:11,font,color:ink});
  cover.drawText("DRAFT: unverified pages are included. Original siddur text is preserved.",{x:54,y:420,size:10,font,color:ink});
  const tocPages=Math.max(1,Math.ceil(pages.length/33));
+ const titlePage=out.addPage([pw,ph]);
+ titlePage.drawText("LEADER'S COMPANION",{x:54,y:675,size:25,font:bold,color:ink});
+ titlePage.drawText("Shabbat Service - Leader Edition",{x:54,y:630,size:17,font,color:ink});
+ titlePage.drawText("Source: "+printable(filename).slice(0,70),{x:54,y:570,size:12,font,color:ink});
  for(let t=0;t<tocPages;t++){
   const toc=out.addPage([pw,ph]);
   toc.drawText(t===0?"CONTENTS - PROCESSED PAGES":"CONTENTS (continued)",{x:48,y:736,size:19,font:bold,color:ink});
@@ -2710,7 +2717,7 @@ async function exportVerifiedWorkingCopy(){
    const [sourceIndex,record]=pages[j],y=677-k*19;
    const name=printable(record.prayerTitle||record.identification?.prayerName||"").slice(0,35);
    toc.drawText("Source "+sourceIndex+" "+(pageApprovalCurrent(record)?"[verified]":"[DRAFT]")+" "+name,{x:48,y,size:10,font,color:ink});
-   toc.drawText(String(j+2+tocPages),{x:350,y,size:10,font,color:ink});
+   toc.drawText(String(j+3+tocPages),{x:350,y,size:10,font,color:ink});
   }
  }
  for(let j=0;j<pages.length;j++){
@@ -2728,7 +2735,7 @@ async function exportVerifiedWorkingCopy(){
     opacity:Number(opacity),blendMode:"Multiply"
    });
   }
-  exportProgress(j+1,pages.length,"Attaching verified siddur pages");
+  exportProgress(j+1,pages.length,"Attaching processed siddur pages");
  }
  return {bytes:new Uint8Array(await out.save()),processed:pages.length,verified:verifiedWorkingPages().length,pending:sourcePdfPages-pages.length,total:out.getPageCount()};
 }
