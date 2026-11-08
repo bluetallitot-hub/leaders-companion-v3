@@ -1010,7 +1010,7 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
  if(!begin.length||!finish.length)return null;
  // Read across each physical row, right-to-left, THEN advance downward.
  // Printed half-lines may have slightly different baselines; group by proximity.
- const bodyLines=lines.filter(l=>(l.column===0||l.column===1)&&l.y>=.19&&l.y+l.height<=.91);
+ const bodyLines=lines.filter(l=>(l.column===0||l.column===1)&&l.y>=(spanBoundary==="end"?.045:.19)&&l.y+l.height<=.91);
  const physicalRows=[];
  for(const line of bodyLines.slice().sort((a,b)=>(a.y+a.height/2)-(b.y+b.height/2))){
   const cy=line.y+line.height/2;
@@ -1071,7 +1071,11 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
  // Match the complete ending first, then its distinctive final word. Only
  // accept a unique fallback after the beginning cue in printed reading order.
  const afterStart=c=>c.ri>first.ri||(c.ri===first.ri&&c.offset>=first.offset);
- const fullEnds=candidates(finish).filter(afterStart);
+ let fullEnds=candidates(finish).filter(afterStart);
+ if(!fullEnds.length&&spanBoundary==="end"&&finish.length>=4){
+  fullEnds=candidates(finish.slice(-4)).filter(afterStart);
+  if(!fullEnds.length)fullEnds=candidates(finish.slice(-3)).filter(afterStart);
+ }
  let last=fullEnds[0],endWordCount=finish.length;
  if(!last&&spanBoundary==="start"){
   last={ri:rows.length-1,offset:Math.max(0,rows[rows.length-1].tokens.length-1),confidence:1};endWordCount=1;
@@ -1100,7 +1104,7 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
  // Anchors are found with OCR, but the passage is filled from printed ink,
  // not from whichever intermediate lines OCR happened to recognize.
  const firstRow=rows[first.ri],lastRow=rows[last.ri];
- const startY=spanBoundary==="end"?.19:firstRow.line.y+firstRow.line.height/2;
+ const startY=spanBoundary==="end"?.045:firstRow.line.y+firstRow.line.height/2;
  const endY=spanBoundary==="start"?.91:lastRow.line.y+lastRow.line.height/2;
  const startX=spanBoundary==="end"?1:firstRow.line.x+firstRow.line.width/2;
  const endX=spanBoundary==="start"?0:lastRow.line.x+lastRow.line.width/2;
@@ -1114,7 +1118,7 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
  for(const column of [1,0]){
   const inColumn=words.filter(w=>{
    const c=w.column===0||w.column===1?w.column:(w.x+w.width/2>=.5?1:0);
-   return c===column&&w.y>=.19&&w.y+w.height<=.91;
+   return c===column&&w.y>=(spanBoundary==="end"?.045:.19)&&w.y+w.height<=.91;
   }).sort((a,b)=>(a.y+a.height/2)-(b.y+b.height/2));
   const grouped=[];
   for(const word of inColumn){
