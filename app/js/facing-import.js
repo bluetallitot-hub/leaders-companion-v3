@@ -2,6 +2,45 @@
 const $=id=>document.getElementById(id);
 const W=612,H=792,REGIONS=[{x:171.36,y:98,w:380.88,h:540},{x:59.76,y:98,w:380.88,h:540}];
 let siddurStyleSheet={framework:"boxes"};
+// Centralized, siddur-adjustable highlighting parameters. Values are normalized
+// fractions of the source page. Defaults reproduce the V3.280 matcher.
+const HIGHLIGHT_PARAMETER_DEFINITIONS=Object.freeze([
+ {key:"hebrewBodyTop",label:"Hebrew body top",min:0,max:.4,step:.005,default:.19},
+ {key:"hebrewContinuationTop",label:"Hebrew continuation top",min:0,max:.4,step:.005,default:.045},
+ {key:"hebrewBodyBottom",label:"Hebrew body bottom",min:.65,max:1,step:.005,default:.91},
+ {key:"physicalRowTolerance",label:"Printed row minimum tolerance",min:.002,max:.04,step:.001,default:.009},
+ {key:"physicalRowHeightFactor",label:"Printed row height factor",min:.2,max:1.5,step:.05,default:.7},
+ {key:"inkRowHeightFactor",label:"Ink row height factor",min:.2,max:1.5,step:.05,default:.65},
+ {key:"hebrewWordSimilarity",label:"Hebrew word similarity",min:.5,max:1,step:.01,default:.83},
+ {key:"hebrewPhraseConfidence",label:"Hebrew phrase confidence",min:.4,max:1,step:.01,default:.65},
+ {key:"anchorAmbiguityMargin",label:"Anchor ambiguity margin",min:0,max:.3,step:.01,default:.08},
+ {key:"boundaryRowTolerance",label:"Boundary row tolerance",min:.002,max:.04,step:.001,default:.012},
+ {key:"boundaryHorizontalSlack",label:"Boundary horizontal slack",min:0,max:.1,step:.005,default:.035}
+]);
+const highlightParameters=Object.fromEntries(HIGHLIGHT_PARAMETER_DEFINITIONS.map(p=>[p.key,p.default]));
+function setupHighlightParameterControls(){
+ const container=$("highlight-parameter-controls");if(!container)return;
+ for(const p of HIGHLIGHT_PARAMETER_DEFINITIONS){
+  const label=document.createElement("label");label.style.display="block";label.style.margin="9px 0";
+  const caption=document.createElement("span");caption.textContent=p.label+" ";
+  const value=document.createElement("output");value.textContent=String(highlightParameters[p.key]);value.style.fontWeight="bold";
+  const slider=document.createElement("input");slider.type="range";slider.min=p.min;slider.max=p.max;slider.step=p.step;
+  slider.value=highlightParameters[p.key];slider.style.width="100%";slider.setAttribute("aria-label",p.label);
+  slider.addEventListener("input",()=>{highlightParameters[p.key]=Number(slider.value);value.textContent=slider.value;});
+  label.append(caption,value,slider);container.append(label);
+ }
+ $("highlight-parameters-reset")?.addEventListener("click",()=>{
+  HIGHLIGHT_PARAMETER_DEFINITIONS.forEach((p,i)=>{highlightParameters[p.key]=p.default;
+   const input=container.querySelectorAll('input[type="range"]')[i];if(input){input.value=p.default;input.dispatchEvent(new Event("input"));}});
+ });
+ $("highlight-parameters-apply")?.addEventListener("click",async()=>{
+  if(!pageMetadata.length)return;
+  await autoMatchCues();saveCurrentSpreadEdits();drawHighlights();
+ });
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",setupHighlightParameterControls);
+else setupHighlightParameterControls();
+
 let output=null,baseOutput=null,filename="siddur",pageMetadata=[],roleConfig=null,highlightDraft=null,importedCues=[];
 function status(s){if($("status"))$("status").textContent=s;if($("editor-status")&&(!sourcePdfPages||/failed|error|cannot/i.test(s)))$("editor-status").textContent=s}
 function updateSpanStatus(){const el=$("editor-status");if(!el)return;const total=Math.ceil(sourcePdfPages/2);el.hidden=!total;if(total)el.textContent="Displaying span "+Math.ceil(selectedSpreadFirst/2)+" of "+total;}
@@ -1010,11 +1049,11 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
  if(!begin.length||!finish.length)return null;
  // Read across each physical row, right-to-left, THEN advance downward.
  // Printed half-lines may have slightly different baselines; group by proximity.
- const bodyLines=lines.filter(l=>(l.column===0||l.column===1)&&l.y>=(spanBoundary==="end"?.045:.19)&&l.y+l.height<=.91);
+ const bodyLines=lines.filter(l=>(l.column===0||l.column===1)&&l.y>=(spanBoundary==="end"?highlightParameters.hebrewContinuationTop:highlightParameters.hebrewBodyTop)&&l.y+l.height<=highlightParameters.hebrewBodyBottom);
  const physicalRows=[];
  for(const line of bodyLines.slice().sort((a,b)=>(a.y+a.height/2)-(b.y+b.height/2))){
   const cy=line.y+line.height/2;
-  const row=physicalRows.find(r=>Math.abs(r.cy-cy)<=Math.max(.009,Math.min(r.height,line.height)*.7));
+  const row=physicalRows.find(r=>Math.abs(r.cy-cy)<=Math.max(highlightParameters.physicalRowTolerance,Math.min(r.height,line.height)*highlightParameters.physicalRowHeightFactor));
   if(row){row.lines.push(line);row.cy=(row.cy*(row.lines.length-1)+cy)/row.lines.length;row.height=Math.max(row.height,line.height);}
   else physicalRows.push({cy,height:line.height,lines:[line]});
  }
@@ -1039,7 +1078,7 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
    for(let j=1;j<=b.length;j++){const old=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,prev+(a[i-1]===b[j-1]?0:1));prev=old;}}
   return 1-d[b.length]/Math.max(a.length,b.length);
  };
- const score=(a,b)=>similarity(a,b)>=.83?similarity(a,b):0;
+ const score=(a,b)=>similarity(a,b)>=highlightParameters.hebrewWordSimilarity?similarity(a,b):0;
  // Find an ordered phrase in one printed line. A three-word cue may
  // tolerate one unreadable word, but never an arbitrary one-word match.
  const candidates=phrase=>{
@@ -1053,11 +1092,11 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
      const value=tokens[offset+j];
      matched.push(value?score(phrase[j],value):0);
     }
-    const hits=matched.filter(v=>v>=.83).length;
+    const hits=matched.filter(v=>v>=highlightParameters.hebrewWordSimilarity).length;
     const required=phrase.length<=2?phrase.length:phrase.length-1;
     if(hits<required)continue;
     const confidence=matched.reduce((x,y)=>x+y,0)/phrase.length;
-    if(confidence<.65)continue;
+    if(confidence<highlightParameters.hebrewPhraseConfidence)continue;
     results.push({ri,offset,confidence});
    }
   }
@@ -1065,7 +1104,7 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
  };
  const starts=candidates(begin);
  if(!starts.length&&spanBoundary!=="end")return null;
- if(starts.length>1&&starts[0].confidence-starts[1].confidence<.08&&spanBoundary!=="end")return null;
+ if(starts.length>1&&starts[0].confidence-starts[1].confidence<highlightParameters.anchorAmbiguityMargin&&spanBoundary!=="end")return null;
  const first=spanBoundary==="end"?{ri:0,offset:0,confidence:1}:starts[0];
  // A Hebrew maqaf may be OCR'd as a space, punctuation, or no separator.
  // Match the complete ending first, then its distinctive final word. Only
@@ -1089,7 +1128,7 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
    for(let offset=0;offset<tokens.length;offset++){
     if(!afterStart({ri,offset}))continue;
     const word=tokens[offset],confidence=score(finalWord,word);
-    if(confidence>=.83)alternatives.push({ri,offset,confidence});
+    if(confidence>=highlightParameters.hebrewWordSimilarity)alternatives.push({ri,offset,confidence});
     // Fused maqaf form: אלמנוחתי matches final word מנוחתי.
     else if(word.endsWith(finalWord)&&word.length-finalWord.length<=3)
      alternatives.push({ri,offset,confidence:.88});
@@ -1099,13 +1138,13 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
   if(alternatives.length!==1)return null;
   last=alternatives[0];endWordCount=1;
  }
- if(fullEnds.length>1&&fullEnds[0].confidence-fullEnds[1].confidence<.08&&spanBoundary!=="start")return null;
+ if(fullEnds.length>1&&fullEnds[0].confidence-fullEnds[1].confidence<highlightParameters.anchorAmbiguityMargin&&spanBoundary!=="start")return null;
  if(first.ri>last.ri||(first.ri===last.ri&&first.offset>last.offset))return null;
  // Anchors are found with OCR, but the passage is filled from printed ink,
  // not from whichever intermediate lines OCR happened to recognize.
  const firstRow=rows[first.ri],lastRow=rows[last.ri];
  const startY=spanBoundary==="end"?.045:firstRow.line.y+firstRow.line.height/2;
- const endY=spanBoundary==="start"?.91:lastRow.line.y+lastRow.line.height/2;
+ const endY=spanBoundary==="start"?highlightParameters.hebrewBodyBottom:lastRow.line.y+lastRow.line.height/2;
  const startX=spanBoundary==="end"?1:firstRow.line.x+firstRow.line.width/2;
  const endX=spanBoundary==="start"?0:lastRow.line.x+lastRow.line.width/2;
  // Reject reverse anchors, but permit right-to-left travel on the same row.
@@ -1118,12 +1157,12 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
  for(const column of [1,0]){
   const inColumn=words.filter(w=>{
    const c=w.column===0||w.column===1?w.column:(w.x+w.width/2>=.5?1:0);
-   return c===column&&w.y>=(spanBoundary==="end"?.045:.19)&&w.y+w.height<=.91;
+   return c===column&&w.y>=(spanBoundary==="end"?highlightParameters.hebrewContinuationTop:highlightParameters.hebrewBodyTop)&&w.y+w.height<=highlightParameters.hebrewBodyBottom;
   }).sort((a,b)=>(a.y+a.height/2)-(b.y+b.height/2));
   const grouped=[];
   for(const word of inColumn){
    const cy=word.y+word.height/2;
-   const row=grouped.find(g=>Math.abs(g.cy-cy)<=Math.max(.009,Math.min(g.height,word.height)*.65));
+   const row=grouped.find(g=>Math.abs(g.cy-cy)<=Math.max(highlightParameters.physicalRowTolerance,Math.min(g.height,word.height)*highlightParameters.inkRowHeightFactor));
    if(row){row.words.push(word);row.cy=(row.cy*(row.words.length-1)+cy)/row.words.length;row.height=Math.max(row.height,word.height)}
    else grouped.push({cy,height:word.height,words:[word]});
   }
@@ -1131,10 +1170,10 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
  }
  // Compare row first, then horizontal position. The end may be in the left
  // half of the SAME printed row as the beginning.
- const geometryAfterStart=row=>spanBoundary==="end"||row.cy>startY+.012||
-  (Math.abs(row.cy-startY)<=.012&&row.x<=startX+.035);
- const beforeEnd=row=>spanBoundary==="start"||row.cy<endY-.012||
-  (Math.abs(row.cy-endY)<=.012&&row.x>=endX-.035);
+ const geometryAfterStart=row=>spanBoundary==="end"||row.cy>startY+highlightParameters.boundaryRowTolerance||
+  (Math.abs(row.cy-startY)<=.012&&row.x<=startX+highlightParameters.boundaryHorizontalSlack);
+ const beforeEnd=row=>spanBoundary==="start"||row.cy<endY-highlightParameters.boundaryRowTolerance||
+  (Math.abs(row.cy-endY)<=.012&&row.x>=endX-highlightParameters.boundaryHorizontalSlack);
  const selectedRows=geometryRows.filter(row=>geometryAfterStart(row)&&beforeEnd(row))
   .sort((a,b)=>a.cy-b.cy||b.x-a.x);
  const chosen=[];
