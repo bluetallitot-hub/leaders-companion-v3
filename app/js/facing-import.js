@@ -1135,8 +1135,19 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
    }
   }
   alternatives.sort((a,b)=>b.confidence-a.confidence);
-  if(alternatives.length!==1)return null;
-  last=alternatives[0];endWordCount=1;
+  // Continuation pages often have the last verse split across two
+  // physical half-lines. Resolve the final word by corroborating nearby
+  // preceding ending words, rather than requiring one OCR line to contain all.
+  if(spanBoundary==="end"&&alternatives.length!==1){
+   const corroborated=alternatives.filter(candidate=>{
+    const context=rows.slice(Math.max(0,candidate.ri-3),candidate.ri+1)
+     .flatMap(row=>row.tokens);
+    return finish.slice(0,-1).filter(term=>context.some(token=>score(term,token)>=highlightParameters.hebrewWordSimilarity)).length>=2;
+   });
+   if(corroborated.length===1){last=corroborated[0];endWordCount=1;}
+  }
+  if(!last&&alternatives.length!==1)return null;
+  if(!last){last=alternatives[0];endWordCount=1;}
  }
  if(fullEnds.length>1&&fullEnds[0].confidence-fullEnds[1].confidence<highlightParameters.anchorAmbiguityMargin&&spanBoundary!=="start")return null;
  if(first.ri>last.ri||(first.ri===last.ri&&first.offset>last.offset))return null;
@@ -1238,9 +1249,12 @@ function assignCueHighlights(side){
      Math.abs((v.y+v.height/2)-(h.y+h.height/2))<.012&&
      Math.max(0,Math.min(v.x+v.width,h.x+h.width)-Math.max(v.x,h.x))>Math.min(v.width,h.width)*.25));
     record.leadership.highlights.push(...allowed);
-    cue.matchStatus=spanBoundary?"spanning-Hebrew-"+spanBoundary+"-candidate-review-required":"isolated-rivok-candidate-review-required";matches++;
+    cue.matchStatus=spanBoundary?"spanning-Hebrew-"+spanBoundary+"-candidate-review-required":"isolated-rivok-candidate-review-required";
+    cue.highlightMethod=spanBoundary?"hebrew-rivok-spanning-"+spanBoundary:"hebrew-rivok-paired-anchors";
+    cue.highlightVerification={geometry:"ink-word-boxes",boundary:spanBoundary==="start"?"start-anchor":spanBoundary==="end"?"end-anchor":"both-anchors",rectangles:allowed.length,reviewRequired:true};
+    matches++;
    }
-   else cue.matchStatus=rivokWordsBySide[side]?.length?"rivok-anchor-pair-not-found":"rivok-unavailable";
+   else {cue.matchStatus=rivokWordsBySide[side]?.length?"rivok-anchor-pair-not-found":"rivok-unavailable";cue.highlightMethod="unmatched";cue.highlightVerification={reviewRequired:true,reason:cue.matchStatus};}
    continue;
   }
   // A cue whose source_page is a printed-page range has only one anchor
@@ -1327,7 +1341,7 @@ function assignCueHighlights(side){
       x:line.x,y:line.y,width:line.width,height:line.height,coordinateSystem:"normalized-top-left",visibleInPdf:false});
    }
   }
-  cue.matchStatus="candidate-review-required";matches++;
+  cue.matchStatus="candidate-review-required";cue.highlightMethod="english-ocr-boundary-and-geometry";cue.highlightVerification={boundary:"both-anchors",rectangles:selected.length,reviewRequired:true};matches++;
  }
  return matches;
 }
@@ -2292,7 +2306,7 @@ function displayMetadata(){
    ["Binder order",ident.binderOrder||"Unassigned"],
    ["Role",record.leadership.role||"Unassigned"],
    ["Automatically matched cues",(record.leadership.cues||[]).filter(c=>c.matchStatus==="candidate-review-required").length+" / "+(record.leadership.cues||[]).length],
-   ["Imported cues",(record.leadership.cues||[]).map(c=>[c.cueId,c.role,"Style: "+c.style,"Start: "+c.startCue,"End: "+c.endCue,c.matchStatus].join(" | ")).join(" ; ")||"None"],
+   ["Imported cues",(record.leadership.cues||[]).map(c=>[c.cueId,c.role,"Style: "+c.style,"Start: "+c.startCue,"End: "+c.endCue,c.matchStatus,"Method: "+(c.highlightMethod||"not matched"),"Verification: "+JSON.stringify(c.highlightVerification||{})].join(" | ")).join(" ; ")||"None"],
    ["Melody ID",record.production.melodyId||"Unassigned"],
    ["Paper class",record.production.paperClass||"Unassigned"],
    ["Intake status",intake.status]
@@ -2315,8 +2329,9 @@ async function preview(bytes){
   canvas.width=Math.ceil(v.width);canvas.height=Math.ceil(v.height);
   await page.render({canvasContext:canvas.getContext("2d"),viewport:v}).promise;
  }
- displayMetadata();$("spread-preview").hidden=false;$("empty-preview").hidden=true;detectedLines=[0,1].map(i=>i<doc.numPages?detectPrintedLines($(i===0?"output-left":"output-right"),i):[]);drawHighlights();status("Detected "+detectedLines.map(a=>a.length).join(" / ")+" candidate printed lines.");await runRivokAutomatically();
+ displayMetadata();detectedLines=[0,1].map(i=>i<doc.numPages?detectPrintedLines($(i===0?"output-left":"output-right"),i):[]);drawHighlights();status("Detected "+detectedLines.map(a=>a.length).join(" / ")+" candidate printed lines.");await runRivokAutomatically();
  await autoMatchCues();
+ $("spread-preview").hidden=false;$("empty-preview").hidden=true;
 }
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null,serviceRoleOpacity=new Map(),serviceRoleAssignments=new Map(),serviceRoleDisplayNames=new Map(),serviceHighlightColors=["#F5D03C","#75C56A","#74B9E7","#F3A65B","#DA88B8","#AE93DC"],embeddedPageRecords=[];
