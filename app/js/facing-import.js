@@ -474,13 +474,13 @@ function renderFacingInstructions(){
   const prayerName=document.createElement("strong");prayerName.textContent=prayerTitle;prayerRow.append(prayerName);
   const editPrayer=document.createElement("button");editPrayer.type="button";editPrayer.textContent="Edit prayer name";prayerRow.append(editPrayer);
   const prayer=document.createElement("input");prayer.value=prayerTitle;prayer.hidden=true;prayer.setAttribute("aria-label","Prayer name");prayerRow.append(prayer);
-  editPrayer.onclick=()=>{prayer.hidden=!prayer.hidden;editPrayer.textContent=prayer.hidden?"Edit prayer name":"Done";if(prayer.hidden){state.instructionPrayer=prayer.value.trim();state.highlightConfirmed=false;renderFacingInstructions()}};
+  editPrayer.onclick=()=>{prayer.hidden=!prayer.hidden;editPrayer.textContent=prayer.hidden?"Edit prayer name":"Done";if(prayer.hidden){const name=prayer.value.trim();state.instructionPrayer=name;record.prayerTitle=name;record.identification??={};record.identification.prayerName=name;for(const cue of state.cues||[])cue.prayer=name;state.highlightConfirmed=false;renderPageCueEditor();renderFacingInstructions();saveCheckpointNow().catch(e=>status("Prayer-name save failed: "+e.message))}};
   panel.append(prayerRow);
   const select=document.createElement("select");select.setAttribute("aria-label","Instruction for "+(side===0?"left":"right")+" page");
   select.add(new Option("Select instruction",""));
   for(const p of facingInstructionLibrary?.prayers||[])for(const ins of p.instructions||[])select.add(new Option("#"+ins.instruction_id+" — "+p.canonical_title+" — "+ins.text+" ("+(ins.approval_status||"unreviewed")+")",String(ins.instruction_id)));
   panel.append(select);
-  const add=document.createElement("button");add.type="button";add.textContent="Add instruction";add.onclick=()=>{if(!select.value)return;const id=Number(select.value);if(!state.instructionIds.includes(id))state.instructionIds.push(id);state.highlightConfirmed=false;renderFacingInstructions()};panel.append(add);
+  const add=document.createElement("button");add.type="button";add.textContent="Add instruction";add.onclick=()=>{if(!select.value)return;const id=Number(select.value);if(!state.instructionIds.includes(id))state.instructionIds.push(id);state.highlightConfirmed=false;renderFacingInstructions();saveCheckpointNow().catch(e=>status("Instruction save failed: "+e.message))};panel.append(add);
 
   const selected=document.createElement("div");
   for(const id of state.instructionIds){
@@ -2685,6 +2685,32 @@ $("download-front-matter")?.addEventListener("click",async()=>{
  }catch(e){const label=$("export-status");if(label)label.textContent="Front-matter PDF failed: "+e.message;console.error(e)}
  finally{button.disabled=false}
 });
+function pdfWrapLines(text,font,size,maxWidth){
+ const words=printable(text).split(/\s+/).filter(Boolean),lines=[];let line="";
+ for(const word of words){const candidate=line?line+" "+word:word;
+  if(line&&font.widthOfTextAtSize(candidate,size)>maxWidth){lines.push(line);line=word;}else line=candidate;}
+ if(line)lines.push(line);return lines;
+}
+function drawLeaderPageFooter(page,record,font,bold){
+ const width=page.getWidth(),margin=38,ink=PDFLib.rgb(.13,.23,.28);
+ const state=record.leadership||{},name=printable(state.instructionPrayer||record.prayerTitle||record.identification?.prayerName||"Untitled prayer");
+ page.drawRectangle({x:26,y:17,width:width-52,height:115,color:PDFLib.rgb(.96,.97,.96),borderColor:PDFLib.rgb(.68,.75,.72),borderWidth:.6});
+ page.drawText("LEADER CUES  |  "+name.slice(0,60),{x:margin,y:115,size:10,font:bold,color:ink});
+ const cues=state.cues||[];
+ let y=98;
+ if(!cues.length){page.drawText("No cues assigned to this page.",{x:margin,y,size:8,font,color:ink});y-=12;}
+ for(const cue of cues.slice(0,3)){
+  const matched=(state.highlights||[]).some(h=>h.cueId===cue.cueId);
+  const line=(cue.cueId||"Cue")+"  "+(matched?"MATCHED":"MISSING")+"  "+printable(cue.prayer||name).slice(0,55);
+  page.drawText(line.slice(0,92),{x:margin,y,size:8,font,color:ink});y-=12;
+ }
+ if(cues.length>3){page.drawText("+"+(cues.length-3)+" additional cue(s)",{x:margin,y,size:8,font,color:ink});y-=12;}
+ const instructions=instructionTextForPage(state);
+ const instructionLines=instructions.flatMap(t=>pdfWrapLines(t,font,7.5,width-2*margin));
+ if(instructionLines.length){page.drawText("INSTRUCTIONS",{x:margin,y:Math.min(y-2,54),size:8,font:bold,color:ink});
+  let iy=Math.min(y-14,43);for(const line of instructionLines.slice(0,3)){if(iy<20)break;page.drawText(line,{x:margin,y:iy,size:7.5,font,color:ink});iy-=10;}}
+ else page.drawText("INSTRUCTIONS: None assigned",{x:margin,y:25,size:7.5,font,color:ink});
+}
 async function exportVerifiedWorkingCopy(){
  if(!sourcePdfBytes)throw Error("Load the source siddur first.");
  saveCurrentSpreadEdits();
@@ -2722,19 +2748,24 @@ async function exportVerifiedWorkingCopy(){
  }
  for(let j=0;j<pages.length;j++){
   const [sourceIndex,record]=pages[j];
-  const [copied]=await out.copyPages(source,[sourceIndex-1]);
-  const page=out.addPage(copied),width=page.getWidth(),height=page.getHeight();
+  const [embedded]=await out.embedPages([source.getPage(sourceIndex-1)]);
+  const page=out.addPage([612,792]),width=page.getWidth(),height=page.getHeight();
+  // Reserve a distinct footer region without obscuring the original siddur.
+  const scale=Math.min(560/embedded.width,625/embedded.height);
+  const pageX=(width-embedded.width*scale)/2,pageY=150;
+  page.drawPage(embedded,{x:pageX,y:pageY,width:embedded.width*scale,height:embedded.height*scale});
   const marks=record.leadership?.highlights||[];
   // One composited overlay per role avoids stacking repeated cue rectangles.
   const roles=uniquePhysicalHighlights(marks);
   for(const [key,rects] of roles){
    const [hex,opacity]=key.split("|"),n=parseInt(hex.slice(1),16);
    for(const mark of rects)page.drawRectangle({
-    x:mark.x*width,y:(1-mark.y-mark.height)*height,width:mark.width*width,height:mark.height*height,
+    x:pageX+mark.x*embedded.width*scale,y:pageY+(1-mark.y-mark.height)*embedded.height*scale,width:mark.width*embedded.width*scale,height:mark.height*embedded.height*scale,
     color:PDFLib.rgb(((n>>16)&255)/255,((n>>8)&255)/255,(n&255)/255),
     opacity:Number(opacity),blendMode:"Multiply"
    });
   }
+  drawLeaderPageFooter(page,record,font,bold);
   exportProgress(j+1,pages.length,"Attaching processed siddur pages");
  }
  return {bytes:new Uint8Array(await out.save()),processed:pages.length,verified:verifiedWorkingPages().length,pending:sourcePdfPages-pages.length,total:out.getPageCount()};
