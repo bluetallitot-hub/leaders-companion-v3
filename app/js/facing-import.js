@@ -1049,7 +1049,12 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
  if(!begin.length||!finish.length)return null;
  // Read across each physical row, right-to-left, THEN advance downward.
  // Printed half-lines may have slightly different baselines; group by proximity.
- const bodyLines=lines.filter(l=>(l.column===0||l.column===1)&&l.y>=(spanBoundary==="end"?highlightParameters.hebrewContinuationTop:highlightParameters.hebrewBodyTop)&&l.y+l.height<=highlightParameters.hebrewBodyBottom);
+ // Ending pages can contain only a few lines before the next prayer.
+ // Use detected ink's first row rather than a fixed top cutoff, and cap
+ // the candidate region at the first substantial gap after the ending.
+ const top=spanBoundary==="end"?Math.min(highlightParameters.hebrewContinuationTop,
+  ...lines.filter(l=>l.column===0||l.column===1).map(l=>l.y)):highlightParameters.hebrewBodyTop;
+ const bodyLines=lines.filter(l=>(l.column===0||l.column===1)&&l.y>=top&&l.y+l.height<=highlightParameters.hebrewBodyBottom);
  const physicalRows=[];
  for(const line of bodyLines.slice().sort((a,b)=>(a.y+a.height/2)-(b.y+b.height/2))){
   const cy=line.y+line.height/2;
@@ -1154,7 +1159,7 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
  // Anchors are found with OCR, but the passage is filled from printed ink,
  // not from whichever intermediate lines OCR happened to recognize.
  const firstRow=rows[first.ri],lastRow=rows[last.ri];
- const startY=spanBoundary==="end"?.045:firstRow.line.y+firstRow.line.height/2;
+ const startY=spanBoundary==="end"?top:firstRow.line.y+firstRow.line.height/2;
  const endY=spanBoundary==="start"?highlightParameters.hebrewBodyBottom:lastRow.line.y+lastRow.line.height/2;
  const startX=spanBoundary==="end"?1:firstRow.line.x+firstRow.line.width/2;
  const endX=spanBoundary==="start"?0:lastRow.line.x+lastRow.line.width/2;
@@ -1168,7 +1173,7 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
  for(const column of [1,0]){
   const inColumn=words.filter(w=>{
    const c=w.column===0||w.column===1?w.column:(w.x+w.width/2>=.5?1:0);
-   return c===column&&w.y>=(spanBoundary==="end"?highlightParameters.hebrewContinuationTop:highlightParameters.hebrewBodyTop)&&w.y+w.height<=highlightParameters.hebrewBodyBottom;
+   return c===column&&w.y>=top&&w.y+w.height<=highlightParameters.hebrewBodyBottom;
   }).sort((a,b)=>(a.y+a.height/2)-(b.y+b.height/2));
   const grouped=[];
   for(const word of inColumn){
@@ -2383,10 +2388,13 @@ async function loadSelectedSpread(){
  output=await createPdf(sourcePdfBytes.slice());
  baseOutput=output.slice();
  const saved=spreadEdits.get(selectedSpreadFirst);
- await preview(output,{reuseSaved:!!saved});
+ const savedComplete=!!saved?.pages?.every(p=>!p||!(p.leadership?.cues||[]).some(c=>
+  c.highlightMethod==="unmatched"||!c.highlightMethod||
+  !p.leadership?.highlights?.some(h=>h.cueId===c.cueId)));
+ await preview(output,{reuseSaved:savedComplete});
  // Individual-page download controls were retired; the working PDF is the only export.
  applyCueRoleEdits();
- if(saved){pageMetadata.forEach((record,i)=>{const prior=saved.pages?.[i];if(record&&prior){record.leadership=JSON.parse(JSON.stringify(prior.leadership));record.leadership.highlights=record.leadership.highlights||[];record.prayerTitle=prior.prayerTitle;if(prior.identification)record.identification=JSON.parse(JSON.stringify(prior.identification))}});selectedCueBySide=[...(saved.selectedCues||["",""])];renderPageCueEditor();drawHighlights();const label=$("highlight-loading-label");if(label)label.textContent="Saved match methods and geometry reused — no recognition rerun";}else selectedCueBySide=["",""];
+ if(savedComplete){pageMetadata.forEach((record,i)=>{const prior=saved.pages?.[i];if(record&&prior){record.leadership=JSON.parse(JSON.stringify(prior.leadership));record.leadership.highlights=record.leadership.highlights||[];record.prayerTitle=prior.prayerTitle;if(prior.identification)record.identification=JSON.parse(JSON.stringify(prior.identification))}});selectedCueBySide=[...(saved.selectedCues||["",""])];renderPageCueEditor();drawHighlights();const label=$("highlight-loading-label");if(label)label.textContent="Saved match methods and geometry reused — no recognition rerun";}else selectedCueBySide=["",""];
  if($("metadata-dialog").open)refreshMetadataDialog();
  $("download").disabled=false;
  status(cueMatchReport);updateSpanStatus();
