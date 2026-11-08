@@ -1550,6 +1550,26 @@ function highlightAlpha(h){
  return Math.max(0,Math.min(1,(Number.isFinite(opacity)?opacity:40)/100));
 }
 function highlightFill(h){const hex=roleColor(h.roleId);const v=hex.replace("#","");const n=parseInt(v,16);return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+highlightAlpha(h)+")";}
+// Physical ink is painted once per role even when several cue IDs own it.
+// Retain cue records separately for review and editing.
+function uniquePhysicalHighlights(marks){
+ const groups=new Map();
+ for(const h of marks){
+  if(![h.x,h.y,h.width,h.height].every(Number.isFinite)||h.width<=0||h.height<=0)continue;
+  const key=roleColor(h.roleId)+"|"+highlightAlpha(h);
+  if(!groups.has(key))groups.set(key,[]);
+  const existing=groups.get(key);
+  const duplicate=existing.some(v=>{
+   const overlapX=Math.max(0,Math.min(h.x+h.width,v.x+v.width)-Math.max(h.x,v.x));
+   const overlapY=Math.max(0,Math.min(h.y+h.height,v.y+v.height)-Math.max(h.y,v.y));
+   const intersection=overlapX*overlapY;
+   const smaller=Math.min(h.width*h.height,v.width*v.height);
+   return smaller>0&&intersection/smaller>=.92;
+  });
+  if(!duplicate)existing.push(h);
+ }
+ return groups;
+}
 function drawHighlights(){
  for(let i=0;i<2;i++){
   const overlay=$("highlight-"+i),base=$(i===0?"output-left":"output-right");
@@ -1575,13 +1595,7 @@ function drawHighlights(){
   // Merge all rectangles of the same role into a single opaque mask,
   // then tint that union once. Overlapping cues and repeated OCR boxes
   // must never darken the page by painting the same ink twice.
-  const byRole=new Map();
-  for(const h of selected){
-   if(![h.x,h.y,h.width,h.height].every(Number.isFinite)||h.width<=0||h.height<=0)continue;
-   const key=roleColor(h.roleId)+"|"+highlightAlpha(h);
-   if(!byRole.has(key))byRole.set(key,[]);
-   byRole.get(key).push(h);
-  }
+  const byRole=uniquePhysicalHighlights(selected);
   for(const [key,marks] of byRole){
    const mask=document.createElement("canvas");mask.width=overlay.width;mask.height=overlay.height;
    const m=mask.getContext("2d");m.fillStyle="#fff";
