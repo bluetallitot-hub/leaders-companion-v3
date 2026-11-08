@@ -2386,7 +2386,16 @@ async function preview(bytes,{reuseSaved=false}={}){
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null,serviceRoleOpacity=new Map(),serviceRoleAssignments=new Map(),serviceRoleDisplayNames=new Map(),serviceHighlightColors=["#F5D03C","#75C56A","#74B9E7","#F3A65B","#DA88B8","#AE93DC"],embeddedPageRecords=[];
 const spreadEdits=new Map();
-function saveCurrentSpreadEdits(){if(pageMetadata.length)spreadEdits.set(selectedSpreadFirst,{pages:pageMetadata.map(r=>r?{leadership:JSON.parse(JSON.stringify(r.leadership)),prayerTitle:r.prayerTitle,identification:r.identification?JSON.parse(JSON.stringify(r.identification)):null}:null),selectedCues:[...selectedCueBySide]});}
+function saveCurrentSpreadEdits(){
+ if(pageMetadata.length)spreadEdits.set(selectedSpreadFirst,{pages:pageMetadata.map(r=>r?{
+  sourcePdfPage:r.source?.sourcePdfPage,
+  source:JSON.parse(JSON.stringify(r.source)),
+  leadership:JSON.parse(JSON.stringify(r.leadership)),
+  prayerTitle:r.prayerTitle,
+  identification:r.identification?JSON.parse(JSON.stringify(r.identification)):null
+ }:null),selectedCues:[...selectedCueBySide]});
+ workingCopyStatus();
+}
 function updateSpreadNavigation(){updateSpanStatus();const total=Math.ceil(sourcePdfPages/2),current=Math.ceil(selectedSpreadFirst/2),percent=Math.round(Math.min(sourcePdfPages,selectedSpreadFirst+1)/Math.max(1,sourcePdfPages)*100);$("spread-position").textContent="Spread "+current+" of "+(total||"—")+" · PDF pages "+selectedSpreadFirst+(selectedSpreadFirst+1<=sourcePdfPages?"–"+(selectedSpreadFirst+1):"")+" · "+percent+"% through service";const progress=$("review-progress");if(progress)progress.value=percent;$("previous-spread").disabled=!sourcePdfBytes||current<=1;$("next-spread").disabled=!sourcePdfBytes||current>=total;}
 async function navigateSpread(direction){if(!sourcePdfBytes)return;saveCurrentSpreadEdits();selectedSpreadFirst=Math.max(1,Math.min(2*Math.ceil(sourcePdfPages/2)-1,selectedSpreadFirst+direction*2));updateIntakeInventory();try{await loadSelectedSpread()}catch(e){console.error(e);status("Spread navigation failed: "+e.message)}}
 $("framework-boxes")?.addEventListener("change",async()=>{if(!sourcePdfBytes)return;saveCurrentSpreadEdits();try{await loadSelectedSpread()}catch(e){status("Framework style update failed: "+e.message)}});
@@ -2565,6 +2574,81 @@ function exportProgress(done,total,stage){
  if(bar)bar.value=percent;
  if(label)label.textContent=stage+" — "+done+" / "+total+" pages ("+percent+"%)";
 }
+// Working leader copy: only explicitly verified pages are included.
+// Source page identity, not visual left/right position, determines attachment.
+function verifiedWorkingPages(){
+ const bySource=new Map();
+ for(const saved of spreadEdits.values())for(const record of saved.pages||[]){
+  if(!record)continue;
+  const source=Number(record.sourcePdfPage||record.source?.sourcePdfPage);
+  if(!Number.isInteger(source)||source<1||source>sourcePdfPages)continue;
+  if(!pageApprovalCurrent(record))continue;
+  const unresolved=facingPageWarnings(record).filter(w=>!record.leadership?.instructionOverrides?.[w]);
+  if(unresolved.length)continue;
+  bySource.set(source,record);
+ }
+ return [...bySource].sort((a,b)=>a[0]-b[0]);
+}
+function workingCopyStatus(){
+ const verified=verifiedWorkingPages().length;
+ const label=$("working-copy-count");
+ if(label)label.textContent=verified+" verified source pages / "+sourcePdfPages+" total; "+(sourcePdfPages-verified)+" pending. Working PDF: "+(verified+2)+" pages including cover and contents.";
+}
+async function exportVerifiedWorkingCopy(){
+ if(!sourcePdfBytes)throw Error("Load the source siddur first.");
+ saveCurrentSpreadEdits();
+ const pages=verifiedWorkingPages();
+ if(!pages.length)throw Error("No pages have been explicitly verified yet. Confirm a page before creating the working copy.");
+ const source=await PDFLib.PDFDocument.load(sourcePdfBytes.slice());
+ const out=await PDFLib.PDFDocument.create();
+ const font=await out.embedFont(PDFLib.StandardFonts.Helvetica),bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
+ const pw=612,ph=792,ink=PDFLib.rgb(.13,.23,.28);
+ const cover=out.addPage([pw,ph]);
+ cover.drawText("LEADER'S COMPANION",{x:54,y:665,size:29,font:bold,color:ink});
+ cover.drawText("Progressive Verified Leader Copy",{x:54,y:620,size:17,font,color:ink});
+ cover.drawText("Source: "+printable(filename).slice(0,72),{x:54,y:566,size:12,font,color:ink});
+ cover.drawText("Verified siddur pages: "+pages.length+" of "+sourcePdfPages,{x:54,y:535,size:14,font:bold,color:ink});
+ cover.drawText("Pending pages: "+(sourcePdfPages-pages.length),{x:54,y:510,size:12,font,color:ink});
+ cover.drawText("Generated: "+new Date().toISOString().slice(0,19)+" UTC",{x:54,y:480,size:11,font,color:ink});
+ cover.drawText("Only confirmed pages are included. Original siddur text is preserved.",{x:54,y:420,size:10,font,color:ink});
+ const toc=out.addPage([pw,ph]);
+ toc.drawText("CONTENTS — VERIFIED PAGES",{x:48,y:736,size:19,font:bold,color:ink});
+ toc.drawText("Siddur source page", {x:48,y:702,size:11,font:bold,color:ink});
+ toc.drawText("Leader copy page", {x:350,y:702,size:11,font:bold,color:ink});
+ let y=677;
+ for(let j=0;j<pages.length;j++){
+  const [sourceIndex,record]=pages[j];
+  if(y<55){y=736;const extra=out.addPage([pw,ph]);extra.drawText("CONTENTS (continued)",{x:48,y:757,size:16,font:bold,color:ink});}
+  const tocPage=out.getPage(out.getPageCount()-1);
+  const name=printable(record.prayerTitle||record.identification?.prayerName||"").slice(0,35);
+  tocPage.drawText("Source "+sourceIndex+"  "+name,{x:48,y,size:10,font,color:ink});
+  tocPage.drawText(String(j+3),{x:350,y,size:10,font,color:ink});y-=19;
+ }
+ const frontPages=out.getPageCount();
+ // Fix contents numbering if its table overflowed onto extra pages.
+ if(frontPages>2){
+  // The listed page numbers are informational; rebuild the labels on a single
+  // contents page in a later revision if a service exceeds one contents page.
+ }
+ for(let j=0;j<pages.length;j++){
+  const [sourceIndex,record]=pages[j];
+  const [copied]=await out.copyPages(source,[sourceIndex-1]);
+  const page=out.addPage(copied),width=page.getWidth(),height=page.getHeight();
+  const marks=record.leadership?.highlights||[];
+  // One composited overlay per role avoids stacking repeated cue rectangles.
+  const roles=uniquePhysicalHighlights(marks);
+  for(const [key,rects] of roles){
+   const [hex,opacity]=key.split("|"),n=parseInt(hex.slice(1),16);
+   for(const mark of rects)page.drawRectangle({
+    x:mark.x*width,y:(1-mark.y-mark.height)*height,width:mark.width*width,height:mark.height*height,
+    color:PDFLib.rgb(((n>>16)&255)/255,((n>>8)&255)/255,(n&255)/255),
+    opacity:Number(opacity),blendMode:"Multiply"
+   });
+  }
+  exportProgress(j+1,pages.length,"Attaching verified siddur pages");
+ }
+ return {bytes:new Uint8Array(await out.save()),verified:pages.length,pending:sourcePdfPages-pages.length,total:out.getPageCount()};
+}
 async function exportEntireService(){
  if(!sourcePdfBytes)throw Error("No service PDF loaded.");
  saveCurrentSpreadEdits();
@@ -2722,11 +2806,11 @@ for(let side=0;side<2;side++)$("download-page-"+side)?.addEventListener("click",
 $("download").addEventListener("click",async()=>{
  const button=$("download");button.disabled=true;
  try{
-  const result=await exportEntireService();
+  const result=await exportVerifiedWorkingCopy();
   const url=URL.createObjectURL(new Blob([result.bytes],{type:"application/pdf"}));
-  const a=document.createElement("a");a.href=url;a.download=filename+"-service-framework.pdf";
+  const a=document.createElement("a");a.href=url;a.download=filename+"-leader-working-copy.pdf";
   document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-  status("Downloaded "+result.pages+" pages with "+result.highlighted+" visible highlights without embedded cue metadata.");
+  status("Downloaded working copy: "+result.verified+" verified siddur pages, "+result.pending+" pending; "+result.total+" PDF pages including front matter.");
  }catch(e){console.error(e);status("Full-service export failed: "+e.message);$("export-status").textContent="Export failed: "+e.message}
  finally{button.disabled=false}
 });
