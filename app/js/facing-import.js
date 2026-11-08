@@ -2672,7 +2672,7 @@ async function exportVerifiedWorkingCopy(){
  const tocPages=Math.max(1,Math.ceil(pages.length/33));
  for(let t=0;t<tocPages;t++){
   const toc=out.addPage([pw,ph]);
-  toc.drawText(t===0?"CONTENTS — PROCESSED PAGES":"CONTENTS (continued)",{x:48,y:736,size:19,font:bold,color:ink});
+  toc.drawText(t===0?"CONTENTS - PROCESSED PAGES":"CONTENTS (continued)",{x:48,y:736,size:19,font:bold,color:ink});
   toc.drawText("Siddur source page",{x:48,y:702,size:11,font:bold,color:ink});
   toc.drawText("Leader copy page",{x:350,y:702,size:11,font:bold,color:ink});
   for(let k=0;k<33;k++){
