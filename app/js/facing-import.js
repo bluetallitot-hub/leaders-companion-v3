@@ -2650,26 +2650,24 @@ function workingCopyStatus(){
  if(label)label.textContent=processed+" processed / "+sourcePdfPages+" source pages; "+verified+" verified; "+(processed-verified)+" draft; "+(sourcePdfPages-processed)+" not yet processed.";
  cueCompletionReport();
 }
+async function createMasterFrontMatter(out){
+ if(!window.LCV3Templates)throw Error("Approved master PDF configuration unavailable.");
+ const masters=["cover","sectionTitle","sectionContents"];
+ const font=await out.embedFont(PDFLib.StandardFonts.Helvetica);
+ for(const key of masters){
+  const bytes=await window.LCV3Templates.load(key);
+  const master=await PDFLib.PDFDocument.load(bytes);
+  if(master.getPageCount()<1)throw Error("Empty PDF master: "+key);
+  const [copied]=await out.copyPages(master,[0]);
+  const page=out.addPage(copied);
+  // Source identity is overlaid as metadata; master artwork is never redrawn.
+  const source=String(filename||"Siddur").replace(/[^\\x20-\\x7e]/g,"").slice(0,65);
+  if(source)page.drawText(source,{x:54,y:Math.min(230,page.getHeight()*.3),size:11,font,color:PDFLib.rgb(.13,.23,.28)});
+ }
+}
 async function exportFrontMatterTest(){
- // Initial benchmark: three front-matter pages.
  const out=await PDFLib.PDFDocument.create();
- const regular=await out.embedFont(PDFLib.StandardFonts.Helvetica);
- const bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
- const ink=PDFLib.rgb(.13,.23,.28);
- const cover=out.addPage([612,792]);
- cover.drawText("LEADER'S COMPANION",{x:54,y:646,size:30,font:bold,color:ink});
- cover.drawText("Shabbat Service - Leader Edition",{x:54,y:599,size:18,font:regular,color:ink});
- cover.drawText("PRINT TEST - FRONT MATTER ONLY",{x:54,y:470,size:14,font:bold,color:ink});
- const title=out.addPage([612,792]);
- title.drawText("LEADER'S COMPANION",{x:54,y:675,size:25,font:bold,color:ink});
- title.drawText("Title and Publication Information",{x:54,y:630,size:17,font:regular,color:ink});
- title.drawText("Source: "+printable(filename||"Siddur").slice(0,70),{x:54,y:570,size:12,font:regular,color:ink});
- title.drawText("Verified pages: 0",{x:54,y:530,size:12,font:regular,color:ink});
- title.drawText("Siddur pages included: 0",{x:54,y:505,size:12,font:regular,color:ink});
- title.drawText("This initial PDF verifies Apple Preview opening and printing.",{x:54,y:450,size:10,font:regular,color:ink});
- const contents=out.addPage([612,792]);
- contents.drawText("CONTENTS",{x:54,y:675,size:25,font:bold,color:ink});
- contents.drawText("No siddur spreads added yet.",{x:54,y:620,size:13,font:regular,color:ink});
+ await createMasterFrontMatter(out);
  return new Uint8Array(await out.save());
 }
 $("download-front-matter")?.addEventListener("click",async()=>{
