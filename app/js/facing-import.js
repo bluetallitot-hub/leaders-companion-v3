@@ -1540,12 +1540,25 @@ function drawHighlights(){
   const record=pageMetadata[i];
   const activeId=selectedCueBySide[i]||record?.leadership?.cues?.[0]?.cueId||"";
   const selected=(record?.leadership?.highlights||[]).filter(h=>!h.cueId||visibleCueId==="__all__"||(visibleCueId&&h.cueId===visibleCueId)||(!visibleCueId&&h.cueId===activeId));
-  // Paint each actual cue rectangle exactly once. Previously the renderer
-  // painted selected geometry twice, making it darker and fragmented.
+  // Merge all rectangles of the same role into a single opaque mask,
+  // then tint that union once. Overlapping cues and repeated OCR boxes
+  // must never darken the page by painting the same ink twice.
+  const byRole=new Map();
   for(const h of selected){
    if(![h.x,h.y,h.width,h.height].every(Number.isFinite)||h.width<=0||h.height<=0)continue;
-   ctx.fillStyle=highlightFill(h);
-   ctx.fillRect(h.x*overlay.width,h.y*overlay.height,h.width*overlay.width,h.height*overlay.height);
+   const key=roleColor(h.roleId)+"|"+highlightAlpha(h);
+   if(!byRole.has(key))byRole.set(key,[]);
+   byRole.get(key).push(h);
+  }
+  for(const [key,marks] of byRole){
+   const mask=document.createElement("canvas");mask.width=overlay.width;mask.height=overlay.height;
+   const m=mask.getContext("2d");m.fillStyle="#fff";
+   for(const h of marks)m.fillRect(h.x*mask.width,h.y*mask.height,h.width*mask.width,h.height*mask.height);
+   m.globalCompositeOperation="source-in";
+   const [hex,opacity]=key.split("|"),v=parseInt(hex.slice(1),16);
+   m.fillStyle="rgba("+((v>>16)&255)+","+((v>>8)&255)+","+(v&255)+","+Number(opacity)+")";
+   m.fillRect(0,0,mask.width,mask.height);
+   ctx.drawImage(mask,0,0);
   }
  }
 }
