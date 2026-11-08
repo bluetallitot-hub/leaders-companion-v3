@@ -2445,7 +2445,52 @@ function saveCurrentSpreadEdits(){
  workingCopyStatus();
 }
 function updateSpreadNavigation(){updateSpanStatus();const total=Math.ceil(sourcePdfPages/2),current=Math.ceil(selectedSpreadFirst/2),percent=Math.round(Math.min(sourcePdfPages,selectedSpreadFirst+1)/Math.max(1,sourcePdfPages)*100);$("spread-position").textContent="Spread "+current+" of "+(total||"—")+" · PDF pages "+selectedSpreadFirst+(selectedSpreadFirst+1<=sourcePdfPages?"–"+(selectedSpreadFirst+1):"")+" · "+percent+"% through service";const progress=$("review-progress");if(progress)progress.value=percent;$("previous-spread").disabled=!sourcePdfBytes||current<=1;$("next-spread").disabled=!sourcePdfBytes||current>=total;}
-async function navigateSpread(direction){if(!sourcePdfBytes)return;saveCurrentSpreadEdits();selectedSpreadFirst=Math.max(1,Math.min(2*Math.ceil(sourcePdfPages/2)-1,selectedSpreadFirst+direction*2));updateIntakeInventory();try{await loadSelectedSpread()}catch(e){console.error(e);status("Spread navigation failed: "+e.message)}}
+// Section boundaries are explicit, confirmed intake records; never infer from prayer titles.
+const reviewedSectionTransitions=new Set();
+function confirmedSections(){return (serviceManifest?.sections||[]).filter(s=>s.status==="confirmed").sort((a,b)=>a.startOutputPage-b.startOutputPage)}
+function sectionForPage(page){return confirmedSections().filter(s=>s.startOutputPage<=page).at(-1)||null}
+function renamePrayerInSavedRecord(record,newName){
+ if(!record)return;
+ record.prayerTitle=newName;record.identification??={};record.identification.prayerName=newName;
+ record.leadership??={};record.leadership.instructionPrayer=newName;
+ for(const cue of record.leadership.cues||[])cue.prayer=newName;
+ record.leadership.highlightConfirmed=false;
+}
+function openSectionReview(previous,next){
+ const existing=document.getElementById("section-review-dialog");if(existing)existing.remove();
+ const dialog=document.createElement("dialog");dialog.id="section-review-dialog";
+ dialog.style.cssText="width:min(700px,94vw);max-height:85vh;overflow:auto;padding:24px";
+ const heading=document.createElement("h2");heading.textContent="Review completed section: "+previous.title;dialog.append(heading);
+ const note=document.createElement("p");note.textContent="Rename prayers in the completed section. Changes update saved page records and require renewed page approval.";dialog.append(note);
+ const edits=[];
+ for(const [pageIndex,record] of workingPages()){
+  if(pageIndex<previous.startOutputPage||pageIndex>=(next?.startOutputPage||Infinity))continue;
+  const label=document.createElement("label");label.textContent="PDF page "+pageIndex+" — prayer name ";
+  const input=document.createElement("input");input.value=approvedPrayerName(record);input.style.width="75%";
+  label.append(input);dialog.append(label,document.createElement("br"));edits.push([pageIndex,input]);
+ }
+ if(!edits.length){const p=document.createElement("p");p.textContent="No edited prayer records yet. You can review this section later.";dialog.append(p)}
+ const nextHeading=document.createElement("h3");nextHeading.textContent=next?"Next section: "+next.title:"End of service";dialog.append(nextHeading);
+ const nextNote=document.createElement("p");nextNote.textContent=next?"Section title and contents remain draft placeholders until reviewed.":"Review the final section before finishing.";dialog.append(nextNote);
+ const save=document.createElement("button");save.type="button";save.textContent="Save section review and continue";
+ save.onclick=()=>{
+  for(const [pageIndex,input] of edits){
+   const name=input.value.trim();if(!name)continue;
+   for(const saved of spreadEdits.values())for(const record of saved.pages||[])
+    if(Number(record?.sourcePdfPage||record?.source?.sourcePdfPage)===pageIndex)renamePrayerInSavedRecord(record,name);
+  }
+  reviewedSectionTransitions.add(next?.sectionId||"END");
+  saveCheckpointNow().catch(e=>status("Section review checkpoint failed: "+e.message));
+  dialog.close();dialog.remove();
+ };
+ dialog.append(save);document.body.append(dialog);dialog.showModal();
+}
+function checkSectionBoundary(previousPage,currentPage){
+ const sections=confirmedSections();
+ const crossed=sections.find(s=>s.startOutputPage>previousPage&&s.startOutputPage<=currentPage&&!reviewedSectionTransitions.has(s.sectionId));
+ if(crossed){const index=sections.indexOf(crossed);if(index>0)openSectionReview(sections[index-1],crossed)}
+}
+async function navigateSpread(direction){if(!sourcePdfBytes)return;const previousPage=selectedSpreadFirst;saveCurrentSpreadEdits();selectedSpreadFirst=Math.max(1,Math.min(2*Math.ceil(sourcePdfPages/2)-1,selectedSpreadFirst+direction*2));updateIntakeInventory();try{await loadSelectedSpread();if(direction>0)checkSectionBoundary(previousPage,selectedSpreadFirst)}catch(e){console.error(e);status("Spread navigation failed: "+e.message)}}
 $("framework-boxes")?.addEventListener("change",async()=>{if(!sourcePdfBytes)return;saveCurrentSpreadEdits();try{await loadSelectedSpread()}catch(e){status("Framework style update failed: "+e.message)}});
 $("previous-spread").addEventListener("click",()=>navigateSpread(-1));
 $("next-spread").addEventListener("click",()=>navigateSpread(1));
