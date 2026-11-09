@@ -2870,16 +2870,17 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   ctx.font=(fontSize*factor)+"px Arial, sans-serif";
   ctx.fillStyle=color;ctx.textBaseline="top";
   ctx.direction=rtl?"rtl":"ltr";ctx.textAlign=rtl?"right":"left";
-  const words=String(text||"").split(/\\s+/).filter(Boolean),lines=[];let line="";
+  const safeText=String(text||"").replace(/יהוה/g,"ה׳");
+  const words=safeText.split(/\s+/).filter(Boolean),lines=[];let line="";
   for(const word of words){
    const trial=line?line+" "+word:word;
-   if(ctx.measureText(trial).width>canvas.width-24&&line){lines.push(line);line=word;}
+   if(ctx.measureText(trial).width>canvas.width-18&&line){lines.push(line);line=word;}
    else line=trial;
   }
   if(line)lines.push(line);
   const lineHeight=fontSize*factor*1.3;
-  if(lines.length*lineHeight>canvas.height-8)throw Error("Text exceeds approved "+fontSize+"pt bounding box: "+String(text).slice(0,70));
-  lines.forEach((part,i)=>ctx.fillText(part,rtl?canvas.width-9:9,5+i*lineHeight));
+  if(lines.some(t=>ctx.measureText(t).width>canvas.width-18)||lines.length*lineHeight>canvas.height-2)throw Error("Text exceeds approved "+fontSize+"pt bounding box: "+safeText.slice(0,70));
+  lines.forEach((part,i)=>ctx.fillText(part,rtl?canvas.width-9:9,1+i*lineHeight));
   if(!lines.length)return;
   const image=await out.embedPng(canvas.toDataURL("image/png"));
   page.drawImage(image,{x,y,width:w,height:h});
