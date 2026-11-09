@@ -492,11 +492,8 @@ function renderFacingInstructions(){
   const warnings=facingPageWarnings(record);
   if(warnings.length){const notice=document.createElement("p");notice.textContent="Needs review: "+warnings.join("; ");panel.append(notice);}
   const unresolved=warnings;
-  const confirm=document.createElement("label");confirm.style.display="block";
-  const check=document.createElement("input");check.type="checkbox";check.checked=pageApprovalCurrent(record);
-  check.onchange=()=>{state.highlightConfirmed=check.checked;state.confirmedFingerprint=check.checked?pageApprovalFingerprint(record):null;renderFacingInstructions();saveCheckpointNow().catch(e=>status("Verification save failed: "+e.message))};
-  confirm.append(check,document.createTextNode(" Confirm Highlight and page instructions"));panel.append(confirm);
-  const note=document.createElement("p");note.textContent=unresolved.length?unresolved.length+" item(s) need review. Printing remains available without overrides.":pageApprovalCurrent(record)?"Page confirmed for download.":"Review the highlights, then confirm.";panel.append(note);
+  // Approval is recorded by the explicit Save page and move to next action.
+  const note=document.createElement("p");note.textContent=unresolved.length?unresolved.length+" item(s) need review. Printing remains available without overrides.":pageApprovalCurrent(record)?"Page confirmed for download.":"Review the page, then use Save page and move to next.";panel.append(note);
   root.append(panel);
  }
  root.classList.add("instruction-two-pages");
@@ -2494,7 +2491,11 @@ function checkSectionBoundary(previousPage,currentPage){
  const crossed=sections.find(s=>s.startOutputPage>previousPage&&s.startOutputPage<=currentPage&&!reviewedSectionTransitions.has(s.sectionId));
  if(crossed){const index=sections.indexOf(crossed);if(index>0)openSectionReview(sections[index-1],crossed)}
 }
-async function navigateSpread(direction){if(!sourcePdfBytes)return;const previousPage=selectedSpreadFirst;saveCurrentSpreadEdits();selectedSpreadFirst=Math.max(1,Math.min(2*Math.ceil(sourcePdfPages/2)-1,selectedSpreadFirst+direction*2));updateIntakeInventory();try{await loadSelectedSpread();if(direction>0)checkSectionBoundary(previousPage,selectedSpreadFirst)}catch(e){console.error(e);status("Spread navigation failed: "+e.message)}}
+async function navigateSpread(direction){if(!sourcePdfBytes)return;const previousPage=selectedSpreadFirst;
+ if(direction>0){for(const record of pageMetadata){if(!record)continue;record.leadership.highlightConfirmed=true;record.leadership.confirmedFingerprint=pageApprovalFingerprint(record);}}
+ saveCurrentSpreadEdits();
+ if(direction>0){try{await saveCheckpointNow()}catch(e){status("Page approval save failed: "+e.message);return;}}
+ selectedSpreadFirst=Math.max(1,Math.min(2*Math.ceil(sourcePdfPages/2)-1,selectedSpreadFirst+direction*2));updateIntakeInventory();try{await loadSelectedSpread();if(direction>0)checkSectionBoundary(previousPage,selectedSpreadFirst)}catch(e){console.error(e);status("Spread navigation failed: "+e.message)}}
 $("framework-boxes")?.addEventListener("change",async()=>{if(!sourcePdfBytes)return;saveCurrentSpreadEdits();try{await loadSelectedSpread()}catch(e){status("Framework style update failed: "+e.message)}});
 $("previous-spread").addEventListener("click",()=>navigateSpread(-1));
 $("next-spread").addEventListener("click",()=>navigateSpread(1));
