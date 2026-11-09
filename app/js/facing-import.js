@@ -2751,7 +2751,7 @@ async function createMasterFrontMatter(out,{includeSections=true,totalPages=null
  page.drawLine({start:{x:100,y:396},end:{x:512,y:396},thickness:.65,color:PDFLib.rgb(0,0,0)});
  const date=new Date().toISOString().slice(0,10);
  const count=totalPages??out.getPageCount();
- const fields=["Produced: "+date,"Software Version: V3.314","Total Pages: "+count];
+ const fields=["Produced: "+date,"Software Version: V3.315","Total Pages: "+count];
  fields.forEach((t,i)=>v314Text(page,t,{x:45,y:80-i*14,size:9,font:helv,maxWidth:520}));
  if(includeSections){
   const first=editableSectionRecords()[0];
@@ -2931,6 +2931,10 @@ async function exportVerifiedWorkingCopy(){
    sectionsInserted.add(nextSection.sectionId);
   }
   const [sourceIndex,record]=approved[j];
+  if(!String(record.identification?.serviceName||serviceManifest?.serviceName||"").trim()||
+     !String(approvedPrayerName(record)||"").trim())
+   throw Error("Approved source page "+sourceIndex+" is missing required service or prayer metadata.");
+
   const defaultSide=String(serviceManifest?.facingPageDirection||"hebrew").toLowerCase()==="hebrew"?(sourceIndex%2):((sourceIndex-1)%2);
   const side=Number(record?.source?.sideIndex ?? record?.sideIndex ?? defaultSide)===1?1:0;
   const masterIndex=master.getPageCount()>1?Math.min(side,master.getPageCount()-1):0;
