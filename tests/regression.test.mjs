@@ -47,16 +47,16 @@ test('Original PDF bytes are loaded into derived documents, not modified in plac
 test('V3.314 cover and section pages are metadata-driven with fixed approved geometry',()=>{
  assert.match(editor,/const V314=\{border:/);
  assert.match(editor,/function v314Blank\(out\)/);
- assert.match(editor,/Software Version: V3\.314/);
+ assert.match(editor,/Software Version: V3\.315/);
  assert.match(editor,/function v314SectionEntries\(approved,section,limit\)/);
  assert.match(editor,/const entries=v314SectionEntries\(approved,nextSection,limit\)/);
  assert.match(editor,/Math\.ceil\(entries\.length\/pageSize\)/);
  assert.doesNotMatch(editor,/async function masterWithFields\(/);
 });
 test('V3.314 preserves invisible publication bounding boxes',()=>{
- assert.match(editor,/const publicationBoxes=\{instructions:/);
- assert.match(editor,/for\(const rect of Object\.values\(publicationBoxes\)\)wipe/);
- assert.match(editor,/fontSize:12,color:instructions\.length/);
+ assert.match(editor,/const boxes=\{instructions:/);
+ assert.match(editor,/for\(const rect of Object\.values\(boxes\)\)wipe/);
+ assert.match(editor,/fontSize:12,rtl:/);
 });
 
 test('V3.315 cues are multi-row and direction aware',()=>{
