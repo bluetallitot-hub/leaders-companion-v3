@@ -2725,60 +2725,70 @@ function workingCopyStatus(){
 let coverMetadata={serviceName:"",subtitle:"",congregation:"",edition:""};
 function effectiveCover(){return {...coverMetadata,serviceName:coverMetadata.serviceName||serviceManifest?.serviceName||filename};}
 function editableSectionRecords(){return confirmedSections();}
-async function masterWithFields(out,key,values){
- const bytes=await window.LCV3Templates.load(key);
- const template=await PDFLib.PDFDocument.load(bytes);
- if(!template.getPageCount())throw Error("Empty master: "+key);
- const [copied]=await out.copyPages(template,[0]);const page=out.addPage(copied);
- const pdf=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
- const text=await (await pdf.getPage(1)).getTextContent();
- const font=await out.embedFont(PDFLib.StandardFonts.Helvetica);
- const bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
- const matches=[];
- for(const item of text.items||[]){
-  const original=String(item.str||"").trim();
-  if(!original)continue;
-  for(const [pattern,value] of values){
-   if(!pattern.test(original))continue;
-   const size=Math.max(8,Math.min(28,Math.abs(item.transform?.[3]||12)));
-   const x=item.transform?.[4]||0,y=item.transform?.[5]||0;
-   const replacement=String(value??"").replace(/[^\\x20-\\x7e]/g,"").trim();
-   matches.push({original,x,y,size,replacement});
-   break;
-  }
- }
- for(const m of matches){
-  const height=m.size*1.35;
-  page.drawRectangle({x:Math.max(0,m.x-2),y:Math.max(0,m.y-m.size*.2),width:Math.min(page.getWidth()-m.x,Math.max(m.size*2,font.widthOfTextAtSize(m.original,m.size)+10)),height,color:PDFLib.rgb(1,1,1)});
-  if(m.replacement)page.drawText(m.replacement.slice(0,95),{x:m.x,y:m.y,size:Math.min(m.size,Math.max(8,m.size*50/Math.max(50,m.replacement.length))),font:bold,color:PDFLib.rgb(0,0,0),maxWidth:Math.max(80,page.getWidth()-m.x-25)});
- }
- return {page,matched:matches.length};
+// V3.314: publication masters are rendered from metadata and approved geometry.
+// The source PDFs remain the design authority; their placeholder text is never data.
+const V314={border:{x:27,y:27,w:558,h:738},section:{titleY:396,tocHeadingY:696,tocRuleY:681,firstEntryY:646,entryStep:26,entryX:70,refX:542}};
+function v314Border(page){page.drawRectangle({...V314.border,borderColor:PDFLib.rgb(0,0,0),borderWidth:.65});}
+function v314Text(page,value,{x,y,size,font,align="left",maxWidth=Infinity}){
+ const text=String(value??"").trim();
+ if(!text)throw Error("Missing required publication metadata.");
+ const width=font.widthOfTextAtSize(text,size);
+ if(width>maxWidth)throw Error("Publication text exceeds its approved field: "+text);
+ page.drawText(text,{x:align==="center"?x-width/2:align==="right"?x-width:x,y,size,font,color:PDFLib.rgb(0,0,0)});
 }
+function v314Blank(out){const p=out.addPage([612,792]);v314Border(p);return p;}
 async function createMasterFrontMatter(out,{includeSections=true,totalPages=null}={}){
  if(!window.LCV3Templates)throw Error("Approved master PDF configuration unavailable.");
- const cover=effectiveCover(),today=new Date().toISOString().slice(0,10);
- await masterWithFields(out,"cover",[
-  [/Friday Evening/i,cover.serviceName],
-  [/\[YYYY-MM-DD\]/i,today],
-  [/\[BUILD VERSION\]/i,"V3.306"],
-  [/\[FINAL PDF PAGE COUNT\]/i,String(totalPages??out.getPageCount()+1)],
-  [/\[CONGREGATION\]/i,cover.congregation],
-  [/\[SUBTITLE\]/i,cover.subtitle],
-  [/\[EDITION\]/i,cover.edition]
- ]);
- if(!includeSections)return;
- const sections=editableSectionRecords();
- const first=sections[0]||{title:"Section pending review",sectionId:"UNASSIGNED"};
- await addSectionMasterPages(out,first,[]);
+ // Verify the approved cover PDF exists, while rendering clean geometry rather
+ // than copying its example text, labels, or construction guides.
+ await window.LCV3Templates.load("cover");
+ const cover=effectiveCover(),page=v314Blank(out);
+ const times=await out.embedFont(PDFLib.StandardFonts.TimesRoman);
+ const bold=await out.embedFont(PDFLib.StandardFonts.TimesRomanBold);
+ const helv=await out.embedFont(PDFLib.StandardFonts.Helvetica);
+ v314Text(page,"LEADER’S COMPANION",{x:306,y:578,size:17,font:times,align:"center",maxWidth:510});
+ v314Text(page,cover.serviceName,{x:306,y:423,size:32,font:bold,align:"center",maxWidth:510});
+ page.drawLine({start:{x:100,y:396},end:{x:512,y:396},thickness:.65,color:PDFLib.rgb(0,0,0)});
+ const date=new Date().toISOString().slice(0,10);
+ const count=totalPages??out.getPageCount();
+ const fields=["Produced: "+date,"Software Version: V3.314","Total Pages: "+count];
+ fields.forEach((t,i)=>v314Text(page,t,{x:45,y:80-i*14,size:9,font:helv,maxWidth:520}));
+ if(includeSections){
+  const first=editableSectionRecords()[0];
+  if(first)await addSectionMasterPages(out,first,[]);
+ }
+}
+function v314SectionEntries(approved,section,limit){
+ const rows=new Map();
+ for(const [idx,rec] of approved){
+  if(idx<section.startOutputPage||idx>=limit)continue;
+  const title=approvedPrayerName(rec);
+  const printed=String(rec.source?.originalPageNumber||"").trim();
+  if(!title||!printed)throw Error("Section "+section.title+": missing prayer name or printed page reference on source page "+idx);
+  const key=title+"|"+printed;
+  if(!rows.has(key))rows.set(key,{title,page:printed});
+ }
+ return [...rows.values()];
 }
 async function addSectionMasterPages(out,section,entries){
- await masterWithFields(out,"sectionTitle",[[/\[SECTION NAME\]/i,section.title]]);
- const replacements=entries.slice(0,3).map((entry,i)=>[
-  new RegExp("\\[Prayer Name "+(i+1)+"\\]","i"),
-  entry.title+" "+entry.page
- ]);
- for(let i=entries.length;i<3;i++)replacements.push([new RegExp("\\[Prayer Name "+(i+1)+"\\]","i"),""]);
- await masterWithFields(out,"sectionContents",replacements);
+ await Promise.all([window.LCV3Templates.load("sectionTitle"),window.LCV3Templates.load("sectionContents")]);
+ const times=await out.embedFont(PDFLib.StandardFonts.TimesRoman);
+ const bold=await out.embedFont(PDFLib.StandardFonts.TimesRomanBold);
+ const name=String(section.title||"").trim();
+ const titlePage=v314Blank(out);
+ v314Text(titlePage,name,{x:306,y:V314.section.titleY,size:32,font:bold,align:"center",maxWidth:470});
+ const pageSize=23; // 646 through 74 at 26 pt intervals
+ const chunks=Math.max(1,Math.ceil(entries.length/pageSize));
+ for(let chunk=0;chunk<chunks;chunk++){
+  const page=v314Blank(out);
+  v314Text(page,"Contents",{x:306,y:V314.section.tocHeadingY,size:22,font:bold,align:"center"});
+  page.drawLine({start:{x:65,y:681},end:{x:547,y:681},thickness:.5,color:PDFLib.rgb(0,0,0)});
+  entries.slice(chunk*pageSize,(chunk+1)*pageSize).forEach((entry,i)=>{
+   const y=V314.section.firstEntryY-i*V314.section.entryStep;
+   v314Text(page,entry.title,{x:70,y,size:13,font:times,maxWidth:385});
+   v314Text(page,String(entry.page),{x:542,y,size:13,font:times,align:"right",maxWidth:68});
+  });
+ }
 }
 function showCoverEditor(){
  const prior=document.getElementById("cover-editor-dialog");if(prior)prior.remove();
@@ -2902,7 +2912,7 @@ async function exportVerifiedWorkingCopy(){
  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
  const out=await PDFLib.PDFDocument.create();
  const approvedSectionIds=new Set(approved.map(([idx])=>sectionForPage(idx)?.sectionId).filter(Boolean));
- await createMasterFrontMatter(out,{includeSections:false,totalPages:1+approved.length+2*approvedSectionIds.size});
+ await createMasterFrontMatter(out,{includeSections:false,totalPages:1+approved.length+[...approvedSectionIds].reduce((n,id)=>{const section=editableSectionRecords().find(s=>s.sectionId===id);if(!section)return n;const sections=editableSectionRecords(),next=sections[sections.indexOf(section)+1];const entries=v314SectionEntries(approved,section,next?.startOutputPage||Infinity);return n+1+Math.max(1,Math.ceil(entries.length/23));},0)});
  if(!window.LCV3Templates)throw Error("Approved Siddur Page Master is unavailable.");
  const masterBytes=await window.LCV3Templates.load("siddur");
  const master=await PDFLib.PDFDocument.load(masterBytes);
@@ -2916,7 +2926,7 @@ async function exportVerifiedWorkingCopy(){
   const nextSection=sectionForPage(approved[j][0]);
   if(nextSection&&!sectionsInserted.has(nextSection.sectionId)){
    const nextIndex=sections.indexOf(nextSection),limit=sections[nextIndex+1]?.startOutputPage||Infinity;
-   const entries=approved.filter(([idx])=>idx>=nextSection.startOutputPage&&idx<limit).map(([idx,rec])=>({title:approvedPrayerName(rec),page:idx}));
+   const entries=v314SectionEntries(approved,nextSection,limit);
    await addSectionMasterPages(out,nextSection,entries);
    sectionsInserted.add(nextSection.sectionId);
   }
