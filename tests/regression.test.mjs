@@ -58,3 +58,10 @@ test('V3.314 preserves invisible publication bounding boxes',()=>{
  assert.match(editor,/for\(const rect of Object\.values\(publicationBoxes\)\)wipe/);
  assert.match(editor,/fontSize:12,color:instructions\.length/);
 });
+
+test('V3.315 cues are multi-row and direction aware',()=>{
+ assert.match(editor,/const cues=\(state\.cues\|\|\[\]\)\.slice\(0,3\)/);
+ assert.match(editor,/for\(let i=0;i<cues\.length;i\+\+\)/);
+ assert.match(editor,/const left=hebrew\?end:begin,right=hebrew\?begin:end/);
+ assert.doesNotMatch(editor,/SAMPLE ONLY/);
+});
