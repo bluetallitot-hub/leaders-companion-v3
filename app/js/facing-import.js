@@ -456,7 +456,7 @@ function renderInstructionPreviews(){
 }
 function pageApprovalFingerprint(record){
  const state=record.leadership||{};
- return JSON.stringify({highlights:state.highlights||[],cues:state.cues||[],instructionIds:state.instructionIds||[],instructionPrayer:state.instructionPrayer||"",instructionPosition:state.instructionPosition||"top",instructionOverrides:state.instructionOverrides||{}});
+ return JSON.stringify({highlights:state.highlights||[],cues:state.cues||[],instructionIds:state.instructionIds||[],instructionPrayer:state.instructionPrayer||"",instructionPosition:state.instructionPosition||"top",instructionOverrides:state.instructionOverrides||{},approvedCrop:record.production?.approvedCrop||null});
 }
 function pageApprovalCurrent(record){
  const state=record?.leadership;
@@ -2304,14 +2304,14 @@ async function createPdf(bytes){
   const crop=detectCrop(canvas,meta),cleaned=canvasCrop(canvas,crop);
   cleanPixels(cleaned);
   const png=await out.embedPng(await (await fetch(cleaned.toDataURL("image/png"))).arrayBuffer());
-  records.push({meta,png,sourceIndex:first+i});
+  records.push({meta,png,crop,sourceIndex:first+i});
  }
  // Facing placement follows the document's reading direction, never prayer identity.
  // The first PDF page of a Hebrew-direction spread appears on the right.
  // Preserve sourceIndex so cues and metadata remain attached to the original PDF page.
  const facingDirection=String(serviceManifest?.facingPageDirection||"hebrew").toLowerCase();
  if(records.length===2&&facingDirection==="hebrew")records.reverse();
- pageMetadata=records.map(r=>makeIntakeRecord(r.meta,r.sourceIndex));
+ pageMetadata=records.map(r=>{const record=makeIntakeRecord(r.meta,r.sourceIndex);record.production.approvedCrop=r.crop;return record});
  pageMetadata.forEach(r=>{r.leadership.highlights=[];r.leadership.role=roleConfig.id});
  if(serviceManifest?.pages)for(let i=0;i<pageMetadata.length;i++){
   const entry=serviceManifest.pages.find(p=>p.outputPage===records[i].sourceIndex+1);
@@ -2459,6 +2459,7 @@ function saveCurrentSpreadEdits(){
   sourcePdfPage:r.source?.sourcePdfPage,
   source:JSON.parse(JSON.stringify(r.source)),
   leadership:JSON.parse(JSON.stringify(r.leadership)),
+  production:r.production?JSON.parse(JSON.stringify(r.production)):null,
   prayerTitle:r.prayerTitle,
   identification:r.identification?JSON.parse(JSON.stringify(r.identification)):null
  }:null),selectedCues:[...selectedCueBySide]});
@@ -2546,7 +2547,7 @@ async function loadSelectedSpread(){
  await preview(output,{reuseSaved:savedComplete});
  // Individual-page download controls were retired; the working PDF is the only export.
  applyCueRoleEdits();
- if(savedComplete){pageMetadata.forEach((record,i)=>{const prior=saved.pages?.[i];if(record&&prior){record.leadership=JSON.parse(JSON.stringify(prior.leadership));record.leadership.highlights=record.leadership.highlights||[];record.prayerTitle=prior.prayerTitle;if(prior.identification)record.identification=JSON.parse(JSON.stringify(prior.identification))}});selectedCueBySide=[...(saved.selectedCues||["",""])];renderPageCueEditor();drawHighlights();const label=$("highlight-loading-label");if(label)label.textContent="Saved match methods and geometry reused — no recognition rerun";}else selectedCueBySide=["",""];
+ if(savedComplete){pageMetadata.forEach((record,i)=>{const prior=saved.pages?.[i];if(record&&prior){record.leadership=JSON.parse(JSON.stringify(prior.leadership));if(prior.production)record.production=JSON.parse(JSON.stringify(prior.production));record.leadership.highlights=record.leadership.highlights||[];record.prayerTitle=prior.prayerTitle;if(prior.identification)record.identification=JSON.parse(JSON.stringify(prior.identification))}});selectedCueBySide=[...(saved.selectedCues||["",""])];renderPageCueEditor();drawHighlights();const label=$("highlight-loading-label");if(label)label.textContent="Saved match methods and geometry reused — no recognition rerun";}else selectedCueBySide=["",""];
  if($("metadata-dialog").open)refreshMetadataDialog();
  $("download").disabled=false;
  status(cueMatchReport);updateSpanStatus();
