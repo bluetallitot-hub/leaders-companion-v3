@@ -2854,8 +2854,11 @@ function drawLeaderPageFooter(page,record,font,bold){
 async function drawApprovedPageFields(page,record,side,out,font,bold){
  const textX=side===0?171.36:59.76;
  const wipe=(x,y,w,h)=>page.drawRectangle({x,y,width:w,height:h,color:PDFLib.rgb(1,1,1)});
- // These labels belong to the blank master, not to the published service.
- wipe(textX+2,643,150,11);wipe(textX+2,99,130,11);wipe(textX+2,47,140,11);
+ // Retain the approved bounding-box coordinates, but conceal the master
+ // labels and dashed construction guides in the instruction and cue strips.
+ // Do not erase the central Siddur image region or its saved highlights.
+ const publicationBoxes={instructions:{x:textX+2,y:645,w:376,h:57},cues:{x:textX+2,y:48,w:376,h:50}};
+ for(const rect of Object.values(publicationBoxes))wipe(rect.x,rect.y,rect.w,rect.h);
  wipe(side===0?21:446,24,125,14);
  wipe(side===0?21:446,725,120,13);
  const state=record.leadership||{};
@@ -2886,7 +2889,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   const png=await out.embedPng(c.toDataURL("image/png"));
   page.drawImage(png,{x,y,width:w,height:h});
  };
- await renderText(sample,textX+3,648,374,54,{fontSize:10,color:instructions.length?"#182c36":"#777777"});
+ await renderText(sample,textX+3,648,374,54,{fontSize:12,color:instructions.length?"#182c36":"#777777"});
  const cues=state.cues||[];
  const first=cues[0];
  if(first){
