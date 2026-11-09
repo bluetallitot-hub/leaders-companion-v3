@@ -55,7 +55,7 @@ test('V3.314 cover and section pages are metadata-driven with fixed approved geo
 });
 test('V3.314 preserves invisible publication bounding boxes',()=>{
  assert.match(editor,/const boxes=\{instructions:/);
- assert.match(editor,/for\(const rect of Object\.values\(boxes\)\)wipe/);
+ assert.match(editor,/for\(const b of Object\.values\(boxes\)\)wipe/);
  assert.match(editor,/fontSize:12,rtl:/);
 });
 
