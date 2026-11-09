@@ -2870,7 +2870,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   ctx.font=(fontSize*factor)+"px Arial, sans-serif";
   ctx.fillStyle=color;ctx.textBaseline="top";
   ctx.direction=rtl?"rtl":"ltr";ctx.textAlign=rtl?"right":"left";
-  const safeText=String(text||"").replace(/יהוה/g,"ה׳");
+  const safeText=String(text||"").replace(/י[\u0591-\u05c7]*ה[\u0591-\u05c7]*ו[\u0591-\u05c7]*ה[\u0591-\u05c7]*/g,"ה׳");
   const words=safeText.split(/\s+/).filter(Boolean),lines=[];let line="";
   for(const word of words){
    const trial=line?line+" "+word:word;
