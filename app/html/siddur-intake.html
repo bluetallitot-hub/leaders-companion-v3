@@ -33,42 +33,69 @@
   feedback.textContent="Connecting to GitHub defaults…";
   try{
    const csvUrl=new URL("../../data/SH-FE_V3_Intake_v2.0.csv",location.href);
-   const pdfUrl="https://bluetallitot-hub.github.io/cti-website/assets/resources/siddurim/DSP-SH.pdf";
+   // The CTI-hosted source remains the fallback until the canonical PDF is mirrored into this repository.
+   const pdfUrls=[
+    new URL("../../data/DSP-SH.pdf",location.href),
+    new URL("https://bluetallitot-hub.github.io/cti-website/assets/resources/siddurim/DSP-SH.pdf")
+   ];
    const get=async(url,name)=>{
     const response=await fetch(url,{cache:"no-store"});
     if(!response.ok)throw Error(name+" HTTP "+response.status);
     return response;
    };
-   const [pdfResponse,csvResponse]=await Promise.all([get(pdfUrl,"PDF"),get(csvUrl,"CSV")]);
-   feedback.textContent="Files downloaded. Reading PDF and CSV…";
-   const [buffer,csvText]=await Promise.all([pdfResponse.arrayBuffer(),csvResponse.text()]);
-   const bytes=new Uint8Array(buffer);
-   if(String.fromCharCode(...bytes.slice(0,5))!=="%PDF-")throw Error("Default PDF signature invalid");
-   if(typeof pdfjsLib==="undefined")throw Error("PDF.js library unavailable");
-   const doc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
-   if(typeof parseCsv!=="function")throw Error("Intake application did not initialize; PDF and CSV were fetched but cannot be imported.");
+   feedback.textContent="Loading intake CSV…";
+   const csvResponse=await get(csvUrl,"Intake CSV");
+   const csvText=await csvResponse.text();
+   if(typeof parseCsv!=="function")throw Error("Intake application did not initialize; CSV parser unavailable");
    const parsed=parseCsv(csvText);
-   if(!parsed.length)throw Error("Default CSV is empty");
+   if(!parsed.length)throw Error("Default intake CSV is empty");
+   feedback.textContent="Loading default Siddur PDF…";
+   let bytes=null,pdfSource="",lastPdfError=null;
+   for(const url of pdfUrls){
+    try{
+     const response=await get(url,"Default PDF");
+     const candidate=new Uint8Array(await response.arrayBuffer());
+     if(String.fromCharCode(...candidate.slice(0,5))!=="%PDF-")throw Error("Invalid PDF signature");
+     bytes=candidate;pdfSource=url.href;break;
+    }catch(error){lastPdfError=error;console.warn("Default PDF source unavailable:",url.href,error)}
+   }
+   if(!bytes)throw Error("Default PDF unavailable from both sources: "+(lastPdfError?.message||"unknown error"));
+   if(typeof pdfjsLib==="undefined")throw Error("PDF.js library unavailable");
+   feedback.textContent="Parsing Siddur PDF…";
+   const doc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
    sourcePdfBytes=bytes;sourcePdfName="DSP-SH.pdf";pdfCount=doc.numPages;csvRows=parsed;
    intakeMappingProcessed=false;rolesLocked=false;
    roleOpacity.clear();roleAssignments.clear();roleDisplayNames.clear();
    pageMapping={};supplements={};intakeSections=[];
-   feedback.textContent="Loaded "+pdfCount+" PDF pages and "+parsed.length+" CSV rows. Building inventory…";
+   feedback.textContent="Building intake inventory…";
    applyCsvDocumentSettings();renderRoles();refresh();renderMapping();
    intakeSections=sectionCandidates();renderIntakeSections();
-   feedback.textContent="Default files loaded. Loading the published GitHub supplement library…";
-   await loadSupplementCatalog();
-   renderSupplements();
-   // Wait for the exact-ID supplement downloads rather than launching them in the background.
-   if(autoSupplementLoading){
-    for(let attempt=0;attempt<60&&autoSupplementLoading;attempt++)await new Promise(resolve=>setTimeout(resolve,100));
+   const baseStatus="Siddur opened: "+pdfCount+" PDF pages, "+parsed.length+" CSV rows.";
+   feedback.textContent=baseStatus+" Loading optional supplements…";
+   let supplementStatus="Supplement loading pending";
+   try{
+    await loadSupplementCatalog();
+    renderSupplements();
+    if(autoSupplementLoading){
+     for(let attempt=0;attempt<60&&autoSupplementLoading;attempt++)await new Promise(resolve=>setTimeout(resolve,100));
+    }
+    await autoLoadExactSupplements();
+    const needed=orderedRefs().filter(ref=>refKind(ref)==="supplement");
+    const matched=needed.filter(ref=>supplements[ref]?.bytes?.length);
+    supplementStatus="Supplements: "+matched.length+"/"+needed.length+" matched";
+   }catch(supplementError){
+    supplementStatus="Optional supplements unavailable: "+(supplementError?.message||String(supplementError));
+    console.warn("Optional supplement load failed",supplementError);
    }
-   await autoLoadExactSupplements();
-   const needed=orderedRefs().filter(ref=>refKind(ref)==="supplement");
-   const matched=needed.filter(ref=>supplements[ref]?.bytes?.length);
-   feedback.textContent="Default files loaded: "+pdfCount+" PDF pages, "+parsed.length+" CSV rows. Supplements: "+matched.length+"/"+needed.length+" matched. Preparing page mapping…";
-   try{await autoMapOnIntake();feedback.textContent="Defaults ready: "+pdfCount+" PDF pages, "+parsed.length+" CSV rows, "+matched.length+"/"+needed.length+" supplements matched. Review page mapping."}
-   catch(mappingError){feedback.textContent="Defaults loaded; automatic mapping needs review: "+mappingError.message}
+   feedback.textContent=baseStatus+" "+supplementStatus+". Preparing mapping…";
+   try{
+    await autoMapOnIntake();
+    feedback.textContent=baseStatus+" "+supplementStatus+". Mapping ready. Review page mapping.";
+   }catch(mappingError){
+    feedback.textContent=baseStatus+" "+supplementStatus+". Automatic mapping needs review: "+mappingError.message;
+    console.warn("Automatic mapping failed",mappingError);
+   }
+   console.info("Default Siddur loaded from",pdfSource);
   }catch(error){
    feedback.textContent="Default loading failed: "+(error?.message||String(error));
    console.error("Leader's Companion defaults loader",error);
