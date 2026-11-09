@@ -377,7 +377,7 @@ function installCueVisibilityPicker(){
  const anchor=$("highlight-view");if(!anchor||$("visible-cue"))return;
  const select=document.createElement("select");select.id="visible-cue";select.setAttribute("aria-label","Visible leader cue");
  anchor.insertAdjacentElement("afterend",select);
- select.addEventListener("change",()=>{visibleCueId=select.value;drawHighlights()});
+ select.addEventListener("change",()=>{visibleCueId=select.value;if(visibleCueId&&visibleCueId!=="__all__"){for(let side=0;side<pageMetadata.length;side++)if(pageMetadata[side]?.leadership?.cues?.some(c=>c.cueId===visibleCueId))selectedCueBySide[side]=visibleCueId;renderPageCueEditor();}drawHighlights()});
 }
 
 let cueCsvRows=[],cueCsvHeaders=[];
@@ -515,7 +515,7 @@ function renderPageCueEditor(){
   cues.forEach((cue,index)=>{const option=document.createElement("option");option.value=String(index);option.textContent="Cue "+(index+1)+(cue.prayer?" — "+cue.prayer:"");choice.append(option)});
   choice.value=String(Math.max(0,cues.indexOf(active)));
   choice.disabled=!cues.length;
-  choice.onchange=()=>{selectedCueBySide[side]=cues[Number(choice.value)].cueId;renderPageCueEditor();drawHighlights()};
+  choice.onchange=()=>{selectedCueBySide[side]=cues[Number(choice.value)].cueId;visibleCueId=selectedCueBySide[side];const picker=$("visible-cue");if(picker)picker.value=visibleCueId;renderPageCueEditor();drawHighlights()};
   selector.append(choice);panel.append(selector);
   if(active){
    const roleRow=document.createElement("label");roleRow.className="cue-role-selector";roleRow.textContent="Role ";
