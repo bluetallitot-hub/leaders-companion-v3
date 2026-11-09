@@ -2890,7 +2890,9 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   await render(joined,textX+3,648,374,54,{fontSize:12,rtl:/[\\u0590-\\u05ff]/.test(joined)});
  }
  const cues=(state.cues||[]).slice(0,3);
- const hebrew=record.source?.languageCode==="H"||record.source?.language==="Hebrew"||side===0;
+ const cueText=cues.map(c=>[c.startCueHebrew,c.endCueHebrew,c.startCue,c.endCue,c.beginCue,c.endCueText].filter(Boolean).join(" ")).join(" ");
+ const lang=String(record.source?.languageCode||record.source?.language||"").toLowerCase();
+ const hebrew=/[\u0590-\u05ff]/.test(cueText)?true:(lang==="h"||lang==="hebrew");
  const rows=[82,66,50],rowHeight=15;
  // COM-001 (V2): cue text has priority. Measure at the locked font size,
  // shorten at INSIDE edges only, and place the arrow in the clear gap.
@@ -2932,7 +2934,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   page.drawLine({start:{x:tip,y},end:{x:back,y:y-4},thickness:1.4,color:ink});
  }
  // Identity is sourced only from record metadata, never from master labels.
- drawKnownFrameworkFields(page,{...record,leadership:{...state,cues:[]},instructionText:""},side,font,bold);
+ drawKnownFrameworkFields(page,{...record,leadership:{...state,cues:[]},instructionText:""},side,font,bold,{cues:[],instructionText:""});
 }
 async function exportVerifiedWorkingCopy(){
  if(!sourcePdfBytes)throw Error("Load the source siddur first.");
