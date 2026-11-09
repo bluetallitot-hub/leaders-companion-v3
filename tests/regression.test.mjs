@@ -34,7 +34,10 @@ test('Progressive Leader Copy exports approved pages in source order',()=>{
  assert.match(editor,/const approved=verifiedWorkingPages\(\)/);
  assert.match(editor,/for\(let j=0;j<approved\.length;j\+\+\)/);
  assert.match(editor,/const \[sourceIndex,record\]=approved\[j\]/);
- assert.match(editor,/source\.getPage\(sourceIndex-1\)/);
+ assert.match(editor,/source\.getPage\(sourceIndex\)/);
+ assert.match(editor,/const crop=record\.production\?\.approvedCrop\|\|detectCrop/);
+ assert.match(editor,/page\.drawImage\(image,\{x:pageX,y:pageY,width,height\}\)/);
+ assert.match(editor,/await drawApprovedPageFields\(page,record,side,out,font,bold\)/);
 });
 test('Original PDF bytes are loaded into derived documents, not modified in place',()=>{
  assert.match(editor,/PDFLib\.PDFDocument\.load\(sourcePdfBytes\.slice\(\)\)/);
