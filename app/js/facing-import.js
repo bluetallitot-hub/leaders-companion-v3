@@ -2892,15 +2892,44 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  const cues=(state.cues||[]).slice(0,3);
  const hebrew=record.source?.languageCode==="H"||record.source?.language==="Hebrew"||side===0;
  const rows=[82,66,50],rowHeight=15;
+ // COM-001 (V2): cue text has priority. Measure at the locked font size,
+ // shorten at INSIDE edges only, and place the arrow in the clear gap.
+ const cueFont=10,measureCanvas=document.createElement("canvas"),measureCtx=measureCanvas.getContext("2d");
+ measureCtx.font=cueFont*3+"px Arial, sans-serif";
+ const widthOf=t=>measureCtx.measureText(String(t||"").replace(/י[\\u0591-\\u05c7]*ה[\\u0591-\\u05c7]*ו[\\u0591-\\u05c7]*ה[\\u0591-\\u05c7]*/g,"ה׳")).width/3;
+ const shortenInside=(value,maxWidth,isLeft)=>{
+  let words=String(value||"").trim().split(/\\s+/).filter(Boolean);
+  // Hebrew is RTL: the visually inside edge is the beginning of a left
+  // cue, and the end of a right cue.
+  const removeFirst=isLeft?hebrew:!hebrew;
+  while(words.length>1&&widthOf(words.join(" "))>maxWidth){
+   if(removeFirst)words.shift();else words.pop();
+  }
+  let result=words.join(" ");
+  // A single oversized word is reduced character by character on the same
+  // inside edge; never shrink the approved cue font or block publication.
+  while(result.length>1&&widthOf(result)>maxWidth){
+   result=removeFirst?result.slice(1):result.slice(0,-1);
+  }
+  return result;
+ };
  for(let i=0;i<cues.length;i++){
   const cue=cues[i];
   const begin=hebrew?(cue.startCueHebrew||cue.startCue||cue.beginCue||""):(cue.startCue||cue.beginCue||cue.startCueHebrew||"");
   const end=hebrew?(cue.endCueHebrew||cue.endCue||cue.endCueText||""):(cue.endCue||cue.endCueText||cue.endCueHebrew||"");
   const left=hebrew?end:begin,right=hebrew?begin:end;
   const color=roleColor(cue.role||cue.roleId||state.role);
-  if(left)await render(left,textX+3,rows[i],165,rowHeight,{fontSize:10,color,rtl:hebrew});
-  await render(hebrew?"←":"→",textX+171,rows[i],32,rowHeight,{fontSize:12});
-  if(right)await render(right,textX+204,rows[i],171,rowHeight,{fontSize:10,color,rtl:hebrew});
+  const half=165,arrowSpace=32;
+  const l=shortenInside(left,half-6,true),r=shortenInside(right,half-6,false);
+  if(l)await render(l,textX+3,rows[i],half,rowHeight,{fontSize:cueFont,color,rtl:hebrew});
+  if(r)await render(r,textX+204,rows[i],171,rowHeight,{fontSize:cueFont,color,rtl:hebrew});
+  // Draw the direction arrow as PDF geometry, not text in a 15pt-high
+  // raster field (the latter was incorrectly failing height validation).
+  const mid=textX+187,y=rows[i]+7;
+  page.drawLine({start:{x:mid-9,y},end:{x:mid+9,y},thickness:1.4,color:ink});
+  const tip=hebrew?mid-9:mid+9,back=hebrew?tip+5:tip-5;
+  page.drawLine({start:{x:tip,y},end:{x:back,y:y+4},thickness:1.4,color:ink});
+  page.drawLine({start:{x:tip,y},end:{x:back,y:y-4},thickness:1.4,color:ink});
  }
  // Identity is sourced only from record metadata, never from master labels.
  drawKnownFrameworkFields(page,{...record,leadership:{...state,cues:[]},instructionText:""},side,font,bold);
