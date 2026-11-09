@@ -436,7 +436,7 @@ function facingPageWarnings(record){
 function instructionTextForPage(state){
  return (state.instructionIds||[]).map(id=>{
   const entry=(facingInstructionLibrary?.prayers||[]).flatMap(p=>p.instructions||[]).find(x=>Number(x.instruction_id)===Number(id));
-  return entry?String(entry.text).replace(/\\{PrayerName\\}/g,state.instructionPrayer||"prayer").replace(/\\{PageNumber\\}/g,state.instructionPageNumber||"").replace(/\\{[^}]+\\}/g,""):null;
+  return entry?String(entry.text).replace(/\{PrayerName\}/g,state.instructionPrayer||"prayer").replace(/\{PageNumber\}/g,state.instructionPageNumber||"").replace(/\{[^}]+\}/g,""):null;
  }).filter(Boolean);
 }
 function renderInstructionPreviews(){
@@ -449,7 +449,7 @@ function renderInstructionPreviews(){
   const state=record?.leadership,text=state?instructionTextForPage(state):[];
   preview.hidden=!text.length;
   if(!text.length)continue;
-  preview.textContent=text.join("\\n");
+  preview.textContent=text.join("\n");
   preview.style.left="10%";preview.style.right="10%";
   preview.style.top="4%";preview.style.bottom="auto";
  }
