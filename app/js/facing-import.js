@@ -2898,7 +2898,7 @@ async function exportVerifiedWorkingCopy(){
  saveCurrentSpreadEdits();
  // Only explicitly approved, unchanged pages may enter the downloadable book.
  const approved=verifiedWorkingPages();
- const source=await PDFLib.PDFDocument.load(sourcePdfBytes.slice());
+ const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
  const out=await PDFLib.PDFDocument.create();
  const approvedSectionIds=new Set(approved.map(([idx])=>sectionForPage(idx)?.sectionId).filter(Boolean));
  await createMasterFrontMatter(out,{includeSections:false,totalPages:1+approved.length+2*approvedSectionIds.size});
@@ -2920,14 +2920,15 @@ async function exportVerifiedWorkingCopy(){
    sectionsInserted.add(nextSection.sectionId);
   }
   const [sourceIndex,record]=approved[j];
-  const side=Number(record?.source?.sideIndex ?? record?.sideIndex ?? ((sourceIndex-1)%2))===1?1:0;
+  const defaultSide=String(serviceManifest?.facingPageDirection||"hebrew").toLowerCase()==="hebrew"?(sourceIndex%2):((sourceIndex-1)%2);
+  const side=Number(record?.source?.sideIndex ?? record?.sideIndex ?? defaultSide)===1?1:0;
   const masterIndex=master.getPageCount()>1?Math.min(side,master.getPageCount()-1):0;
   const [masterPage]=await out.copyPages(master,[masterIndex]);
   const page=out.addPage(masterPage);
   const region=REGIONS[side],pad=6;
   // Export the same cleaned, cropped Siddur content used by the Facing Editor,
   // not a scaled copy of the original uncropped PDF page.
-  const sourcePage=await (await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise).getPage(sourceIndex);
+  const sourcePage=await source.getPage(sourceIndex);
   const viewport=sourcePage.getViewport({scale:2});
   const scan=document.createElement("canvas");
   scan.width=Math.ceil(viewport.width);scan.height=Math.ceil(viewport.height);
