@@ -104,6 +104,7 @@
 })();
 </script>
 <script>
+let intakeSections=[]; // Initialize before the independent default loader can access it.
 const $=id=>document.getElementById(id);let pdfCount=null,csvRows=null,rolesLocked=false,sourcePdfBytes=null,sourcePdfName="siddur.pdf",csvHeaders=[],csvDocumentRecord=null,intakePageRecords=[],pageMapping={},supplements={},supplementCatalog=[],localSupplementLibrary={},reducedPdfBytes=null;const roleOpacity=new Map(),roleAssignments=new Map(),roleDisplayNames=new Map();const canonicalColors=["#F5D03C","#75C56A","#74B9E7","#EBA0C8","#F3A65B","#AE93DC"];
 const defaultRoleStyles={R:{name:"Rabbi",color:"#F5D03C"},LR1:{name:"Reader",color:"#75C56A"},P:{name:"President",color:"#74B9E7"},S1:{name:"Soloist",color:"#EBA0C8"}};
 let intakeStageReached=0;
@@ -793,8 +794,7 @@ function embedDocumentHighlightStyles(output){
 
  return styles;
 }
-async // Suggested boundaries come only from explicit section columns in the imported CSV.
-let intakeSections=[];
+// Suggested boundaries come only from explicit section columns in the imported CSV.
 function sectionColumn(row){return String(row.section_name||row.section_title||row.section||row.service_section||"").trim();}
 function sectionCandidates(){
  const rows=[...(csvRows||[])].sort((a,b)=>Number(a.sequence||0)-Number(b.sequence||0));
