@@ -2736,12 +2736,12 @@ async function createMasterFrontMatter(out,{includeSections=true,totalPages=null
  const cover=effectiveCover(),today=new Date().toISOString().slice(0,10);
  await masterWithFields(out,"cover",[
   [/Friday Evening/i,cover.serviceName],
-  [/\\[YYYY-MM-DD\\]/i,today],
-  [/\\[BUILD VERSION\\]/i,"V3.298"],
-  [/\\[FINAL PDF PAGE COUNT\\]/i,String(totalPages??out.getPageCount()+1)],
-  [/\\[CONGREGATION\\]/i,cover.congregation],
-  [/\\[SUBTITLE\\]/i,cover.subtitle],
-  [/\\[EDITION\\]/i,cover.edition]
+  [/\[YYYY-MM-DD\]/i,today],
+  [/\[BUILD VERSION\]/i,"V3.306"],
+  [/\[FINAL PDF PAGE COUNT\]/i,String(totalPages??out.getPageCount()+1)],
+  [/\[CONGREGATION\]/i,cover.congregation],
+  [/\[SUBTITLE\]/i,cover.subtitle],
+  [/\[EDITION\]/i,cover.edition]
  ]);
  if(!includeSections)return;
  const sections=editableSectionRecords();
@@ -2749,12 +2749,12 @@ async function createMasterFrontMatter(out,{includeSections=true,totalPages=null
  await addSectionMasterPages(out,first,[]);
 }
 async function addSectionMasterPages(out,section,entries){
- await masterWithFields(out,"sectionTitle",[[/\\[SECTION NAME\\]/i,section.title]]);
+ await masterWithFields(out,"sectionTitle",[[/\[SECTION NAME\]/i,section.title]]);
  const replacements=entries.slice(0,3).map((entry,i)=>[
-  new RegExp("\\\\[Prayer Name "+(i+1)+"\\\\]","i"),
+  new RegExp("\\[Prayer Name "+(i+1)+"\\]","i"),
   entry.title+" "+entry.page
  ]);
- for(let i=entries.length;i<3;i++)replacements.push([new RegExp("\\\\[Prayer Name "+(i+1)+"\\\\]","i"),""]);
+ for(let i=entries.length;i<3;i++)replacements.push([new RegExp("\\[Prayer Name "+(i+1)+"\\]","i"),""]);
  await masterWithFields(out,"sectionContents",replacements);
 }
 function showCoverEditor(){
