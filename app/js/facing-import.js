@@ -1138,11 +1138,12 @@ function isolatedHebrewCueMatch(side,cue,ocr,spanBoundary=null){
   // Continuation pages often have the last verse split across two
   // physical half-lines. Resolve the final word by corroborating nearby
   // preceding ending words, rather than requiring one OCR line to contain all.
-  if(spanBoundary==="end"&&alternatives.length!==1){
+  if(alternatives.length!==1){
    const corroborated=alternatives.filter(candidate=>{
-    const context=rows.slice(Math.max(0,candidate.ri-3),candidate.ri+1)
+    const context=rows.slice(Math.max(first.ri,candidate.ri-3),candidate.ri+1)
      .flatMap(row=>row.tokens);
-    return finish.slice(0,-1).filter(term=>context.some(token=>score(term,token)>=highlightParameters.hebrewWordSimilarity)).length>=2;
+    const preceding=finish.slice(0,-1);
+    return preceding.filter(term=>context.some(token=>score(term,token)>=highlightParameters.hebrewWordSimilarity)).length>=Math.min(2,preceding.length);
    });
    if(corroborated.length===1){last=corroborated[0];endWordCount=1;}
   }
