@@ -535,12 +535,25 @@ function renderPageCueEditor(){
   }
   if(!active){const note=document.createElement("p");note.textContent="No cues on this page.";panel.append(note);root.append(panel);continue}
   const wrap=document.createElement("div");wrap.className="cue-edit-compact";
-  const name=document.createElement("strong");name.textContent=(active.prayer||"Cue "+(cues.indexOf(active)+1))+(active.role?" · "+active.role:"");wrap.append(name);
+  const name=document.createElement("strong");name.textContent=active.prayer||"Cue "+(cues.indexOf(active)+1);wrap.append(name);
+  const metadata=document.createElement("div");metadata.className="cue-role-style";metadata.style.cssText="display:flex;flex-wrap:wrap;gap:12px;margin:8px 0;font-size:.95em";
+  const roleLabel=document.createElement("span");roleLabel.textContent="Role: "+(active.role||"Not assigned");
+  const styleLabel=document.createElement("span");styleLabel.textContent="Style: "+(active.style||"Not assigned");
+  metadata.append(roleLabel,styleLabel);wrap.append(metadata);
   const inputs={};
-  for(const [key,label,value] of [["start","Beginning",active.startCue],["end","Ending",active.endCue]]){
-   const lab=document.createElement("label");lab.className="cue-field";lab.textContent=label;
-   const input=document.createElement("textarea");input.rows=2;input.value=value||"";input.dir="auto";lab.append(input);wrap.append(lab);inputs[key]=input;
+  const hebrewCue=record?.source?.languageCode==="H"||(/[\u0590-\u05ff]/u.test((active.startCue||"")+(active.endCue||"")));
+  const directionRow=document.createElement("div");directionRow.className="cue-direction-row";
+  directionRow.style.cssText="display:grid;grid-template-columns:minmax(0,1fr) 48px minmax(0,1fr);gap:8px;align-items:center;margin:12px 0";
+  const fields=[["start","Beginning",active.startCue],["end","Ending",active.endCue]];
+  for(const [key,label,value] of fields){
+   const lab=document.createElement("label");lab.className="cue-field";lab.style.cssText="display:flex;flex-direction:column;min-width:0;gap:4px";
+   const heading=document.createElement("span");heading.textContent=label;lab.append(heading);
+   const input=document.createElement("textarea");input.rows=2;input.value=value||"";input.dir=hebrewCue?"rtl":"ltr";input.style.textAlign=(key==="start"?(hebrewCue?"right":"left"):(hebrewCue?"left":"right"));
+   input.style.width="100%";input.style.boxSizing="border-box";lab.append(input);inputs[key]=input;
+   if(key==="start")directionRow.append(lab);
+   else{const arrow=document.createElement("span");arrow.textContent=hebrewCue?"←":"→";arrow.setAttribute("aria-label",hebrewCue?"Reading direction right to left":"Reading direction left to right");arrow.style.cssText="font-size:30px;text-align:center;font-weight:bold;align-self:center";directionRow.append(arrow,lab);}
   }
+  wrap.append(directionRow);
   const cue=active;
      const button=document.createElement("button");button.type="button";button.textContent="Save cue and rematch";button.onclick=async()=>{
     const start=inputs.start.value.trim(),end=inputs.end.value.trim();
