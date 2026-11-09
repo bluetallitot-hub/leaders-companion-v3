@@ -30,9 +30,11 @@ test('Page approval is checked at export and invalidated by changes',()=>{
  assert.match(editor,/pageApprovalCurrent\(pageMetadata\[side\]\)/);
  assert.match(editor,/Resolve or explicitly override all page warnings before downloading/);
 });
-test('Main Document export requires every page of loaded service',()=>{
- assert.match(editor,/assemblyPages\.length!==sourcePdfPages/);
- assert.match(editor,/assemblyPages\.some\(\(p,i\)=>p\.index!==i\+1\)/);
+test('Progressive Leader Copy exports approved pages in source order',()=>{
+ assert.match(editor,/const approved=verifiedWorkingPages\(\)/);
+ assert.match(editor,/for\(let j=0;j<approved\.length;j\+\+\)/);
+ assert.match(editor,/const \[sourceIndex,record\]=approved\[j\]/);
+ assert.match(editor,/source\.getPage\(sourceIndex-1\)/);
 });
 test('Original PDF bytes are loaded into derived documents, not modified in place',()=>{
  assert.match(editor,/PDFLib\.PDFDocument\.load\(sourcePdfBytes\.slice\(\)\)/);
