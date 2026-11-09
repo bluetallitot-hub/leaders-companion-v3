@@ -59,3 +59,5 @@ Publication variants will be presets of components rather than separate producti
 - Support later placement of a short instruction, QR code, melody reference, or service indicator.
 - Mirror its position when the companion column moves between left and right layouts.
 - This region is a nonprinting guide: do not draw a bounding box or placeholder in exported PDFs.
+
+<!-- Pages deployment diagnostic: V3.312 consolidated release; no application files changed. -->
