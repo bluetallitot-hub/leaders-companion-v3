@@ -2853,58 +2853,55 @@ function drawLeaderPageFooter(page,record,font,bold){
 // Cover printed template guide words, retaining the approved box geometry.
 async function drawApprovedPageFields(page,record,side,out,font,bold){
  const textX=side===0?171.36:59.76;
- const wipe=(x,y,w,h)=>page.drawRectangle({x,y,width:w,height:h,color:PDFLib.rgb(1,1,1)});
- // Retain the approved bounding-box coordinates, but conceal the master
- // labels and dashed construction guides in the instruction and cue strips.
- // Do not erase the central Siddur image region or its saved highlights.
- const publicationBoxes={instructions:{x:textX+2,y:645,w:376,h:57},cues:{x:textX+2,y:48,w:376,h:50}};
- for(const rect of Object.values(publicationBoxes))wipe(rect.x,rect.y,rect.w,rect.h);
+ const white=PDFLib.rgb(1,1,1),ink=PDFLib.rgb(.1,.17,.2);
+ const wipe=(x,y,w,h)=>page.drawRectangle({x,y,width:w,height:h,color:white});
+ const state=record.leadership||{};
+ // Keep the approved geometries while hiding construction labels and dashed
+ // internal guides. The source image is never erased or rescaled here.
+ const boxes={instructions:{x:textX+2,y:645,w:376,h:57},cues:{x:textX+2,y:48,w:376,h:50}};
+ for(const b of Object.values(boxes))wipe(b.x,b.y,b.w,b.h);
  wipe(side===0?21:446,24,125,14);
  wipe(side===0?21:446,725,120,13);
- const state=record.leadership||{};
- const instructions=instructionTextForPage(state);
- const sample=instructions.length?instructions:["SAMPLE ONLY — Leader invites the congregation to participate."];
- const renderText=async(lines,x,y,w,h,{fontSize=11,color="#182c36",sampleOnly=false}={})=>{
-  const c=document.createElement("canvas"),factor=3;
-  c.width=Math.round(w*factor);c.height=Math.round(h*factor);
-  const ctx=c.getContext("2d");ctx.clearRect(0,0,c.width,c.height);
-  ctx.font=(fontSize*factor)+"px Arial, sans-serif";ctx.fillStyle=color;
-  ctx.textBaseline="top";
-  let lineIndex=0;
-  for(const value of lines){
-   const rtl=/[\\u0590-\\u05ff]/.test(value);
-   ctx.direction=rtl?"rtl":"ltr";ctx.textAlign=rtl?"right":"left";
-   const words=String(value).split(/\\s+/),wrapped=[];let line="";
-   for(const word of words){
-    const candidate=line?line+" "+word:word;
-    if(line&&ctx.measureText(candidate).width>c.width-24){wrapped.push(line);line=word}else line=candidate;
-   }
-   if(line)wrapped.push(line);
-   for(const part of wrapped){
-    if((lineIndex+1)*fontSize*factor*1.35>c.height)break;
-    ctx.fillText(part,rtl?c.width-10:10,6+lineIndex*fontSize*factor*1.35);
-    lineIndex++;
-   }
+ const instructions=instructionTextForPage(state).filter(x=>String(x||"").trim());
+ const render=async(text,x,y,w,h,{fontSize=12,color="#182c36",rtl=false}={})=>{
+  const factor=3,canvas=document.createElement("canvas");
+  canvas.width=Math.round(w*factor);canvas.height=Math.round(h*factor);
+  const ctx=canvas.getContext("2d");
+  ctx.font=(fontSize*factor)+"px Arial, sans-serif";
+  ctx.fillStyle=color;ctx.textBaseline="top";
+  ctx.direction=rtl?"rtl":"ltr";ctx.textAlign=rtl?"right":"left";
+  const words=String(text||"").split(/\\s+/).filter(Boolean),lines=[];let line="";
+  for(const word of words){
+   const trial=line?line+" "+word:word;
+   if(ctx.measureText(trial).width>canvas.width-24&&line){lines.push(line);line=word;}
+   else line=trial;
   }
-  const png=await out.embedPng(c.toDataURL("image/png"));
-  page.drawImage(png,{x,y,width:w,height:h});
+  if(line)lines.push(line);
+  const lineHeight=fontSize*factor*1.3;
+  if(lines.length*lineHeight>canvas.height-8)throw Error("Text exceeds approved "+fontSize+"pt bounding box: "+String(text).slice(0,70));
+  lines.forEach((part,i)=>ctx.fillText(part,rtl?canvas.width-9:9,5+i*lineHeight));
+  if(!lines.length)return;
+  const image=await out.embedPng(canvas.toDataURL("image/png"));
+  page.drawImage(image,{x,y,width:w,height:h});
  };
- await renderText(sample,textX+3,648,374,54,{fontSize:12,color:instructions.length?"#182c36":"#777777"});
- const cues=state.cues||[];
- const first=cues[0];
- if(first){
-  const hebrew=record.source?.languageCode==="H"||record.source?.language==="Hebrew";
-  const begin=first.startCueHebrew||first.startCue||first.beginCue||"";
-  const end=first.endCueHebrew||first.endCue||first.endCueText||"";
-  const left=hebrew?end:begin,right=hebrew?begin:end;
-  const c=roleColor(first.role||first.roleId||state.role);
-  const arrow=hebrew?"←":"→";
-  await renderText([left],textX+3,52,166,37,{fontSize:10,color:c});
-  await renderText([arrow],textX+169,55,34,31,{fontSize:18});
-  await renderText([right],textX+203,52,172,37,{fontSize:10,color:c});
+ if(instructions.length){
+  const joined=instructions.join(" ");
+  await render(joined,textX+3,648,374,54,{fontSize:12,rtl:/[\\u0590-\\u05ff]/.test(joined)});
  }
- // Page identity remains drawn by the existing metadata renderer, but the
- // instructional and cue areas are now rendered from approved page records.
+ const cues=(state.cues||[]).slice(0,3);
+ const hebrew=record.source?.languageCode==="H"||record.source?.language==="Hebrew"||side===0;
+ const rows=[82,66,50],rowHeight=15;
+ for(let i=0;i<cues.length;i++){
+  const cue=cues[i];
+  const begin=hebrew?(cue.startCueHebrew||cue.startCue||cue.beginCue||""):(cue.startCue||cue.beginCue||cue.startCueHebrew||"");
+  const end=hebrew?(cue.endCueHebrew||cue.endCue||cue.endCueText||""):(cue.endCue||cue.endCueText||cue.endCueHebrew||"");
+  const left=hebrew?end:begin,right=hebrew?begin:end;
+  const color=roleColor(cue.role||cue.roleId||state.role);
+  if(left)await render(left,textX+3,rows[i],165,rowHeight,{fontSize:10,color,rtl:hebrew});
+  await render(hebrew?"←":"→",textX+171,rows[i],32,rowHeight,{fontSize:12});
+  if(right)await render(right,textX+204,rows[i],171,rowHeight,{fontSize:10,color,rtl:hebrew});
+ }
+ // Identity is sourced only from record metadata, never from master labels.
  drawKnownFrameworkFields(page,{...record,leadership:{...state,cues:[]},instructionText:""},side,font,bold);
 }
 async function exportVerifiedWorkingCopy(){
