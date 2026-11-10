@@ -2941,6 +2941,13 @@ async function exportVerifiedWorkingCopy(){
  saveCurrentSpreadEdits();
  // Only explicitly approved, unchanged pages may enter the downloadable book.
  const approved=verifiedWorkingPages();
+ // Validate all approved records before constructing the PDF, so the user gets
+ // the exact missing field instead of a late, generic export failure.
+ const incomplete=approved.map(([index,record])=>({index,missing:[
+  ...(!String(record.identification?.serviceName||serviceManifest?.serviceName||"").trim()?["service name"]:[]),
+  ...(!String(approvedPrayerName(record)||"").trim()?["prayer title"]:[])
+ ]})).filter(item=>item.missing.length);
+ if(incomplete.length)throw Error("Approved source page"+(incomplete.length===1?" ":"s ")+incomplete.map(item=>item.index+" ("+item.missing.join(" and ")+")").join(", ")+" require metadata. Open the indicated source page in the Facing Editor, enter the missing identification fields, save and reapprove it, then export again.");
  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
  const out=await PDFLib.PDFDocument.create();
  const approvedSectionIds=new Set(approved.map(([idx])=>sectionForPage(idx)?.sectionId).filter(Boolean));
