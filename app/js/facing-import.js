@@ -481,10 +481,11 @@ function renderInstructionPreviews(){
   const canvas=$(side===0?"output-left":"output-right"),record=pageMetadata[side];
   if(!canvas)continue;
   const parent=canvas.parentElement;parent.style.position="relative";
+  const displayScale=(canvas.getBoundingClientRect().width||canvas.width||612)/612;
   let instruction=parent.querySelector(".instruction-page-preview");
   if(!instruction){instruction=document.createElement("div");instruction.className="instruction-page-preview";parent.append(instruction);}
   const textX=side===0?171.36:59.76;
-  instruction.style.cssText="position:absolute;pointer-events:none;z-index:5;box-sizing:border-box;background:white;overflow:hidden;padding:0.5%;font:12px/1.3 Arial,sans-serif;color:#182c36;left:"+((textX+2)/612*100)+"%;width:"+(376/612*100)+"%;top:"+((792-702)/792*100)+"%;height:"+(57/792*100)+"%;";
+  instruction.style.cssText="position:absolute;pointer-events:none;z-index:5;box-sizing:border-box;background:white;overflow:hidden;padding:0.5%;font:"+(12*displayScale)+"px/1.3 Arial,sans-serif;color:#182c36;left:"+((textX+2)/612*100)+"%;width:"+(376/612*100)+"%;top:"+((792-702)/792*100)+"%;height:"+(57/792*100)+"%;";
   const state=record?.leadership||{},instructions=instructionTextForPage(state);
   instruction.hidden=!instructions.length;instruction.textContent=instructions.join(" ");
   let footer=parent.querySelector(".cue-page-preview");
