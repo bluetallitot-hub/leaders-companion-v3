@@ -439,34 +439,72 @@ function instructionTextForPage(state){
   return entry?String(entry.text).replace(/\{PrayerName\}/g,state.instructionPrayer||"prayer").replace(/\{PageNumber\}/g,state.instructionPageNumber||"").replace(/\{[^}]+\}/g,""):null;
  }).filter(Boolean);
 }
+// Shared geometry for the editable cue overlay and final PDF export.
+// Coordinates are in 612 x 792 PDF points; cue rows are divided equally.
+function v3CuePlan(record,side){
+ const state=record?.leadership||{},cues=(state.cues||[]).slice(0,3);
+ const textX=side===0?171.36:59.76, xLeft=textX+8,xRight=textX+373;
+ const lang=String(record?.source?.languageCode||record?.source?.language||"").toLowerCase();
+ const hebrew=lang==="h"||lang==="hebrew"||lang==="he"||
+  (!lang&&cues.some(c=>/[\u0590-\u05ff]/.test(String(c.startCueHebrew||c.endCueHebrew||""))));
+ const measure=document.createElement("canvas").getContext("2d");
+ const safe=t=>String(t||"").replace(/י[\u0591-\u05c7]*ה[\u0591-\u05c7]*ו[\u0591-\u05c7]*ה[\u0591-\u05c7]*/g,"ה׳").trim();
+ const width=(t,font)=>{measure.font=font+"px Arial, sans-serif";return measure.measureText(safe(t)).width;};
+ const rowH=50/Math.max(1,cues.length);
+ return cues.map((cue,i)=>{
+  let begin=safe(hebrew?(cue.startCueHebrew||cue.startCue||cue.beginCue):(cue.startCue||cue.beginCue||cue.startCueHebrew));
+  let end=safe(hebrew?(cue.endCueHebrew||cue.endCue||cue.endCueText):(cue.endCue||cue.endCueText||cue.endCueHebrew));
+  const font=Math.min(18,Math.max(9,rowH*.62));
+  const maxPhrase=163,minimumGap=24;
+  // Shorten only at the inside edge, preserving the exterior anchor and cue identity.
+  const shorten=(t,removeFirst)=>{
+   let words=t.split(/\s+/).filter(Boolean);
+   while(words.length>1&&width(words.join(" "),font)>maxPhrase){if(removeFirst)words.shift();else words.pop();}
+   let result=words.join(" ");
+   while(result.length>1&&width(result,font)>maxPhrase)result=removeFirst?result.slice(1):result.slice(0,-1);
+   return result;
+  };
+  begin=shorten(begin,hebrew);end=shorten(end,!hebrew);
+  const beginW=width(begin,font),endW=width(end,font);
+  const beginX=hebrew?xRight-beginW:xLeft;
+  const endX=hebrew?xLeft:xRight-endW;
+  const gapStart=hebrew?endX+endW:beginX+beginW;
+  const gapEnd=hebrew?beginX:endX;
+  if(gapEnd-gapStart<minimumGap)throw Error("Cue phrases do not leave room for an arrow on source page "+(record?.source?.sourcePdfPage||"?"));
+  return {begin,end,beginX,endX,beginW,endW,arrowX:(gapStart+gapEnd)/2,
+   y:48+(cues.length-i-1)*rowH+(rowH-font)/2,font,rowH,hebrew,
+   color:roleColor(cue.role||cue.roleId||state.role)};
+ });
+}
 function renderInstructionPreviews(){
  for(let side=0;side<2;side++){
   const canvas=$(side===0?"output-left":"output-right"),record=pageMetadata[side];
   if(!canvas)continue;
   const parent=canvas.parentElement;parent.style.position="relative";
   let instruction=parent.querySelector(".instruction-page-preview");
-  if(!instruction){instruction=document.createElement("div");instruction.className="instruction-page-preview";parent.append(instruction)}
-  instruction.style.cssText="position:absolute;pointer-events:none;z-index:5;box-sizing:border-box;background:rgba(255,255,255,.96);padding:4px 6px;font:12px/1.3 Arial,sans-serif;color:#182c36;white-space:pre-wrap;left:10%;width:80%;top:8%;";
+  if(!instruction){instruction=document.createElement("div");instruction.className="instruction-page-preview";parent.append(instruction);}
+  const textX=side===0?171.36:59.76;
+  instruction.style.cssText="position:absolute;pointer-events:none;z-index:5;box-sizing:border-box;background:white;overflow:hidden;padding:0.5%;font:12px/1.3 Arial,sans-serif;color:#182c36;left:"+((textX+2)/612*100)+"%;width:"+(376/612*100)+"%;top:"+((792-702)/792*100)+"%;height:"+(57/792*100)+"%;";
   const state=record?.leadership||{},instructions=instructionTextForPage(state);
-  instruction.hidden=!instructions.length;
-  instruction.textContent=instructions.join("\\n");
+  instruction.hidden=!instructions.length;instruction.textContent=instructions.join(" ");
   let footer=parent.querySelector(".cue-page-preview");
-  if(!footer){footer=document.createElement("div");footer.className="cue-page-preview";parent.append(footer)}
-  footer.style.cssText="position:absolute;pointer-events:none;z-index:5;box-sizing:border-box;background:rgba(255,255,255,.96);padding:3px 5px;font:10px/1.3 Arial,sans-serif;left:10%;width:80%;bottom:5%;display:flex;flex-direction:column;gap:2px;";
+  if(!footer){footer=document.createElement("div");footer.className="cue-page-preview";parent.append(footer);}
+  footer.style.cssText="position:absolute;pointer-events:none;z-index:5;box-sizing:border-box;background:white;left:"+((textX+2)/612*100)+"%;width:"+(376/612*100)+"%;bottom:"+(48/792*100)+"%;height:"+(50/792*100)+"%;";
   footer.replaceChildren();
-  const cues=(state.cues||[]).slice(0,3);
-  footer.hidden=!cues.length;
-  for(const cue of cues){
-   const sample=[cue.startCueHebrew,cue.endCueHebrew,cue.startCue,cue.endCue,cue.beginCue,cue.endCueText].filter(Boolean).join(" ");
-   const lang=String(record?.source?.languageCode||record?.source?.language||"").toLowerCase();
-   const hebrew=/[\\u0590-\\u05ff]/.test(sample)||(!sample&&(lang==="h"||lang==="hebrew"));
-   const begin=hebrew?(cue.startCueHebrew||cue.startCue||cue.beginCue||""):(cue.startCue||cue.beginCue||cue.startCueHebrew||"");
-   const end=hebrew?(cue.endCueHebrew||cue.endCue||cue.endCueText||""):(cue.endCue||cue.endCueText||cue.endCueHebrew||"");
-   const row=document.createElement("div");row.style.cssText="display:grid;grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr);align-items:center;gap:3px;color:"+roleColor(cue.role||cue.roleId||state.role)+";";
-   const left=document.createElement("span"),arrow=document.createElement("span"),right=document.createElement("span");
-   left.textContent=hebrew?end:begin;right.textContent=hebrew?begin:end;arrow.textContent=hebrew?"←":"→";
-   for(const item of [left,right]){item.dir=hebrew?"rtl":"ltr";item.style.cssText="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;";}
-   arrow.style.textAlign="center";row.append(left,arrow,right);footer.append(row);
+  const plan=record?v3CuePlan(record,side):[];
+  footer.hidden=!plan.length;
+  for(const row of plan){
+   const place=(value,x,w,dir)=>{
+    if(!value)return;
+    const span=document.createElement("span");span.textContent=value;span.dir=dir;
+    span.style.cssText="position:absolute;white-space:nowrap;overflow:visible;left:"+((x-(textX+2))/376*100)+"%;bottom:"+((row.y-48)/50*100)+"%;font:"+row.font+"px Arial,sans-serif;color:"+row.color+";";
+    footer.append(span);
+   };
+   place(row.begin,row.beginX,row.beginW,row.hebrew?"rtl":"ltr");
+   place(row.end,row.endX,row.endW,row.hebrew?"rtl":"ltr");
+   const arrow=document.createElement("span");arrow.textContent=row.hebrew?"←":"→";
+   arrow.style.cssText="position:absolute;left:"+((row.arrowX-(textX+2))/376*100)+"%;bottom:"+((row.y-48)/50*100)+"%;transform:translateX(-50%);font:"+row.font+"px Arial,sans-serif;color:#182c36;";
+   footer.append(arrow);
   }
  }
 }
@@ -2769,7 +2807,7 @@ async function createMasterFrontMatter(out,{includeSections=true,totalPages=null
  page.drawLine({start:{x:100,y:396},end:{x:512,y:396},thickness:.65,color:PDFLib.rgb(0,0,0)});
  const date=new Date().toISOString().slice(0,10);
  const count=totalPages??out.getPageCount();
- const fields=["Produced: "+date,"Software Version: V3.321","Total Pages: "+count];
+ const fields=["Produced: "+date,"Software Version: V3.322","Total Pages: "+count];
  fields.forEach((t,i)=>v314Text(page,t,{x:45,y:80-i*14,size:9,font:helv,maxWidth:520}));
  if(includeSections){
   const first=editableSectionRecords()[0];
@@ -2922,49 +2960,27 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   const joined=instructions.join(" ");
   await render(joined,textX+3,648,374,54,{fontSize:12,rtl:/[\\u0590-\\u05ff]/.test(joined)});
  }
- const cues=(state.cues||[]).slice(0,3);
- const cueText=cues.map(c=>[c.startCueHebrew,c.endCueHebrew,c.startCue,c.endCue,c.beginCue,c.endCueText].filter(Boolean).join(" ")).join(" ");
- const lang=String(record.source?.languageCode||record.source?.language||"").toLowerCase();
- const hebrew=/[\u0590-\u05ff]/.test(cueText)?true:(lang==="h"||lang==="hebrew");
- const rows=[82,66,50],rowHeight=15;
- // COM-001 (V2): cue text has priority. Measure at the locked font size,
- // shorten at INSIDE edges only, and place the arrow in the clear gap.
- const cueFont=10,measureCanvas=document.createElement("canvas"),measureCtx=measureCanvas.getContext("2d");
- measureCtx.font=cueFont*3+"px Arial, sans-serif";
- const widthOf=t=>measureCtx.measureText(String(t||"").replace(/י[\\u0591-\\u05c7]*ה[\\u0591-\\u05c7]*ו[\\u0591-\\u05c7]*ה[\\u0591-\\u05c7]*/g,"ה׳")).width/3;
- const shortenInside=(value,maxWidth,isLeft)=>{
-  let words=String(value||"").trim().split(/\\s+/).filter(Boolean);
-  // Hebrew is RTL: the visually inside edge is the beginning of a left
-  // cue, and the end of a right cue.
-  const removeFirst=isLeft?hebrew:!hebrew;
-  while(words.length>1&&widthOf(words.join(" "))>maxWidth){
-   if(removeFirst)words.shift();else words.pop();
-  }
-  let result=words.join(" ");
-  // A single oversized word is reduced character by character on the same
-  // inside edge; never shrink the approved cue font or block publication.
-  while(result.length>1&&widthOf(result)>maxWidth){
-   result=removeFirst?result.slice(1):result.slice(0,-1);
-  }
-  return result;
- };
- for(let i=0;i<cues.length;i++){
-  const cue=cues[i];
-  const begin=hebrew?(cue.startCueHebrew||cue.startCue||cue.beginCue||""):(cue.startCue||cue.beginCue||cue.startCueHebrew||"");
-  const end=hebrew?(cue.endCueHebrew||cue.endCue||cue.endCueText||""):(cue.endCue||cue.endCueText||cue.endCueHebrew||"");
-  const left=hebrew?end:begin,right=hebrew?begin:end;
-  const color=roleColor(cue.role||cue.roleId||state.role);
-  const half=165,arrowSpace=32;
-  const l=shortenInside(left,half-6,true),r=shortenInside(right,half-6,false);
-  if(l)await render(l,textX+3,rows[i],half,rowHeight,{fontSize:cueFont,color,rtl:hebrew});
-  if(r)await render(r,textX+204,rows[i],171,rowHeight,{fontSize:cueFont,color,rtl:hebrew});
-  // Draw the direction arrow as PDF geometry, not text in a 15pt-high
-  // raster field (the latter was incorrectly failing height validation).
-  const mid=textX+187,y=rows[i]+7;
-  page.drawLine({start:{x:mid-9,y},end:{x:mid+9,y},thickness:1.4,color:ink});
-  const tip=hebrew?mid-9:mid+9,back=hebrew?tip+5:tip-5;
-  page.drawLine({start:{x:tip,y},end:{x:back,y:y+4},thickness:1.4,color:ink});
-  page.drawLine({start:{x:tip,y},end:{x:back,y:y-4},thickness:1.4,color:ink});
+ const plan=v3CuePlan(record,side);
+ for(const row of plan){
+  // Use the same measured text, font, anchors and arrow midpoint as the editor.
+  const drawCue=async(text,x,w)=>{
+   if(!text)return;
+   const factor=3,canvas=document.createElement("canvas");
+   canvas.width=Math.max(1,Math.ceil((w+2)*factor));canvas.height=Math.ceil((row.font*1.3)*factor);
+   const ctx=canvas.getContext("2d");ctx.font=(row.font*factor)+"px Arial, sans-serif";
+   ctx.fillStyle=row.color;ctx.textBaseline="top";ctx.direction=row.hebrew?"rtl":"ltr";
+   ctx.textAlign=row.hebrew?"right":"left";
+   ctx.fillText(text,row.hebrew?canvas.width-1:1,0);
+   const image=await out.embedPng(canvas.toDataURL("image/png"));
+   page.drawImage(image,{x,y:row.y,width:canvas.width/factor,height:canvas.height/factor});
+  };
+  await drawCue(row.begin,row.beginX,row.beginW);
+  await drawCue(row.end,row.endX,row.endW);
+  const y=row.y+row.font*.48,mid=row.arrowX;
+  page.drawLine({start:{x:mid-7,y},end:{x:mid+7,y},thickness:1.3,color:ink});
+  const tip=row.hebrew?mid-7:mid+7,back=row.hebrew?tip+4:tip-4;
+  page.drawLine({start:{x:tip,y},end:{x:back,y:y+3},thickness:1.3,color:ink});
+  page.drawLine({start:{x:tip,y},end:{x:back,y:y-3},thickness:1.3,color:ink});
  }
  // Identity is sourced only from record metadata, never from master labels.
  drawKnownFrameworkFields(page,{...record,leadership:{...state,cues:[]},instructionText:""},side,font,bold,{cues:[],instructionText:""});
