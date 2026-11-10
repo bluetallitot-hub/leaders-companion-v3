@@ -2769,7 +2769,7 @@ async function createMasterFrontMatter(out,{includeSections=true,totalPages=null
  page.drawLine({start:{x:100,y:396},end:{x:512,y:396},thickness:.65,color:PDFLib.rgb(0,0,0)});
  const date=new Date().toISOString().slice(0,10);
  const count=totalPages??out.getPageCount();
- const fields=["Produced: "+date,"Software Version: V3.319","Total Pages: "+count];
+ const fields=["Produced: "+date,"Software Version: V3.320","Total Pages: "+count];
  fields.forEach((t,i)=>v314Text(page,t,{x:45,y:80-i*14,size:9,font:helv,maxWidth:520}));
  if(includeSections){
   const first=editableSectionRecords()[0];
@@ -2787,6 +2787,21 @@ function v314SectionEntries(approved,section,limit){
   if(!rows.has(key))rows.set(key,{title,page:printed});
  }
  return [...rows.values()];
+}
+async function addMainContentsPages(out,entries){
+ const font=await out.embedFont(PDFLib.StandardFonts.TimesRoman);
+ const bold=await out.embedFont(PDFLib.StandardFonts.TimesRomanBold);
+ const pageSize=23;
+ for(let start=0;start<Math.max(1,entries.length);start+=pageSize){
+  const page=v314Blank(out);
+  v314Text(page,"Contents",{x:306,y:V314.section.tocHeadingY,size:22,font:bold,align:"center"});
+  page.drawLine({start:{x:65,y:681},end:{x:547,y:681},thickness:.5,color:PDFLib.rgb(0,0,0)});
+  entries.slice(start,start+pageSize).forEach((entry,i)=>{
+   const y=V314.section.firstEntryY-i*V314.section.entryStep;
+   v314Text(page,entry.title,{x:70,y,size:13,font,maxWidth:385});
+   v314Text(page,String(entry.page),{x:542,y,size:13,font,align:"right",maxWidth:68});
+  });
+ }
 }
 async function addSectionMasterPages(out,section,entries){
  await Promise.all([window.LCV3Templates.load("sectionTitle"),window.LCV3Templates.load("sectionContents")]);
@@ -2968,8 +2983,27 @@ async function exportVerifiedWorkingCopy(){
  if(incomplete.length)throw Error("Approved source page"+(incomplete.length===1?" ":"s ")+incomplete.map(item=>item.index+" ("+item.missing.join(" and ")+")").join(", ")+" require metadata. Open the indicated source page in the Facing Editor, enter the missing identification fields, save and reapprove it, then export again.");
  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
  const out=await PDFLib.PDFDocument.create();
- const approvedSectionIds=new Set(approved.map(([idx])=>sectionForPage(idx)?.sectionId).filter(Boolean));
- await createMasterFrontMatter(out,{includeSections:false,totalPages:1+approved.length+[...approvedSectionIds].reduce((n,id)=>{const section=editableSectionRecords().find(s=>s.sectionId===id);if(!section)return n;const sections=editableSectionRecords(),next=sections[sections.indexOf(section)+1];const entries=v314SectionEntries(approved,section,next?.startOutputPage||Infinity);return n+1+Math.max(1,Math.ceil(entries.length/23));},0)});
+ const sections=editableSectionRecords();
+ if(!sections.length)throw Error("No confirmed sections. Review and confirm section boundaries in Siddur Intake before exporting.");
+ const missingSections=approved.filter(([idx])=>!sectionForPage(idx));
+ if(missingSections.length)throw Error("Approved source pages lack confirmed sections: "+missingSections.map(([idx])=>idx).join(", ")+". Confirm section boundaries in Intake.");
+ const usedSections=sections.filter(section=>approved.some(([idx])=>sectionForPage(idx)?.sectionId===section.sectionId));
+ const mainContentsPages=Math.max(1,Math.ceil(usedSections.length/23));
+ const sectionPlan=usedSections.map(section=>{
+  const next=sections[sections.indexOf(section)+1];
+  const entries=v314SectionEntries(approved,section,next?.startOutputPage||Infinity);
+  return {section,entries,frontPages:1+Math.max(1,Math.ceil(entries.length/23)),
+   approvedCount:approved.filter(([idx])=>sectionForPage(idx)?.sectionId===section.sectionId).length};
+ });
+ const expectedTotal=1+mainContentsPages+approved.length+sectionPlan.reduce((n,p)=>n+p.frontPages,0);
+ await createMasterFrontMatter(out,{includeSections:false,totalPages:expectedTotal});
+ let runningPage=2+mainContentsPages;
+ const mainEntries=sectionPlan.map(plan=>{
+  const entry={title:plan.section.title,page:runningPage};
+  runningPage+=plan.frontPages+plan.approvedCount;
+  return entry;
+ });
+ await addMainContentsPages(out,mainEntries);
  if(!window.LCV3Templates)throw Error("Approved Siddur Page Master is unavailable.");
  const masterBytes=await window.LCV3Templates.load("siddur");
  const master=await PDFLib.PDFDocument.load(masterBytes);
@@ -2977,7 +3011,6 @@ async function exportVerifiedWorkingCopy(){
  const font=await out.embedFont(PDFLib.StandardFonts.Helvetica);
  const bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
  const projectPages=[];
- const sections=editableSectionRecords();
  const sectionsInserted=new Set();
  for(let j=0;j<approved.length;j++){
   const nextSection=sectionForPage(approved[j][0]);
@@ -3033,6 +3066,7 @@ async function exportVerifiedWorkingCopy(){
   exportProgress(j+1,approved.length,"Attaching approved pages to Siddur Page Master");
  }
  // Preserve the complete approved page records inside the PDF, not only a visual footer.
+ if(out.getPageCount()!==expectedTotal)throw Error("PDF assembly page count mismatch: expected "+expectedTotal+", generated "+out.getPageCount());
  const metadata=JSON.stringify({schema:"leaders-companion-v3-approved-export",version:"3.298",cover:effectiveCover(),sections:editableSectionRecords(),
   sourceFilename:filename,sourcePageCount:sourcePdfPages,approvedPages:projectPages});
  await out.attach(new TextEncoder().encode(metadata),"leaders-companion-project.json",
@@ -3196,16 +3230,44 @@ for(let side=0;side<2;side++)$("download-page-"+side)?.addEventListener("click",
  }catch(e){$("page-cue-editor-status").textContent="Page download failed: "+e.message}
  finally{button.disabled=!pageMetadata[side]}
 });
-$("download").addEventListener("click",async()=>{
- const button=$("download");button.disabled=true;
+// Preview and download share one immutable PDF byte buffer.
+let finalPdfProof=null,finalPdfProofUrl=null;
+function finalPdfSignature(){
+ saveCurrentSpreadEdits();
+ return JSON.stringify({pages:workingPages(),sections:editableSectionRecords(),cover:effectiveCover(),
+  service:serviceManifest,filename,sourcePages:sourcePdfPages});
+}
+function invalidateFinalPdfProof(){
+ finalPdfProof=null;
+ if(finalPdfProofUrl){URL.revokeObjectURL(finalPdfProofUrl);finalPdfProofUrl=null;}
+ const frame=$("final-pdf-preview");if(frame)frame.removeAttribute("src");
+ const label=$("final-pdf-proof-status");if(label)label.textContent="Preview is outdated. Generate a new PDF proof before downloading.";
+}
+$("preview-final-pdf")?.addEventListener("click",async()=>{
+ const button=$("preview-final-pdf");button.disabled=true;
  try{
   const result=await exportVerifiedWorkingCopy();
-  const url=URL.createObjectURL(new Blob([result.bytes],{type:"application/pdf"}));
+  invalidateFinalPdfProof();
+  const signature=finalPdfSignature();
+  finalPdfProof={bytes:result.bytes,signature,verified:result.verified,total:result.total};
+  finalPdfProofUrl=URL.createObjectURL(new Blob([result.bytes],{type:"application/pdf"}));
+  $("final-pdf-preview").src=finalPdfProofUrl;
+  $("final-pdf-proof-status").textContent="Showing the exact "+result.total+"-page PDF that will be downloaded. "+result.verified+" approved Siddur pages.";
+ }catch(e){invalidateFinalPdfProof();$("final-pdf-proof-status").textContent="PDF proof failed: "+e.message;console.error(e)}
+ finally{button.disabled=false}
+});
+$("download").addEventListener("click",()=>{
+ try{
+  if(!finalPdfProof)throw Error("Generate and review the final PDF preview before downloading.");
+  if(finalPdfProof.signature!==finalPdfSignature()){
+   invalidateFinalPdfProof();
+   throw Error("Pages or metadata changed since preview. Regenerate the PDF proof before downloading.");
+  }
+  const url=URL.createObjectURL(new Blob([finalPdfProof.bytes],{type:"application/pdf"}));
   const a=document.createElement("a");a.href=url;a.download=filename+"-leader-approved-copy.pdf";
   document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-  status("Downloaded approved master-template PDF: "+result.verified+" approved pages, "+result.total+" total PDF pages. Drafts excluded.");
- }catch(e){console.error(e);status("Full-service export failed: "+e.message);$("export-status").textContent="Export failed: "+e.message}
- finally{button.disabled=false}
+  status("Downloaded the exact previewed PDF: "+finalPdfProof.verified+" approved Siddur pages, "+finalPdfProof.total+" total pages.");
+ }catch(e){status("Export blocked: "+e.message);$("export-status").textContent="Export blocked: "+e.message}
 });
 
 function populateHighlightRoles(){
