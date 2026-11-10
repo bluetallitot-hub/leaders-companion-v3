@@ -444,14 +444,30 @@ function renderInstructionPreviews(){
   const canvas=$(side===0?"output-left":"output-right"),record=pageMetadata[side];
   if(!canvas)continue;
   const parent=canvas.parentElement;parent.style.position="relative";
-  let preview=parent.querySelector(".instruction-page-preview");
-  if(!preview){preview=document.createElement("div");preview.className="instruction-page-preview";preview.style.cssText="position:absolute;pointer-events:none;z-index:5;background:rgba(255,255,255,.94);border:1px dashed #546b7b;padding:3px 5px;font:12px Arial,sans-serif;color:#182c36;max-width:80%;white-space:pre-wrap";parent.append(preview)}
-  const state=record?.leadership,text=state?instructionTextForPage(state):[];
-  preview.hidden=!text.length;
-  if(!text.length)continue;
-  preview.textContent=text.join("\n");
-  preview.style.left="10%";preview.style.right="10%";
-  preview.style.top="4%";preview.style.bottom="auto";
+  let instruction=parent.querySelector(".instruction-page-preview");
+  if(!instruction){instruction=document.createElement("div");instruction.className="instruction-page-preview";parent.append(instruction)}
+  instruction.style.cssText="position:absolute;pointer-events:none;z-index:5;box-sizing:border-box;background:rgba(255,255,255,.96);padding:4px 6px;font:12px/1.3 Arial,sans-serif;color:#182c36;white-space:pre-wrap;left:10%;width:80%;top:8%;";
+  const state=record?.leadership||{},instructions=instructionTextForPage(state);
+  instruction.hidden=!instructions.length;
+  instruction.textContent=instructions.join("\\n");
+  let footer=parent.querySelector(".cue-page-preview");
+  if(!footer){footer=document.createElement("div");footer.className="cue-page-preview";parent.append(footer)}
+  footer.style.cssText="position:absolute;pointer-events:none;z-index:5;box-sizing:border-box;background:rgba(255,255,255,.96);padding:3px 5px;font:10px/1.3 Arial,sans-serif;left:10%;width:80%;bottom:5%;display:flex;flex-direction:column;gap:2px;";
+  footer.replaceChildren();
+  const cues=(state.cues||[]).slice(0,3);
+  footer.hidden=!cues.length;
+  for(const cue of cues){
+   const sample=[cue.startCueHebrew,cue.endCueHebrew,cue.startCue,cue.endCue,cue.beginCue,cue.endCueText].filter(Boolean).join(" ");
+   const lang=String(record?.source?.languageCode||record?.source?.language||"").toLowerCase();
+   const hebrew=/[\\u0590-\\u05ff]/.test(sample)||(!sample&&(lang==="h"||lang==="hebrew"));
+   const begin=hebrew?(cue.startCueHebrew||cue.startCue||cue.beginCue||""):(cue.startCue||cue.beginCue||cue.startCueHebrew||"");
+   const end=hebrew?(cue.endCueHebrew||cue.endCue||cue.endCueText||""):(cue.endCue||cue.endCueText||cue.endCueHebrew||"");
+   const row=document.createElement("div");row.style.cssText="display:grid;grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr);align-items:center;gap:3px;color:"+roleColor(cue.role||cue.roleId||state.role)+";";
+   const left=document.createElement("span"),arrow=document.createElement("span"),right=document.createElement("span");
+   left.textContent=hebrew?end:begin;right.textContent=hebrew?begin:end;arrow.textContent=hebrew?"←":"→";
+   for(const item of [left,right]){item.dir=hebrew?"rtl":"ltr";item.style.cssText="overflow:hidden;white-space:nowrap;text-overflow:ellipsis;";}
+   arrow.style.textAlign="center";row.append(left,arrow,right);footer.append(row);
+  }
  }
 }
 function pageApprovalFingerprint(record){
@@ -1587,6 +1603,8 @@ function drawHighlights(){
  for(let i=0;i<2;i++){
   const overlay=$("highlight-"+i),base=$(i===0?"output-left":"output-right");
   if(!overlay||!base)continue;
+  // Keep instructions and cue rows synchronized with the facing-page preview.
+  if(i===0)renderInstructionPreviews();
   overlay.width=base.width;overlay.height=base.height;
   const ctx=overlay.getContext("2d");
   ctx.clearRect(0,0,overlay.width,overlay.height);
