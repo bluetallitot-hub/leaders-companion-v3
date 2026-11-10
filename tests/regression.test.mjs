@@ -47,7 +47,7 @@ test('Original PDF bytes are loaded into derived documents, not modified in plac
 test('V3.314 cover and section pages are metadata-driven with fixed approved geometry',()=>{
  assert.match(editor,/const V314=\{border:/);
  assert.match(editor,/function v314Blank\(out\)/);
- assert.match(editor,/Software Version: V3\.316/);
+ assert.match(editor,/Software Version: V3\.318/);
  assert.match(editor,/function v314SectionEntries\(approved,section,limit\)/);
  assert.match(editor,/const entries=v314SectionEntries\(approved,nextSection,limit\)/);
  assert.match(editor,/Math\.ceil\(entries\.length\/pageSize\)/);
