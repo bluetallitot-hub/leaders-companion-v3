@@ -2959,7 +2959,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  };
  if(instructions.length){
   const joined=instructions.join(" ");
-  await render(joined,textX+3,648,374,54,{fontSize:12,rtl:/[\\u0590-\\u05ff]/.test(joined)});
+  await render(joined,textX+3,648,374,54,{fontSize:12,rtl:/[\u0590-\u05ff]/.test(joined)});
  }
  const plan=v3CuePlan(record,side);
  for(const row of plan){
