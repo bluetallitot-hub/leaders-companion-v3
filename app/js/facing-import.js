@@ -2769,7 +2769,7 @@ async function createMasterFrontMatter(out,{includeSections=true,totalPages=null
  page.drawLine({start:{x:100,y:396},end:{x:512,y:396},thickness:.65,color:PDFLib.rgb(0,0,0)});
  const date=new Date().toISOString().slice(0,10);
  const count=totalPages??out.getPageCount();
- const fields=["Produced: "+date,"Software Version: V3.320","Total Pages: "+count];
+ const fields=["Produced: "+date,"Software Version: V3.321","Total Pages: "+count];
  fields.forEach((t,i)=>v314Text(page,t,{x:45,y:80-i*14,size:9,font:helv,maxWidth:520}));
  if(includeSections){
   const first=editableSectionRecords()[0];
@@ -3230,6 +3230,37 @@ for(let side=0;side<2;side++)$("download-page-"+side)?.addEventListener("click",
  }catch(e){$("page-cue-editor-status").textContent="Page download failed: "+e.message}
  finally{button.disabled=!pageMetadata[side]}
 });
+// The editing canvas is interactive and must never be misrepresented as exported output.
+// This proof uses the identical PDF builder and cached bytes as final download.
+function showSpreadEditingMode(){
+ $("spread-export-proof").hidden=true;
+ $("spread-preview").hidden=false;
+ $("return-to-edit-preview").hidden=true;
+ $("preview-exported-spread").hidden=false;
+ $("spread-proof-status").textContent="Editing view (not final PDF). Regenerate exported proof after edits.";
+}
+$("return-to-edit-preview")?.addEventListener("click",showSpreadEditingMode);
+$("preview-exported-spread")?.addEventListener("click",async()=>{
+ const button=$("preview-exported-spread");button.disabled=true;
+ try{
+  const result=await exportVerifiedWorkingCopy();
+  invalidateFinalPdfProof();
+  finalPdfProof={bytes:result.bytes,signature:finalPdfSignature(),verified:result.verified,total:result.total};
+  finalPdfProofUrl=URL.createObjectURL(new Blob([result.bytes],{type:"application/pdf"}));
+  $("final-pdf-preview").src=finalPdfProofUrl;
+  $("spread-export-pdf").src=finalPdfProofUrl;
+  $("spread-preview").hidden=true;
+  $("spread-export-proof").hidden=false;
+  $("return-to-edit-preview").hidden=false;
+  button.hidden=true;
+  $("spread-proof-status").textContent="Actual "+result.total+"-page exported PDF. Section pages and contents included. Download uses these exact bytes.";
+  $("final-pdf-proof-status").textContent="Actual exported PDF proof ready ("+result.total+" pages). Download uses these exact bytes.";
+ }catch(e){
+  showSpreadEditingMode();
+  $("spread-proof-status").textContent="Exported PDF preview unavailable: "+e.message;
+  console.error(e);
+ }finally{button.disabled=false}
+});
 // Preview and download share one immutable PDF byte buffer.
 let finalPdfProof=null,finalPdfProofUrl=null;
 function finalPdfSignature(){
@@ -3239,8 +3270,10 @@ function finalPdfSignature(){
 }
 function invalidateFinalPdfProof(){
  finalPdfProof=null;
+ if($("spread-export-proof")&&!$("spread-export-proof").hidden)showSpreadEditingMode();
  if(finalPdfProofUrl){URL.revokeObjectURL(finalPdfProofUrl);finalPdfProofUrl=null;}
  const frame=$("final-pdf-preview");if(frame)frame.removeAttribute("src");
+ const spreadFrame=$("spread-export-pdf");if(spreadFrame)spreadFrame.removeAttribute("src");
  const label=$("final-pdf-proof-status");if(label)label.textContent="Preview is outdated. Generate a new PDF proof before downloading.";
 }
 $("preview-final-pdf")?.addEventListener("click",async()=>{
