@@ -378,6 +378,20 @@ function pageModeFromIntake(rows,languageCode){
  if(values.length!==1)return ""; // Do not silently choose between conflicting roles.
  return values[0]+"_"+(String(languageCode||"").toUpperCase()==="H"?"H":"E");
 }
+function prayerNameFromIntake(row){return String(row.prayer_name||row.prayer_action||row.prayer||"").trim();}
+function assignNextPrayerFromIntake(record,matches){
+ record.production??={};
+ if(record.production.nextPrayerSource==="manual")return;
+ const current=prayerNameFromIntake(matches[0]||{})||String(record.identification?.prayerName||"").trim();
+ if(!current)return;
+ const currentIndices=importedCues.map((row,i)=>prayerNameFromIntake(row)===current?i:-1).filter(i=>i>=0);
+ if(!currentIndices.length)return;
+ const last=currentIndices[currentIndices.length-1];
+ const following=importedCues.slice(last+1).find(row=>prayerNameFromIntake(row)&&prayerNameFromIntake(row)!==current);
+ record.production.nextPrayer=following?prayerNameFromIntake(following):"";
+ record.production.nextPrayerSource="csv";
+}
+
 
 // Prayer-centered V3 library: summaries and instructions belong to prayers,
 // never to individual cues. Cue prayer names are lookup hints only.
@@ -470,7 +484,7 @@ function applyImportedCues(){
     highlights:[],matchStatus:"unmatched-review-required"
    };
   });
-  if(matches.length){record.identification.serviceCode=matches[0].service||null;
+  if(matches.length){assignNextPrayerFromIntake(record,matches);record.identification.serviceCode=matches[0].service||null;
    record.identification.prayerName=matches[0].prayer_name||matches[0].prayer||null;record.identification.serviceName=matches[0].service_name||null;
    record.identification.cueId=matches[0].cue_id||matches[0].test_id||null;}
  }
@@ -956,14 +970,14 @@ function renderPageCueEditor(){
     ["TORAH","Torah"],["SHOFAR","Shofar"]
    ],record.production.modeIcon,v=>{record.production.modeIcon=v;record.production.modeSource="manual";}));
    const pitch=document.createElement("input");pitch.type="text";
-   pitch.value=String(record.production.pitch||pageMelodyForLayout(record).pitch||"");
+   pitch.value=String(record.production.pitch||(!pageMelodyForLayout(record).isStub?pageMelodyForLayout(record).pitch:"")||"");
    pitch.placeholder="Pitch";pitch.style.cssText="width:100%;min-width:0;padding:6px;box-sizing:border-box";
    pitch.onchange=()=>{record.production.pitch=pitch.value.trim();saveCurrentSpreadEdits();};
    field("Pitch",pitch);
    const next=document.createElement("input");next.type="text";
    next.value=String(record.production.nextPrayer||"");next.placeholder="Next prayer";
    next.style.cssText="width:100%;min-width:0;padding:6px;box-sizing:border-box";
-   next.onchange=()=>{record.production.nextPrayer=next.value.trim();saveCurrentSpreadEdits();};
+   next.onchange=()=>{record.production.nextPrayer=next.value.trim();record.production.nextPrayerSource="manual";saveCurrentSpreadEdits();};
    field("Next",next);
    const statusPosition=document.createElement("input");
    statusPosition.type="number";statusPosition.min="1";statusPosition.step="1";
