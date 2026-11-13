@@ -446,7 +446,7 @@ function v3CuePlan(record,side){
  const textX=side===0?171.36:59.76, xLeft=textX+8,xRight=textX+373;
  const lang=String(record?.source?.languageCode||record?.source?.language||"").toLowerCase();
  const hebrew=lang==="h"||lang==="hebrew"||lang==="he"||
-  (!lang&&cues.some(c=>/[\u0590-\u05ff]/.test(String(c.startCueHebrew||c.endCueHebrew||""))));
+  (lang!=="en"&&lang!=="english"&&side===0&&cues.some(c=>/[\u0590-\u05ff]/.test(String(c.startCueHebrew||c.endCueHebrew||""))));
  const measure=document.createElement("canvas").getContext("2d");
  const safe=t=>String(t||"").replace(/י[\u0591-\u05c7]*ה[\u0591-\u05c7]*ו[\u0591-\u05c7]*ה[\u0591-\u05c7]*/g,"ה׳").trim();
  const width=(t,font)=>{measure.font=font+"px Arial, sans-serif";return measure.measureText(safe(t)).width;};
@@ -454,8 +454,8 @@ function v3CuePlan(record,side){
  return cues.map((cue,i)=>{
   let begin=safe(hebrew?(cue.startCueHebrew||cue.startCue||cue.beginCue):(cue.startCue||cue.beginCue||cue.startCueHebrew));
   let end=safe(hebrew?(cue.endCueHebrew||cue.endCue||cue.endCueText):(cue.endCue||cue.endCueText||cue.endCueHebrew));
-  const font=Math.min(18,Math.max(9,rowH*.62));
-  const maxPhrase=163,minimumGap=24;
+  const font=Math.min(12,Math.max(8,rowH*.48));
+  const maxPhrase=155,minimumGap=26;
   // Shorten only at the inside edge, preserving the exterior anchor and cue identity.
   const shorten=(t,removeFirst)=>{
    let words=t.split(/\s+/).filter(Boolean);
@@ -472,7 +472,7 @@ function v3CuePlan(record,side){
   const gapEnd=hebrew?beginX:endX;
   if(gapEnd-gapStart<minimumGap)throw Error("Cue phrases do not leave room for an arrow on source page "+(record?.source?.sourcePdfPage||"?"));
   return {begin,end,beginX,endX,beginW,endW,arrowX:(gapStart+gapEnd)/2,
-   y:48+(cues.length-i-1)*rowH+(rowH-font)/2,font,rowH,hebrew,
+   y:48+(cues.length-i-1)*rowH+(rowH-font*1.3)/2,font,rowH,hebrew,
    color:roleColor(cue.role||cue.roleId||state.role)};
  });
 }
@@ -482,15 +482,19 @@ function renderInstructionPreviews(){
   if(!canvas)continue;
   const parent=canvas.parentElement;parent.style.position="relative";
   const displayScale=(canvas.getBoundingClientRect().width||canvas.width||612)/612;
+  // Anchor overlay to the actual canvas rectangle, not the surrounding wrapper.
+  const canvasLeft=canvas.offsetLeft,canvasTop=canvas.offsetTop;
+  const canvasW=canvas.getBoundingClientRect().width||canvas.width;
+  const canvasH=canvas.getBoundingClientRect().height||canvas.height;
   let instruction=parent.querySelector(".instruction-page-preview");
   if(!instruction){instruction=document.createElement("div");instruction.className="instruction-page-preview";parent.append(instruction);}
   const textX=side===0?171.36:59.76;
-  instruction.style.cssText="position:absolute;pointer-events:none;z-index:5;box-sizing:border-box;background:white;overflow:hidden;padding:0.5%;font:"+(12*displayScale)+"px/1.3 Arial,sans-serif;color:#182c36;left:"+((textX+2)/612*100)+"%;width:"+(376/612*100)+"%;top:"+((792-702)/792*100)+"%;height:"+(57/792*100)+"%;";
+  instruction.style.cssText="position:absolute;pointer-events:none;z-index:5;box-sizing:border-box;background:white;overflow:hidden;padding:0;font:"+(12*displayScale)+"px/1.3 Arial,sans-serif;color:#182c36;left:"+(canvasLeft+(textX+2)/612*canvasW)+"px;width:"+(376/612*canvasW)+"px;top:"+(canvasTop+(792-702)/792*canvasH)+"px;height:"+(57/792*canvasH)+"px;";
   const state=record?.leadership||{},instructions=instructionTextForPage(state);
   instruction.hidden=!instructions.length;instruction.textContent=instructions.join(" ");
   let footer=parent.querySelector(".cue-page-preview");
   if(!footer){footer=document.createElement("div");footer.className="cue-page-preview";parent.append(footer);}
-  footer.style.cssText="position:absolute;pointer-events:none;z-index:5;box-sizing:border-box;background:white;left:"+((textX+2)/612*100)+"%;width:"+(376/612*100)+"%;bottom:"+(48/792*100)+"%;height:"+(50/792*100)+"%;";
+  footer.style.cssText="position:absolute;pointer-events:none;z-index:5;box-sizing:border-box;background:white;overflow:hidden;left:"+(canvasLeft+(textX+2)/612*canvasW)+"px;width:"+(376/612*canvasW)+"px;top:"+(canvasTop+(792-98)/792*canvasH)+"px;height:"+(50/792*canvasH)+"px;";
   footer.replaceChildren();
   const plan=record?v3CuePlan(record,side):[];
   footer.hidden=!plan.length;
@@ -498,7 +502,7 @@ function renderInstructionPreviews(){
    const place=(value,x,w,dir)=>{
     if(!value)return;
     const span=document.createElement("span");span.textContent=value;span.dir=dir;
-    span.style.cssText="position:absolute;white-space:nowrap;overflow:visible;left:"+((x-(textX+2))/376*100)+"%;bottom:"+((row.y-48)/50*100)+"%;font:"+row.font+"px Arial,sans-serif;color:"+row.color+";";
+    span.style.cssText="position:absolute;white-space:nowrap;overflow:visible;left:"+((x-(textX+2))/376*100)+"%;bottom:"+((row.y-48)/50*100)+"%;line-height:1.3;font:"+row.font+"px Arial,sans-serif;color:"+row.color+";";
     footer.append(span);
    };
    place(row.begin,row.beginX,row.beginW,row.hebrew?"rtl":"ltr");
@@ -2808,7 +2812,7 @@ async function createMasterFrontMatter(out,{includeSections=true,totalPages=null
  page.drawLine({start:{x:100,y:396},end:{x:512,y:396},thickness:.65,color:PDFLib.rgb(0,0,0)});
  const date=new Date().toISOString().slice(0,10);
  const count=totalPages??out.getPageCount();
- const fields=["Produced: "+date,"Software Version: V3.322","Total Pages: "+count];
+ const fields=["Produced: "+date,"Software Version: V3.323","Total Pages: "+count];
  fields.forEach((t,i)=>v314Text(page,t,{x:45,y:80-i*14,size:9,font:helv,maxWidth:520}));
  if(includeSections){
   const first=editableSectionRecords()[0];
