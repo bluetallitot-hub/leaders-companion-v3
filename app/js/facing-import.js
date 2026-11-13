@@ -3638,7 +3638,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  };
   await drawCue(row.begin,row.beginX,row.beginW);
   await drawCue(row.end,row.endX,row.endW);
-  const y=row.centerY-6,mid=row.arrowX;
+  const y=row.centerY-row.opticalShift,mid=row.arrowX;
   page.drawLine({start:{x:mid-7,y},end:{x:mid+7,y},thickness:1.3,color:ink});
   const tip=row.hebrew?mid-7:mid+7,back=row.hebrew?tip+4:tip-4;
   page.drawLine({start:{x:tip,y},end:{x:back,y:y+3},thickness:1.3,color:ink});
