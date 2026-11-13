@@ -311,7 +311,14 @@ function parseCsv(text){
  return rows.map(r=>Object.fromEntries(headers.map((h,i)=>[h,(r[i]||"").trim()])));
 }
 function cueHasHebrewScript(cue){
- return /[\u05d0-\u05ea]/.test([cue.startCueHebrew,cue.endCueHebrew,cue.startCue,cue.endCue,cue.begin_cue,cue.end_cue,cue.begin_cue_hebrew,cue.end_cue_hebrew].filter(Boolean).join(" "));
+ // Match the script of the actual logical start/end cues, not translations
+ // carried in auxiliary Hebrew fields or the OCR language of the page.
+ const text=[cue.startCue,cue.endCue,cue.beginCue,cue.begin_cue,cue.end_cue]
+  .filter(Boolean).join(" ");
+ const observed=text||[cue.startCueHebrew,cue.endCueHebrew,cue.begin_cue_hebrew,cue.end_cue_hebrew].filter(Boolean).join(" ");
+ const hebrew=(observed.match(/[\u0590-\u05ff]/g)||[]).length;
+ const latin=(observed.match(/[A-Za-z]/g)||[]).length;
+ return hebrew>latin;
 }
 function pageHasHebrewCue(record){return (record?.leadership?.cues||[]).some(cueHasHebrewScript);}
 function applyImportedCues(){
