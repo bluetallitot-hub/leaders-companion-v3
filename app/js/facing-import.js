@@ -483,13 +483,28 @@ function renderFacingInstructions(){
   const state=record.leadership;state.instructionIds??=[];state.instructionOverrides??={};
   const panel=document.createElement("section");panel.className="instruction-page-panel";
   const title=document.createElement("strong");title.textContent=(side===0?"Left":"Right")+" page instructions";panel.append(title);
-  const prayerTitle=state.instructionPrayer||record.identification?.prayerTitle||record.leadership?.cues?.[0]?.prayer||"Untitled prayer";
+  const prayerTitle=state.instructionPrayer||record.prayerTitle||record.identification?.prayerName||record.leadership?.cues?.[0]?.prayer||"Untitled prayer";
   const prayerRow=document.createElement("div");prayerRow.className="instruction-prayer-row";
-  const prayerName=document.createElement("strong");prayerName.textContent=prayerTitle;prayerRow.append(prayerName);
-  const editPrayer=document.createElement("button");editPrayer.type="button";editPrayer.textContent="Edit prayer name";prayerRow.append(editPrayer);
-  const prayer=document.createElement("input");prayer.value=prayerTitle;prayer.hidden=true;prayer.setAttribute("aria-label","Prayer name");prayerRow.append(prayer);
-  editPrayer.onclick=()=>{prayer.hidden=!prayer.hidden;editPrayer.textContent=prayer.hidden?"Edit prayer name":"Done";if(prayer.hidden){const name=prayer.value.trim();state.instructionPrayer=name;record.prayerTitle=name;record.identification??={};record.identification.prayerName=name;for(const cue of state.cues||[])cue.prayer=name;state.highlightConfirmed=false;renderPageCueEditor();renderFacingInstructions();saveCheckpointNow().catch(e=>status("Prayer-name save failed: "+e.message))}};
-  panel.append(prayerRow);
+  const prayerLabel=document.createElement("label");prayerLabel.textContent="Page prayer title ";
+  const prayer=document.createElement("input");prayer.type="text";prayer.value=prayerTitle;
+  prayer.dir=/[\u0590-\u05ff]/u.test(prayerTitle)?"rtl":"auto";
+  prayer.setAttribute("aria-label",(side===0?"Left":"Right")+" page prayer title");
+  prayer.oninput=()=>{prayer.dir=/[\u0590-\u05ff]/u.test(prayer.value)?"rtl":"auto";};
+  prayerLabel.append(prayer);prayerRow.append(prayerLabel);
+  const feedback=document.createElement("span");feedback.setAttribute("role","status");
+  const save=document.createElement("button");save.type="button";save.textContent="Save title";
+  const revert=document.createElement("button");revert.type="button";revert.textContent="Revert";
+  revert.onclick=()=>{prayer.value=state.instructionPrayer||record.prayerTitle||record.identification?.prayerName||prayerTitle;prayer.dir=/[\u0590-\u05ff]/u.test(prayer.value)?"rtl":"auto";feedback.textContent="Unsaved changes reverted.";};
+  save.onclick=async()=>{
+   const value=prayer.value.trim();if(!value){feedback.textContent="Title cannot be empty.";return;}
+   const prior={prayerTitle:record.prayerTitle,identification:structuredClone(record.identification||{}),instructionPrayer:state.instructionPrayer,highlightConfirmed:state.highlightConfirmed};
+   record.prayerTitle=value;record.identification??={};record.identification.prayerName=value;state.instructionPrayer=value;state.highlightConfirmed=false;
+   save.disabled=true;feedback.textContent="Saving…";
+   try{await saveCheckpointNow();scheduleCanonicalPreview();feedback.textContent="Saved and PDF rebuilt.";renderPageCueEditor();}
+   catch(error){record.prayerTitle=prior.prayerTitle;record.identification=prior.identification;state.instructionPrayer=prior.instructionPrayer;state.highlightConfirmed=prior.highlightConfirmed;feedback.textContent="Save failed: "+error.message;}
+   finally{save.disabled=false;}
+  };
+  prayerRow.append(save,revert,feedback);panel.append(prayerRow);
   const select=document.createElement("select");select.setAttribute("aria-label","Instruction for "+(side===0?"left":"right")+" page");
   select.add(new Option("Select instruction",""));
   for(const p of facingInstructionLibrary?.prayers||[])for(const ins of p.instructions||[])select.add(new Option("#"+ins.instruction_id+" — "+p.canonical_title+" — "+ins.text+" ("+(ins.approval_status||"unreviewed")+")",String(ins.instruction_id)));
@@ -523,30 +538,11 @@ function renderPageCueEditor(){
   title.textContent=(side===0?"Left":"Right")+" page"+(record?.source?.originalPageNumber?" · "+record.source.originalPageNumber:"");
   panel.append(title);
   if(record){
-   const pageTitleRow=document.createElement("label");pageTitleRow.textContent="Page prayer title ";
-   const pageTitleInput=document.createElement("input");pageTitleInput.type="text";
-   pageTitleInput.value=record.leadership?.instructionPrayer||record.prayerTitle||record.identification?.prayerName||"";
-   pageTitleInput.setAttribute("aria-label",(side===0?"Left":"Right")+" page prayer title");
-   pageTitleRow.append(pageTitleInput);panel.append(pageTitleRow);
-   const savePageTitle=document.createElement("button");savePageTitle.type="button";savePageTitle.textContent="Save page prayer title";
-   savePageTitle.onclick=async()=>{
-    const value=pageTitleInput.value.trim();
-    if(!value){$("page-cue-editor-status").textContent="Page prayer title cannot be empty.";return;}
-    record.prayerTitle=value;record.identification??={};record.identification.prayerName=value;
-    record.leadership.instructionPrayer=value;record.leadership.highlightConfirmed=false;
-    saveCurrentSpreadEdits();renderFacingInstructions();
-    savePageTitle.disabled=true;
-    $("page-cue-editor-status").textContent="Saving title and rebuilding PDF preview…";
-    try{await saveCheckpointNow();scheduleCanonicalPreview();$("page-cue-editor-status").textContent="Page prayer title saved and PDF rebuilt.";}
-    catch(error){$("page-cue-editor-status").textContent="Title PDF save failed: "+error.message;}
-    finally{savePageTitle.disabled=false;}
-   };
-   panel.append(savePageTitle);
    const addCue=document.createElement("button");addCue.type="button";addCue.textContent="Add cue to this page";
    addCue.onclick=()=>{
     const id="MANUAL-"+Date.now()+"-"+side;
     const role=cueRoleOptions().keys().next().value||"R";
-    const cue={cueId:id,role,style:"SOLO",prayer:pageTitleInput.value.trim()||"New cue",startCue:"",endCue:"",highlights:[],matchStatus:"unmatched-review-required",manualCreated:true};
+    const cue={cueId:id,role,style:"SOLO",prayer:record.leadership?.instructionPrayer||record.prayerTitle||"New cue",startCue:"",endCue:"",highlights:[],matchStatus:"unmatched-review-required",manualCreated:true};
     record.leadership.cues??=[];record.leadership.cues.push(cue);record.leadership.highlightConfirmed=false;
     const reference=String(record.source?.originalPageNumber||record.source?.sourcePdfPage||"");
     const exemplar=cueCsvRows.find(row=>String(row.page_reference||row.page_ref||row.printed_page||"")===reference)||{};
