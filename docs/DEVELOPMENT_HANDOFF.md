@@ -26,8 +26,8 @@ Inventory and **read in full** all applicable governing documents, V3 web requir
 
 | ID | Task | Status | Evidence / immediate next step |
 |---|---|---|---|
-| P01 | Complete authoritative document inventory | PARTIAL | Missing exact V3 web spec and document-map titles/versions |
-| P02 | Read every applicable document in full | PARTIAL | Read three attached governance DOCX and living handoff; other V3 specs outstanding |
+| P01 | Complete authoritative document inventory | PARTIAL | Located six V3 specifications, including approved intake, cover and section; production/duplex/font specification still to locate |
+| P02 | Read every applicable document in full | PARTIAL | Read six V3 specification Docs plus three governance DOCX and handoff; native SH-FE sheet and production specification outstanding |
 | P03 | Requirement-to-code traceability matrix | OPEN | Extract section-specific acceptance criteria from V3 specs |
 | P04 | Audit actual main branch vs requirements | PARTIAL | Found CI did not execute canonical-editor-pipeline.test.cjs; fixed in commit f9a67169097fbfb166794438ae52d4494c21cd3b |
 | P05 | Verify actual approved master PDFs | PARTIAL | Config selects Outer Lines Only; visual/geometry verification of all masters outstanding |
@@ -39,6 +39,43 @@ Inventory and **read in full** all applicable governing documents, V3 web requir
 | P11 | Real PDF visual comparison | OPEN | No accepted browser/export visual test |
 | P12 | Automated syntax/CI/PDF QA | PARTIAL | CI now invokes all three existing tests and triggers for template/config changes; actual run result unverified |
 | P13 | Version, handoff, release gate | PARTIAL | This mirror created; release remains blocked |
+
+## Authoritative V3 specifications located and read — 2026-11-13
+
+The following are **approved design requirements**, not proof that the app implements them. All six Google Docs below were read in full (document text). The SH-FE Google Sheet is a separate native spreadsheet and still needs row/header audit.
+
+| Specification | Source | Binding requirements | Implementation evidence |
+|---|---|---|---|
+| Siddur Intake Specification v1.0 (Nov 1, approved architectural direction) | [Google Doc](https://docs.google.com/document/d/1kUFmqXigDUMwLUTB3OFhNeywaDxA4Gc9txh96iThAlI/edit) | Each cue has permanent cueId and order; page record separately holds pageId, source/printed page, language, prayer, service, section, stock; PDF embeds ordered cues and page metadata; source DB is seed only; SH-FE first | UNVERIFIED; audit source field mapping, metadata round-trip, arbitrary cue counts |
+| Section Opening Layout and Generated Contents v1.0 | [Google Doc](https://docs.google.com/document/d/1Swz0CUyRS9-hqH77wQTmCHymVQ3KKNK0xPADflMyBdk/edit) | Exact 612×792pt masters; section title RIGHT, contents LEFT for RTL binding; dynamic title only; TOC derived from intake Page Records/Cue Intake, no duplicate entries for multiple cues, continuation pages on overflow | UNVERIFIED; check actual master bytes, generated TOC derivation, overflow, duplex order |
+| Master Cover Layout v1.2 | [Google Doc](https://docs.google.com/document/d/1krns5P5-c74-xgKEXB0xo4RlAb6STZXJJdIkDM16p1g/edit) | Approved monochrome bordered cover; Times 17 book ID, Times-Bold 32 service title; Helvetica 9 left metadata at x45; actual build date/version/final page count; border 27pt inset | UNVERIFIED; verify metadata populated only after final count and no master masks |
+| Cue Tags, LIP and Status Indicator (Oct 31, design requirements) | [Google Doc](https://docs.google.com/document/d/1FXyNz8x_JMBRyKBBmV8MzrNRPx2GRywgZdV_LVaJC_I/edit) | Cue-associated numbered draggable tags, persisted page-specific positions, global document-wide on/off, status progress by cueId but displays tag, master/subcue hierarchy; preserve manual highlighting | FUTURE/NOT IMPLEMENTED per source; must inspect actual RH-FE master/subcue data before implementing |
+| Prayer, Summary & Instruction Database Workflows (Oct 31, agreed design) | [Google Doc](https://docs.google.com/document/d/1c4sht3iDq5kPfPCTHpI36wkDWBI0BVjQkEve_eP2rs4/edit) | Stable Prayer/Summary/Instruction IDs, central canonical wording, association/default workflows with explicit confirmation, page stores selected IDs; PDF resolves readable text and remains standalone | FUTURE/NOT IMPLEMENTED per source; verify actual DB schema first |
+| SH-FE Siddur Intake v1.0 | [Google Sheet](https://docs.google.com/spreadsheets/d/1GXj5jJvJ1lLAbqsnIKSnQGU4N1xyFXmN717bdSyKCcY/edit) | 63 provisional cue records, 50 provisional page records in Cue Intake/Page Records/Read Me (per intake specification); verify actual values and headers | DATA AUDIT OPEN; do not claim sheet content read via Google Docs API |
+
+### Traceability additions (requirements are authoritative; code status requires tests)
+
+| Req ID | Requirement / acceptance criterion | Source | Code/test focus | Status |
+|---|---|---|---|---|
+| V3-INT-01 | Independent permanent cue records; no fixed cue limit; edit/reorder without collisions | Intake §2 | import mapping, cue state, PDF embedded records | UNVERIFIED |
+| V3-INT-02 | Separate English/Hebrew page records and cue-less pages; no duplicated page values | Intake §3 | page metadata, pageId, pageType | UNVERIFIED |
+| V3-INT-03 | PDF carries authoritative per-page metadata + ordered cue records; no runtime spreadsheet dependency | Intake §§1,5 | export metadata attachment, reopen parser, round-trip tests | UNVERIFIED |
+| V3-INT-04 | SH-FE ordinary 170 white spread + separate conditional neon English/Hebrew duplex insert, pairing not invented | Intake §§9–12 | conditional page records, imposition | OPEN |
+| V3-TOC-01 | TOC from intake records; canonical order; printed references; no cue-driven duplicate rows; overflow pages | Section §4 | TOC derivation, overflow tests | UNVERIFIED |
+| V3-TOC-02 | Section title right, contents left; 612×792 and exact specified typography | Section §§1–3,5 | master PDF copies and render test | UNVERIFIED |
+| V3-COV-01 | Actual production date, running software version and complete final assembled page count | Cover §§2–3 | cover metadata after assembly | UNVERIFIED |
+| V3-COV-02 | Preserve v1.2 cover master border and divider, monochrome | Cover §§1,4,6 | rendered PDF comparison | UNVERIFIED |
+| V3-TAG-01 | Tags tied to cueId, independently movable and page-persistent; global toggle; status tag display | Cue Tags confirmed requirements | cue/tag metadata, UI, reload tests | FUTURE |
+| V3-DB-01 | Page stores permanent IDs; central prayer/summary/instruction records and explicit association/default confirmation | Database Workflows A–F | database connectors, page metadata, modal tests | FUTURE |
+| V3-HL-01 | Preserve known-good V3.38 manual Hebrew/English line/word selection | Cue Tags §8; Database Workflow F4 | manual selection regression | UNVERIFIED |
+
+### Source-of-truth cautions
+
+- Do not treat the 63 cue / 50 page counts as verified sheet contents until the native Sheet is read; they are stated in the approved intake spec.
+- Do not implement the earlier speculative metadata architecture in preference to Intake §5 and Database Workflow F. Page-specific values and canonical database IDs have distinct responsibilities.
+- The section specification explicitly requires TOC overflow pages; never truncate to the fixed template's initial lines.
+- The approved cover and section masters are separate from the recently selected Siddur Outer Lines Only master.
+- The current V3 web production/duplex/font specification mentioned in Intake §8 still needs to be located and read; no claim of completed P01/P02 yet.
 
 ## Rules for continuation
 
