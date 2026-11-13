@@ -1,6 +1,6 @@
 {
   "schema": "leaders-companion-v3-prayer-library",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "source": {
     "summaries": "data/summary-library-v2-seed.json",
     "instructions": "data/instruction-library-v2-seed.json",
@@ -30,7 +30,9 @@
       "englishName": "Blessing over Shabbat Candles",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0002",
@@ -54,7 +56,9 @@
       "englishName": "Psalm 95",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0003",
@@ -78,7 +82,9 @@
       "englishName": "Arbaim Shana",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0004",
@@ -102,7 +108,9 @@
       "englishName": "Mizmor LeDavid",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0005",
@@ -130,7 +138,9 @@
       "englishName": "L'cha Dodi",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0006",
@@ -154,7 +164,9 @@
       "englishName": "Keep and Remember",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0007",
@@ -178,7 +190,9 @@
       "englishName": "Come Let Us Welcome",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0008",
@@ -202,7 +216,9 @@
       "englishName": "Eastward and Westward",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0009",
@@ -226,7 +242,9 @@
       "englishName": "Come with Rejoicing",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0010",
@@ -250,7 +268,9 @@
       "englishName": "Boi V'Shalom",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0011",
@@ -274,7 +294,9 @@
       "englishName": "Peace Within Thy",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0012",
@@ -298,7 +320,9 @@
       "englishName": "Adonai Oz -> B'Shalom",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0013",
@@ -322,7 +346,9 @@
       "englishName": "Derabbanan Kaddish",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0014",
@@ -346,7 +372,9 @@
       "englishName": "Psalm 92",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0015",
@@ -370,7 +398,9 @@
       "englishName": "Tzadik K'Tamar -> Bo",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0016",
@@ -399,7 +429,9 @@
       "englishName": "Kaddish L'Ela",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0017",
@@ -438,7 +470,9 @@
       "englishName": "Barchu",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0018",
@@ -467,7 +501,9 @@
       "englishName": "Blessed Art Thou",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0019",
@@ -491,7 +527,9 @@
       "englishName": "HaMaavir Yom -> Aravim",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0020",
@@ -515,7 +553,9 @@
       "englishName": "With Everlasting Love",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0021",
@@ -539,7 +579,9 @@
       "englishName": "Vahavtcha -> Yisrael",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0022",
@@ -566,7 +608,9 @@
       "englishName": "Shema Yisrael + VeAhavta",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0023",
@@ -595,7 +639,9 @@
       "englishName": "And Thou Shalt Love",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0024",
@@ -624,7 +670,9 @@
       "englishName": "And It Shall Be",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0025",
@@ -653,7 +701,9 @@
       "englishName": "And the Lord Spoke",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0026",
@@ -682,7 +732,9 @@
       "englishName": "LeMaan Tizkeru -> Emet",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0027",
@@ -711,7 +763,9 @@
       "englishName": "True and Unchanging",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0028",
@@ -733,7 +787,9 @@
       "englishName": "Mi Chamocha -> Gaal Yisrael",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0029",
@@ -757,7 +813,9 @@
       "englishName": "Hashkiveinu",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0030",
@@ -781,7 +839,9 @@
       "englishName": "Veshamru",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0031",
@@ -805,7 +865,9 @@
       "englishName": "Amidah",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0032",
@@ -829,7 +891,9 @@
       "englishName": "Our God…",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0033",
@@ -853,7 +917,9 @@
       "englishName": "We Acknowledge…",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0034",
@@ -887,7 +953,9 @@
       "englishName": "Our Father, Establish Peace",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0035",
@@ -911,7 +979,9 @@
       "englishName": "My God -> Strength",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0036",
@@ -945,7 +1015,9 @@
       "englishName": "May the Words",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0037",
@@ -979,7 +1051,9 @@
       "englishName": "Oseh Shalom",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0038",
@@ -1003,7 +1077,9 @@
       "englishName": "Vayechulu",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0039",
@@ -1027,7 +1103,9 @@
       "englishName": "Evening Repetition",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0040",
@@ -1051,7 +1129,9 @@
       "englishName": "Kaddish Titkabal",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0041",
@@ -1075,7 +1155,9 @@
       "englishName": "Psalm 23",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0042",
@@ -1099,7 +1181,9 @@
       "englishName": "Kaddish Shalem for All Lost",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0043",
@@ -1128,7 +1212,9 @@
       "englishName": "Hashkabot",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0044",
@@ -1157,7 +1243,9 @@
       "englishName": "Rogativo",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0045",
@@ -1177,7 +1265,9 @@
       "englishName": "Parasha / Announcements",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0046",
@@ -1211,7 +1301,9 @@
       "englishName": "Aleinu",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0047",
@@ -1235,7 +1327,9 @@
       "englishName": "Yigdal",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0048",
@@ -1259,7 +1353,9 @@
       "englishName": "Shalom Aleichem",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0049",
@@ -1283,7 +1379,9 @@
       "englishName": "Sabbath Blessings",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0050",
@@ -1307,7 +1405,9 @@
       "englishName": "Kiddush",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0051",
@@ -1329,7 +1429,9 @@
       "englishName": "Blessing over Holiday Candles",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0052",
@@ -1351,7 +1453,9 @@
       "englishName": "Achot Ketanah - opening stanza (Hebrew)",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0053",
@@ -1366,7 +1470,9 @@
       "englishName": "Achot Ketanah - English stanza 2",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0054",
@@ -1393,7 +1499,9 @@
       "englishName": "Holiday Kaddish",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0055",
@@ -1415,7 +1523,9 @@
       "englishName": "Ki Hem Chayanu -> Yisrael",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0056",
@@ -1437,7 +1547,9 @@
       "englishName": "On That Day",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0057",
@@ -1452,7 +1564,9 @@
       "englishName": "Kaddish L'Ela (Pomp Melody)",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0058",
@@ -1474,7 +1588,9 @@
       "englishName": "Our God (Yaale V'Yavo)",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0059",
@@ -1496,7 +1612,9 @@
       "englishName": "We Thank Thee -> ...",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0060",
@@ -1518,7 +1636,9 @@
       "englishName": "Short Repetition",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0061",
@@ -1550,7 +1670,9 @@
       "englishName": "On Thee We Therefore Wait",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0062",
@@ -1572,7 +1694,9 @@
       "englishName": "VeNeemar",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0063",
@@ -1587,7 +1711,9 @@
       "englishName": "Rosh Hashanah Blessings",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0064",
@@ -1609,7 +1735,9 @@
       "englishName": "Adonai Hu HaElohim (Read)",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0065",
@@ -1631,7 +1759,9 @@
       "englishName": "Nishmat",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0066",
@@ -1653,7 +1783,9 @@
       "englishName": "The Soul -> Thank and Praise",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0067",
@@ -1675,7 +1807,9 @@
       "englishName": "B'Fi",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0068",
@@ -1697,7 +1831,9 @@
       "englishName": "In the Mouth of the...",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0069",
@@ -1719,7 +1855,9 @@
       "englishName": "Yede Rashim",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0070",
@@ -1741,7 +1879,9 @@
       "englishName": "Yede Rashim - English",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0071",
@@ -1763,7 +1903,9 @@
       "englishName": "Yehe Shmech",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0072",
@@ -1785,7 +1927,9 @@
       "englishName": "Yehe Shmech - English",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0073",
@@ -1807,7 +1951,9 @@
       "englishName": "Such Praise",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0074",
@@ -1829,7 +1975,9 @@
       "englishName": "Lord Our God -> Awe Inspiring and Holy",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0075",
@@ -1851,7 +1999,9 @@
       "englishName": "V'Koolam -> Baruch kevod adonai Mimkomo (read)",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0076",
@@ -1873,7 +2023,9 @@
       "englishName": "Thus They Chant -> Heavenly Light",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0077",
@@ -1895,7 +2047,9 @@
       "englishName": "Hasten -> Thy Name",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0078",
@@ -1917,7 +2071,9 @@
       "englishName": "Baruch-> B'Ahava (Read)",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0079",
@@ -1939,7 +2095,9 @@
       "englishName": "True It Is -> Blessed Be He",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0080",
@@ -1961,7 +2119,9 @@
       "englishName": "Mi Chamocha (High Holiday)",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0081",
@@ -1983,7 +2143,9 @@
       "englishName": "Gaal Yisrael (High Holiday)",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0082",
@@ -2005,7 +2167,9 @@
       "englishName": "Amidah with High Holiday Additions",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0083",
@@ -2037,7 +2201,9 @@
       "englishName": "Kedushah",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0084",
@@ -2064,7 +2230,9 @@
       "englishName": "We Thank Thee -> Our Hope on Thee",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0085",
@@ -2091,7 +2259,9 @@
       "englishName": "Hayom",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0086",
@@ -2113,7 +2283,9 @@
       "englishName": "And May We -> Peaceful Life",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0087",
@@ -2135,7 +2307,9 @@
       "englishName": "Avinu Malkeinu - English",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0088",
@@ -2152,7 +2326,9 @@
       "englishName": "Avinu Malkeinu",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0089",
@@ -2179,7 +2355,9 @@
       "englishName": "Kaddish Titkabal - Opening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0090",
@@ -2211,7 +2389,9 @@
       "englishName": "May You Be Answered",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0091",
@@ -2233,7 +2413,9 @@
       "englishName": "Kaddish Titkabal - Closing",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0092",
@@ -2255,7 +2437,9 @@
       "englishName": "Lemaancha Elohai",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0093",
@@ -2277,7 +2461,9 @@
       "englishName": "Lemaancha Elohai - English",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0094",
@@ -2299,7 +2485,9 @@
       "englishName": "Yaane BBoker Avot",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0095",
@@ -2321,7 +2509,9 @@
       "englishName": "Yaane BBoker Avot - English",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0096",
@@ -2343,7 +2533,9 @@
       "englishName": "Prayer for the Government",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0097",
@@ -2365,7 +2557,9 @@
       "englishName": "Prayer for the Congregation",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0098",
@@ -2390,7 +2584,9 @@
       "englishName": "Prayer for the State of Israel",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0099",
@@ -2407,7 +2603,9 @@
       "englishName": "Remarks & Bidding for Honors",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0100",
@@ -2429,7 +2627,9 @@
       "englishName": "Unto Thee",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0101",
@@ -2451,7 +2651,9 @@
       "englishName": "Lord Our God",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0102",
@@ -2473,7 +2675,9 @@
       "englishName": "Open Ark / All Rise",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0103",
@@ -2495,7 +2699,9 @@
       "englishName": "Vayehi Binsoah",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0104",
@@ -2527,7 +2733,9 @@
       "englishName": "Kohanecha",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0105",
@@ -2566,7 +2774,9 @@
       "englishName": "Adonai Adonai",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0106",
@@ -2588,7 +2798,9 @@
       "englishName": "The Lord, The Lord, God",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0107",
@@ -2610,7 +2822,9 @@
       "englishName": "In the Spirit -> Life of Blessing",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0108",
@@ -2632,7 +2846,9 @@
       "englishName": "Through the Virtue -> Perfect Souls",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0109",
@@ -2654,7 +2870,9 @@
       "englishName": "May the Words (Yehi Ratzon)",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0110",
@@ -2676,7 +2894,9 @@
       "englishName": "Blessed Be Thy Name -> Is Thine",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0111",
@@ -2698,7 +2918,9 @@
       "englishName": "Bei Ana",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0112",
@@ -2720,7 +2942,9 @@
       "englishName": "Take Out / Adorn Torahs",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0113",
@@ -2757,7 +2981,9 @@
       "englishName": "Gadlu",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0114",
@@ -2779,7 +3005,9 @@
       "englishName": "Torah Procession",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0115",
@@ -2801,7 +3029,9 @@
       "englishName": "Rommemu / Torah Tziva / Etz Chaim",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0116",
@@ -2828,7 +3058,9 @@
       "englishName": "Call Person to Raise Torah",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0117",
@@ -2850,7 +3082,9 @@
       "englishName": "V'Zot HaTorah",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0118",
@@ -2872,7 +3106,9 @@
       "englishName": "Torah Blessings",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0119",
@@ -2894,7 +3130,9 @@
       "englishName": "Calling People for Aliyot",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0120",
@@ -2921,7 +3159,9 @@
       "englishName": "Torah Readings",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0121",
@@ -2944,7 +3184,9 @@
       "englishName": "Kaddish L'Eila",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0122",
@@ -2966,7 +3208,9 @@
       "englishName": "Maftir Reading",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0123",
@@ -2985,7 +3229,9 @@
       "englishName": "Congregation Stands for Hashkavot",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0124",
@@ -3002,7 +3248,9 @@
       "englishName": "Sermons for First and Second Day",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0125",
@@ -3024,7 +3272,9 @@
       "englishName": "Et Shaarei Ratzon",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0126",
@@ -3046,7 +3296,9 @@
       "englishName": "Individual Paragraphs",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0127",
@@ -3086,7 +3338,9 @@
       "englishName": "Shofar Service",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0128",
@@ -3108,7 +3362,9 @@
       "englishName": "Adonai B'Kol Shofar",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0129",
@@ -3192,7 +3448,9 @@
       "englishName": "Congregation Stands",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0130",
@@ -3214,7 +3472,9 @@
       "englishName": "Shofar Blessings / Calls",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0131",
@@ -3257,7 +3517,9 @@
       "englishName": "Shofar Blowing",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0132",
@@ -3289,7 +3551,9 @@
       "englishName": "Ashrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0133",
@@ -3311,7 +3575,9 @@
       "englishName": "Yimloch",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0134",
@@ -3328,7 +3594,9 @@
       "englishName": "Torah Procession / Congregation Stands",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0135",
@@ -3350,7 +3618,9 @@
       "englishName": "Mizmor L'David",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0136",
@@ -3372,7 +3642,9 @@
       "englishName": "Shuva",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0137",
@@ -3394,7 +3666,9 @@
       "englishName": "I Wait on the Lord -> Gives It Voice",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0138",
@@ -3416,7 +3690,9 @@
       "englishName": "Opening of Musaf Amidah",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0139",
@@ -3438,7 +3714,9 @@
       "englishName": "Begin Malchuyot",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0140",
@@ -3460,7 +3738,9 @@
       "englishName": "Aleinu - first two paragraphs",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0141",
@@ -3482,7 +3762,9 @@
       "englishName": "Ordain -> Day of Remembrance",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0142",
@@ -3504,7 +3786,9 @@
       "englishName": "U'Dvarcha -> Yom HaZikaron",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0143",
@@ -3542,7 +3826,9 @@
       "englishName": "Shofar Calls",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0144",
@@ -3570,7 +3856,9 @@
       "englishName": "This Day",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0145",
@@ -3592,7 +3880,9 @@
       "englishName": "Begin Zichronot",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0146",
@@ -3614,7 +3904,9 @@
       "englishName": "Our God -> Divine King Art Thou",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0147",
@@ -3636,7 +3928,9 @@
       "englishName": "V'Ain -> HaBrit",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0148",
@@ -3658,7 +3952,9 @@
       "englishName": "Begin Shofarot",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0149",
@@ -3680,7 +3976,9 @@
       "englishName": "Psalm 150",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0150",
@@ -3702,7 +4000,9 @@
       "englishName": "Last Two Lines of Psalm 150",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0151",
@@ -3724,7 +4024,9 @@
       "englishName": "Ani Adonai -> B'Rachamim",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0152",
@@ -3746,7 +4048,9 @@
       "englishName": "Birkat Kohanim",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0153",
@@ -3768,7 +4072,9 @@
       "englishName": "Our Father -> Establish Peace",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0154",
@@ -3795,7 +4101,9 @@
       "englishName": "You Who Cleave",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0155",
@@ -3817,7 +4125,9 @@
       "englishName": "U'Bsefer -> Amen",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0156",
@@ -3839,7 +4149,9 @@
       "englishName": "May You Be Answered (Gates)",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0157",
@@ -3861,7 +4173,9 @@
       "englishName": "Kaddish Titkabal - Conclusion",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0158",
@@ -3888,7 +4202,9 @@
       "englishName": "Ein Keloheinu",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0159",
@@ -3910,7 +4226,9 @@
       "englishName": "Mourner's Kaddish",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0160",
@@ -3932,7 +4250,9 @@
       "englishName": "Adon Olam",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0161",
@@ -3954,7 +4274,9 @@
       "englishName": "Greetings",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0162",
@@ -3971,7 +4293,9 @@
       "englishName": "Candle Lighting for the Six Million",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0163",
@@ -3993,7 +4317,9 @@
       "englishName": "Candle Lighting for Yom Kippur",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0164",
@@ -4015,7 +4341,9 @@
       "englishName": "Va'ani",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0165",
@@ -4037,7 +4365,9 @@
       "englishName": "Blessing for Wearing Tallit",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0166",
@@ -4052,7 +4382,9 @@
       "englishName": "Psalm 93",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0167",
@@ -4069,7 +4401,9 @@
       "englishName": "Bidding",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0168",
@@ -4086,7 +4420,9 @@
       "englishName": "Torah Service / Congregation Stands",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0169",
@@ -4103,7 +4439,9 @@
       "englishName": "Open Ark / Take Out / Adorn Torah Scrolls",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0170",
@@ -4125,7 +4463,9 @@
       "englishName": "Romemu",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0171",
@@ -4147,7 +4487,9 @@
       "englishName": "B'Yeshiva Shel Ma'ala - English",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0172",
@@ -4169,7 +4511,9 @@
       "englishName": "Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0173",
@@ -4191,7 +4535,9 @@
       "englishName": "Kol Nidrei - Every Kind of Vow",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0174",
@@ -4213,7 +4559,9 @@
       "englishName": "Kol Nidrei - Repetition",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0175",
@@ -4235,7 +4583,9 @@
       "englishName": "All Such Oaths -> In Error",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0176",
@@ -4250,7 +4600,9 @@
       "englishName": "Shehecheyanu",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0177",
@@ -4267,7 +4619,9 @@
       "englishName": "Return Torahs to Ark",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0178",
@@ -4289,7 +4643,9 @@
       "englishName": "Return O Lord",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0179",
@@ -4311,7 +4667,9 @@
       "englishName": "Thou Being Merciful",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0180",
@@ -4333,7 +4691,9 @@
       "englishName": "Blessed Art Thou -> Thy People Israel",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0181",
@@ -4348,7 +4708,9 @@
       "englishName": "Shema",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0182",
@@ -4363,7 +4725,9 @@
       "englishName": "V'Ahavta",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0183",
@@ -4378,7 +4742,9 @@
       "englishName": "L'Maan Tizkeru",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0184",
@@ -4393,7 +4759,9 @@
       "englishName": "Mi Chamocha",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0185",
@@ -4415,7 +4783,9 @@
       "englishName": "For on This Day",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0186",
@@ -4439,7 +4809,9 @@
       "englishName": "Kaddish L'Aylah",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0187",
@@ -4466,7 +4838,9 @@
       "englishName": "Opening of Amidah",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0188",
@@ -4488,7 +4862,9 @@
       "englishName": "We Thank Thee",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0189",
@@ -4510,7 +4886,9 @@
       "englishName": "Ana B'Korenu",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0190",
@@ -4532,7 +4910,9 @@
       "englishName": "Lord Hearken -> As of Old",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0191",
@@ -4559,7 +4939,9 @@
       "englishName": "Ashamnu",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0192",
@@ -4586,7 +4968,9 @@
       "englishName": "But in All -> We and Our Fathers",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0193",
@@ -4608,7 +4992,9 @@
       "englishName": "Yet Withal We -> Thee O Lord",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0194",
@@ -4630,7 +5016,9 @@
       "englishName": "Of Us All -> Have Done Evil",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0195",
@@ -4662,7 +5050,9 @@
       "englishName": "Adir V'Naor",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0196",
@@ -4684,7 +5074,9 @@
       "englishName": "Yea, in the Words",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0197",
@@ -4706,7 +5098,9 @@
       "englishName": "Kaddish Titkabbal - Opening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0198",
@@ -4728,7 +5122,9 @@
       "englishName": "Kaddish Titkabbal - Conclusion",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0199",
@@ -4745,7 +5141,9 @@
       "englishName": "Select Five Readers to Be Honored",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0200",
@@ -4760,7 +5158,9 @@
       "englishName": "Psalm 1",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0201",
@@ -4775,7 +5175,9 @@
       "englishName": "Psalm 2",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0202",
@@ -4790,7 +5192,9 @@
       "englishName": "Psalm 3",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0203",
@@ -4805,7 +5209,9 @@
       "englishName": "Psalm 4",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0204",
@@ -4820,7 +5226,9 @@
       "englishName": "Psalm 24",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0205",
@@ -4842,7 +5250,9 @@
       "englishName": "May It Be Thy Will",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0206",
@@ -4857,7 +5267,9 @@
       "englishName": "Adonai Hu HaElohim",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0207",
@@ -4879,7 +5291,9 @@
       "englishName": "In the Mouth -> Master of Life Eternal",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0208",
@@ -4901,7 +5315,9 @@
       "englishName": "Havu L'Adonai - first two verses",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0209",
@@ -4923,7 +5339,9 @@
       "englishName": "Continue English with Hebrew Response",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0210",
@@ -4945,7 +5363,9 @@
       "englishName": "Kaddish L'Aylah (Holiday)",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0211",
@@ -4967,7 +5387,9 @@
       "englishName": "All Things Shall Praise -> Like Thee",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0212",
@@ -4989,7 +5411,9 @@
       "englishName": "Lord Our God -> Reverently Proclaiming",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0213",
@@ -5016,7 +5440,9 @@
       "englishName": "Kadosh Kadosh",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0214",
@@ -5038,7 +5464,9 @@
       "englishName": "Lord God -> Thy People Israel",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0215",
@@ -5060,7 +5488,9 @@
       "englishName": "Shema / VeAhavta",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0216",
@@ -5082,7 +5512,9 @@
       "englishName": "And It Shall Be -> Lord Your God",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0217",
@@ -5104,7 +5536,9 @@
       "englishName": "Adonai Eloheichem Emet",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0218",
@@ -5126,7 +5560,9 @@
       "englishName": "True It Is -> Great Exaltation",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0219",
@@ -5148,7 +5584,9 @@
       "englishName": "Omrim Kadosh - first two lines",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0220",
@@ -5170,7 +5608,9 @@
       "englishName": "Continue English and Hebrew Response",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0221",
@@ -5192,7 +5632,9 @@
       "englishName": "Silent Prayer",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0222",
@@ -5214,7 +5656,9 @@
       "englishName": "Avinu Malkeinu - Traditional Chorus",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0223",
@@ -5236,7 +5680,9 @@
       "englishName": "Lema'ancha Elohai - two verses",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0224",
@@ -5258,7 +5704,9 @@
       "englishName": "B'Deel V'Yaavor",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0225",
@@ -5285,7 +5733,9 @@
       "englishName": "For on This Day -> You Shall Be Clean",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0226",
@@ -5307,7 +5757,9 @@
       "englishName": "Shema Yisrael",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0227",
@@ -5329,7 +5781,9 @@
       "englishName": "Adonai Melech",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0228",
@@ -5351,7 +5805,9 @@
       "englishName": "Ere Heavens - Hebrew Responses",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0229",
@@ -5373,7 +5829,9 @@
       "englishName": "Merciful and Gracious -> Working Salvation",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0230",
@@ -5395,7 +5853,9 @@
       "englishName": "Our God in Heaven -> Comforted Us",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0231",
@@ -5417,7 +5877,9 @@
       "englishName": "May You Be Answered -> Amen",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0232",
@@ -5434,7 +5896,9 @@
       "englishName": "End of Preliminary Service",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0233",
@@ -5451,7 +5915,9 @@
       "englishName": "Remarks & Bidding",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0234",
@@ -5473,7 +5939,9 @@
       "englishName": "Open Ark / Congregation Stands",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0235",
@@ -5500,7 +5968,9 @@
       "englishName": "Take Out / Adorn Torah Scrolls",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0236",
@@ -5528,7 +5998,9 @@
       "englishName": "Vezot HaTorah",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0237",
@@ -5550,7 +6022,9 @@
       "englishName": "Torah Readings - First Scroll",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0238",
@@ -5572,7 +6046,9 @@
       "englishName": "Maftir - Second Scroll",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0239",
@@ -5594,7 +6070,9 @@
       "englishName": "Hashkabah - Memorial Names",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0240",
@@ -5609,7 +6087,9 @@
       "englishName": "Prayer for Health - Rogativo",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0241",
@@ -5636,7 +6116,9 @@
       "englishName": "Haftarah",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0242",
@@ -5653,7 +6135,9 @@
       "englishName": "Sermon",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0243",
@@ -5675,7 +6159,9 @@
       "englishName": "Blessed Be the Lord",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0244",
@@ -5697,7 +6183,9 @@
       "englishName": "The Lord Our God -> Thou Goest",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0245",
@@ -5719,7 +6207,9 @@
       "englishName": "I Wait on the Lord",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0246",
@@ -5746,7 +6236,9 @@
       "englishName": "Kedushah - alternating English/Hebrew",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0247",
@@ -5768,7 +6260,9 @@
       "englishName": "Happy the Eye",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0248",
@@ -5790,7 +6284,9 @@
       "englishName": "Verily the Desire -> No Zion",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0249",
@@ -5817,7 +6313,9 @@
       "englishName": "Viddui - Silent Prayer",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0250",
@@ -5834,7 +6332,9 @@
       "englishName": "Midday Break",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0251",
@@ -5856,7 +6356,9 @@
       "englishName": "Psalm 84",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0252",
@@ -5878,7 +6380,9 @@
       "englishName": "A Redeemer -> Is His Glory",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0253",
@@ -5900,7 +6404,9 @@
       "englishName": "And They Receive -> His Holy Abode",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0254",
@@ -5922,7 +6428,9 @@
       "englishName": "Baruch Kevod",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0255",
@@ -5944,7 +6452,9 @@
       "englishName": "Then the Spirit -> Forever and Ever",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0256",
@@ -5966,7 +6476,9 @@
       "englishName": "Adonai Yimloch",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0257",
@@ -5988,7 +6500,9 @@
       "englishName": "O Lord God -> Wrath Not at All",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0258",
@@ -6010,7 +6524,9 @@
       "englishName": "Blessed Be Our God -> World to Come",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0259",
@@ -6032,7 +6548,9 @@
       "englishName": "Grant That I Sing -> Hope in the Lord",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0260",
@@ -6054,7 +6572,9 @@
       "englishName": "God Long Suffering -> Abundant Mercy",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0261",
@@ -6076,7 +6596,9 @@
       "englishName": "Congregation Stands / Open Ark",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0262",
@@ -6098,7 +6620,9 @@
       "englishName": "Baruch HaMakom",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0263",
@@ -6120,7 +6644,9 @@
       "englishName": "Blessings after Haftarah",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0264",
@@ -6137,7 +6663,9 @@
       "englishName": "Congregation Stands / Torah Procession",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0265",
@@ -6159,7 +6687,9 @@
       "englishName": "Yehallelu / Shuva",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0266",
@@ -6186,7 +6716,9 @@
       "englishName": "Our God -> We and Our Fathers",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0267",
@@ -6208,7 +6740,9 @@
       "englishName": "More Than -> We and Our Fathers",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0268",
@@ -6230,7 +6764,9 @@
       "englishName": "Ayl Nora",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0269",
@@ -6252,7 +6788,9 @@
       "englishName": "I Wait on the Lord -> Declare Thy Praise",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0270",
@@ -6274,7 +6812,9 @@
       "englishName": "Hymn Introducing Kedushah",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0271",
@@ -6296,7 +6836,9 @@
       "englishName": "More Than -> And Our Fathers",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0272",
@@ -6318,7 +6860,9 @@
       "englishName": "Merciful God / B'Deel V'Yaavor",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0273",
@@ -6340,7 +6884,9 @@
       "englishName": "Still Is Judah's Tribe",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0274",
@@ -6362,7 +6908,9 @@
       "englishName": "Adonai Hu HaElohim - seven times",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0275",
@@ -6384,7 +6932,9 @@
       "englishName": "Shofar",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0276",
@@ -6406,7 +6956,9 @@
       "englishName": "Shofar - Teruah Gedolah",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0277",
@@ -6421,7 +6973,9 @@
       "englishName": "Achot Ketanah - Hebrew refrain",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0278",
@@ -6436,7 +6990,9 @@
       "englishName": "Achot Ketanah - final stanza (Hebrew)",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0279",
@@ -6451,7 +7007,9 @@
       "englishName": "Achot Ketanah - English stanza 3",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0280",
@@ -6466,7 +7024,9 @@
       "englishName": "Achot Ketanah - English stanza 4",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0281",
@@ -6481,7 +7041,9 @@
       "englishName": "Achot Ketanah - English stanza 5",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0282",
@@ -6496,7 +7058,9 @@
       "englishName": "Achot Ketanah - English stanza 6",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0283",
@@ -6511,7 +7075,9 @@
       "englishName": "Achot Ketanah - English stanza 7",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0284",
@@ -6526,7 +7092,9 @@
       "englishName": "Mizmor LeDavid — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0285",
@@ -6541,7 +7109,9 @@
       "englishName": "L'cha Dodi — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0286",
@@ -6556,7 +7126,9 @@
       "englishName": "Psalm 92 — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0287",
@@ -6571,7 +7143,9 @@
       "englishName": "Barchu — RH Maariv Opening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0288",
@@ -6586,7 +7160,9 @@
       "englishName": "Maariv Aravim — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0289",
@@ -6601,7 +7177,9 @@
       "englishName": "Ahavat Olam — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0290",
@@ -6616,7 +7194,9 @@
       "englishName": "Shema — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0291",
@@ -6631,7 +7211,9 @@
       "englishName": "Mi Chamocha — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0292",
@@ -6646,7 +7228,9 @@
       "englishName": "Hashkiveinu — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0293",
@@ -6661,7 +7245,9 @@
       "englishName": "Veshamru — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0294",
@@ -6676,7 +7262,9 @@
       "englishName": "Amidah — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0295",
@@ -6691,7 +7279,9 @@
       "englishName": "Our Father, Establish Peace — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0296",
@@ -6706,7 +7296,9 @@
       "englishName": "Oseh Shalom — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0297",
@@ -6721,7 +7313,9 @@
       "englishName": "Vayechulu — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0298",
@@ -6736,7 +7330,9 @@
       "englishName": "Kaddish Titkabbal — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0299",
@@ -6751,7 +7347,9 @@
       "englishName": "Psalm 23 — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0300",
@@ -6766,7 +7364,9 @@
       "englishName": "Kaddish Shalem for All Lost — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0301",
@@ -6781,7 +7381,9 @@
       "englishName": "Hashkavot — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0302",
@@ -6796,7 +7398,9 @@
       "englishName": "Barchu — RH Concluding Repetition",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0303",
@@ -6811,7 +7415,9 @@
       "englishName": "Aleinu — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0304",
@@ -6826,7 +7432,9 @@
       "englishName": "Yigdal — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0305",
@@ -6841,7 +7449,9 @@
       "englishName": "Children's Blessings — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0306",
@@ -6856,7 +7466,9 @@
       "englishName": "Ve'ahavta — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0307",
@@ -6871,7 +7483,9 @@
       "englishName": "V'haya Im Shamoa — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0308",
@@ -6886,7 +7500,9 @@
       "englishName": "Vayomer / Tzitzit — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0309",
@@ -6901,7 +7517,9 @@
       "englishName": "LeMaan Tizkeru — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0310",
@@ -6916,7 +7534,9 @@
       "englishName": "Emet VeEmunah — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0311",
@@ -6931,7 +7551,9 @@
       "englishName": "Kaddish L'Ela — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0312",
@@ -6946,7 +7568,9 @@
       "englishName": "May the Words — RH Friday Evening",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0313",
@@ -6961,7 +7585,9 @@
       "englishName": "Rosh Hashanah Blessings — Closing",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0314",
@@ -6976,7 +7602,9 @@
       "englishName": "Torah Reading — Rosh Hashanah Day 1",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0315",
@@ -6991,7 +7619,9 @@
       "englishName": "Torah Reading — Rosh Hashanah Day 2",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0316",
@@ -7006,7 +7636,9 @@
       "englishName": "Maftir — Rosh Hashanah",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0317",
@@ -7021,7 +7653,9 @@
       "englishName": "Haftarah Blessing — Before",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0318",
@@ -7036,7 +7670,9 @@
       "englishName": "Haftarah — Rosh Hashanah Day 1",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0319",
@@ -7051,7 +7687,9 @@
       "englishName": "Haftarah — Rosh Hashanah Day 2",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0320",
@@ -7066,7 +7704,9 @@
       "englishName": "Haftarah Blessings — After",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0321",
@@ -7081,7 +7721,9 @@
       "englishName": "Derabbanan Kaddish — RH Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0322",
@@ -7096,7 +7738,9 @@
       "englishName": "Ashrei — RH Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0323",
@@ -7111,7 +7755,9 @@
       "englishName": "Barchu — RH Morning Conclusion",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0324",
@@ -7126,7 +7772,9 @@
       "englishName": "Aleinu — RH Morning Conclusion",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0325",
@@ -7141,7 +7789,9 @@
       "englishName": "Psalm 92 — Kol Nidrei Shabbat",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0326",
@@ -7156,7 +7806,9 @@
       "englishName": "Psalm 93 — Kol Nidrei Shabbat",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0327",
@@ -7171,7 +7823,9 @@
       "englishName": "Shehecheyanu — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0328",
@@ -7186,7 +7840,9 @@
       "englishName": "Barchu — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0329",
@@ -7201,7 +7857,9 @@
       "englishName": "Shema — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0330",
@@ -7216,7 +7874,9 @@
       "englishName": "V'Ahavta — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0331",
@@ -7231,7 +7891,9 @@
       "englishName": "Mi Chamocha — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0332",
@@ -7246,7 +7908,9 @@
       "englishName": "Hashkiveinu — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0333",
@@ -7261,7 +7925,9 @@
       "englishName": "Veshamru — Kol Nidrei Shabbat",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0334",
@@ -7276,7 +7942,9 @@
       "englishName": "Ashamnu — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0335",
@@ -7291,7 +7959,9 @@
       "englishName": "Psalm 1 — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0336",
@@ -7306,7 +7976,9 @@
       "englishName": "Psalm 2 — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0337",
@@ -7321,7 +7993,9 @@
       "englishName": "Psalm 3 — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0338",
@@ -7336,7 +8010,9 @@
       "englishName": "Psalm 4 — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0339",
@@ -7351,7 +8027,9 @@
       "englishName": "Psalm 24 — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0340",
@@ -7366,7 +8044,9 @@
       "englishName": "Mourner's Kaddish — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0341",
@@ -7381,7 +8061,9 @@
       "englishName": "Aleinu — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0342",
@@ -7396,7 +8078,9 @@
       "englishName": "Yigdal — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0343",
@@ -7411,7 +8095,9 @@
       "englishName": "Barchu — Kol Nidrei Conclusion",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0344",
@@ -7426,7 +8112,9 @@
       "englishName": "Romemu — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0345",
@@ -7441,7 +8129,9 @@
       "englishName": "Yimloch — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0346",
@@ -7456,7 +8146,9 @@
       "englishName": "Mizmor L'David — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0347",
@@ -7471,7 +8163,9 @@
       "englishName": "Shuva — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0348",
@@ -7486,7 +8180,9 @@
       "englishName": "Kaddish L'Aylah — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0349",
@@ -7501,7 +8197,9 @@
       "englishName": "Amidah — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0350",
@@ -7516,7 +8214,9 @@
       "englishName": "Modim — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0351",
@@ -7531,7 +8231,9 @@
       "englishName": "Our Father, Establish Peace — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0352",
@@ -7546,7 +8248,9 @@
       "englishName": "May the Words — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0353",
@@ -7561,7 +8265,9 @@
       "englishName": "Vayechulu — Kol Nidrei Shabbat",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0354",
@@ -7576,7 +8282,9 @@
       "englishName": "Kaddish Titkabbal — Kol Nidrei",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0355",
@@ -7591,7 +8299,9 @@
       "englishName": "Adonai Hu HaElohim — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0356",
@@ -7606,7 +8316,9 @@
       "englishName": "Barchu — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0357",
@@ -7621,7 +8333,9 @@
       "englishName": "Mi Chamocha — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0358",
@@ -7636,7 +8350,9 @@
       "englishName": "Shacharit Amidah — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0359",
@@ -7651,7 +8367,9 @@
       "englishName": "Ashamnu — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0360",
@@ -7666,7 +8384,9 @@
       "englishName": "Modim — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0361",
@@ -7681,7 +8401,9 @@
       "englishName": "Peace Blessing — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0362",
@@ -7696,7 +8418,9 @@
       "englishName": "Hayom — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0363",
@@ -7711,7 +8435,9 @@
       "englishName": "Kaddish L'Aylah — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0364",
@@ -7726,7 +8452,9 @@
       "englishName": "Adonai Adonai — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0365",
@@ -7741,7 +8469,9 @@
       "englishName": "Kaddish Titkabbal — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0366",
@@ -7756,7 +8486,9 @@
       "englishName": "Ashrei — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0367",
@@ -7771,7 +8503,9 @@
       "englishName": "Yimloch — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0368",
@@ -7786,7 +8520,9 @@
       "englishName": "Mizmor L'David — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0369",
@@ -7801,7 +8537,9 @@
       "englishName": "Shuva — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0370",
@@ -7816,7 +8554,9 @@
       "englishName": "Musaf Amidah — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0371",
@@ -7831,7 +8571,9 @@
       "englishName": "Aleinu — YK Musaf",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0372",
@@ -7846,7 +8588,9 @@
       "englishName": "Mourner's Kaddish — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0373",
@@ -7861,7 +8605,9 @@
       "englishName": "Adon Olam — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0374",
@@ -7876,7 +8622,9 @@
       "englishName": "Kedushah — YK Shacharit",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0375",
@@ -7891,7 +8639,9 @@
       "englishName": "You Who Cleave — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0376",
@@ -7906,7 +8656,9 @@
       "englishName": "Avinu Malkeinu — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0377",
@@ -7921,7 +8673,9 @@
       "englishName": "Lema'ancha Elohai — YK Response",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0378",
@@ -7936,7 +8690,9 @@
       "englishName": "Rogativo — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0379",
@@ -7951,7 +8707,9 @@
       "englishName": "Blessed Art Thou — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0380",
@@ -7966,7 +8724,9 @@
       "englishName": "Such Praise — YK Shabbat",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0381",
@@ -7981,7 +8741,9 @@
       "englishName": "Romemu — YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0382",
@@ -7996,7 +8758,9 @@
       "englishName": "Elohim Tzvaot — RH Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0383",
@@ -8011,7 +8775,9 @@
       "englishName": "Ain k'El — RH Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0384",
@@ -8026,7 +8792,9 @@
       "englishName": "The Rabbis Say — RH Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0385",
@@ -8041,7 +8809,9 @@
       "englishName": "Torah Service - YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     },
     {
       "prayerId": "PR-0386",
@@ -8056,7 +8826,9 @@
       "englishName": "Musaf Service - YK Morning",
       "hebrewName": "",
       "aliasesEnglish": [],
-      "aliasesHebrew": []
+      "aliasesHebrew": [],
+      "shortEnglishName": "",
+      "shortHebrewName": ""
     }
   ],
   "summaries": [
@@ -14154,5 +14926,5 @@
       "found": true
     }
   ],
-  "schemaNotes": "Prayer identity has canonical English and Hebrew names. Blank Hebrew names are unverified and must not be invented. Both save actions must persist changes through an authenticated write service before reporting success."
+  "schemaNotes": "Canonical English and Hebrew names plus optional short English and Hebrew display names. Short names are aliases for lookup, not independent prayer identities. Blank values are unverified."
 }
