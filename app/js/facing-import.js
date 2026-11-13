@@ -437,7 +437,9 @@ function facingPageWarnings(record){
  const state=record.leadership;
  const warnings=[];
  for(const cue of state.cues||[])if(!String(cue.matchStatus||"").includes("candidate")&&!String(cue.matchStatus||"").includes("matched"))warnings.push("Cue "+cue.cueId+" requires review: "+(cue.matchStatus||"unmatched"));
- for(const id of state.instructionIds||[]){
+ if(Array.isArray(state.instructionEntries)){
+  for(const entry of state.instructionEntries)if(!String(entry.text||"").trim())warnings.push("Instruction "+entry.id+" has no saved text");
+ }else for(const id of state.instructionIds||[]){
   const instruction=(facingInstructionLibrary?.prayers||[]).flatMap(p=>p.instructions||[]).find(x=>Number(x.instruction_id)===Number(id));
   if(!instruction)warnings.push("Instruction #"+id+" not found");
   else if(instruction.approval_status!=="approved")warnings.push("Instruction #"+id+" is not approved in the library");
