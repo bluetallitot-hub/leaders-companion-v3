@@ -747,6 +747,50 @@ function renderPageCueEditor(){
   title.textContent=(side===0?"Left":"Right")+" page"+(record?.source?.originalPageNumber?" · "+record.source.originalPageNumber:"");
   panel.append(title);
   if(record){
+   // Sidebar production controls are page-specific and survive spread saves.
+   // Select only the original V2 artwork; the PDF renderer embeds the
+   // corresponding image when a selection is made.
+   record.production??={};
+   const sidebar=document.createElement("div");
+   sidebar.className="sidebar-production-controls";
+   sidebar.style.cssText="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px;margin:8px 0;border:1px solid #aebdb8;border-radius:6px";
+   const field=(name,control)=>{
+    const label=document.createElement("label");
+    label.style.cssText="display:grid;gap:4px;font-size:13px;font-weight:600";
+    label.append(document.createTextNode(name),control);
+    sidebar.append(label);
+   };
+   const dropdown=(options,value,onChange)=>{
+    const select=document.createElement("select");
+    select.style.cssText="width:100%;padding:6px;min-width:0";
+    for(const [code,label] of options){const option=document.createElement("option");
+     option.value=code;option.textContent=label;select.append(option);}
+    select.value=value||"";
+    select.onchange=()=>{onChange(select.value);saveCurrentSpreadEdits();};
+    return select;
+   };
+   field("Format",dropdown([
+    ["","Not assigned"],["SOLO","Solo"],["UNISON","Unison"],
+    ["ALTERN","Alternating"],["RESP","Responsive"]
+   ],record.production.formatIcon,v=>record.production.formatIcon=v));
+   const language=String(record.source?.languageCode||"").toUpperCase();
+   const suffix=language==="H"?"H":"E";
+   field("Mode",dropdown([
+    ["","Not assigned"],
+    ["MELODY_"+suffix,"Melody"],["READING_"+suffix,"Reading"],
+    ["TORAH","Torah"],["SHOFAR","Shofar"]
+   ],record.production.modeIcon,v=>record.production.modeIcon=v));
+   const pitch=document.createElement("input");pitch.type="text";
+   pitch.value=String(record.production.pitch||pageMelodyForLayout(record).pitch||"");
+   pitch.placeholder="Pitch";pitch.style.cssText="width:100%;min-width:0;padding:6px;box-sizing:border-box";
+   pitch.onchange=()=>{record.production.pitch=pitch.value.trim();saveCurrentSpreadEdits();};
+   field("Pitch",pitch);
+   const next=document.createElement("input");next.type="text";
+   next.value=String(record.production.nextPrayer||"");next.placeholder="Next prayer";
+   next.style.cssText="width:100%;min-width:0;padding:6px;box-sizing:border-box";
+   next.onchange=()=>{record.production.nextPrayer=next.value.trim();saveCurrentSpreadEdits();};
+   field("Next",next);
+   panel.append(sidebar);
    const addCue=document.createElement("button");addCue.type="button";addCue.textContent="Add cue to this page";
    addCue.onclick=()=>{
     const id="MANUAL-"+Date.now()+"-"+side;
@@ -3715,7 +3759,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  const cells=[
   {label:"FORMAT",image:chosenFormat,value:chosenFormat?null:"—"},
   {label:"MODE",image:chosenMode,value:chosenMode?null:"—"},
-  {label:"PITCH",value:layoutMelody.pitch||"—"},
+  {label:"PITCH",value:String(record?.production?.pitch||layoutMelody.pitch||"—")},
   {label:"NEXT",value:String(record?.production?.nextPrayer||record?.identification?.nextPrayer||"—")}
  ];
  for(let i=0;i<4;i++){
