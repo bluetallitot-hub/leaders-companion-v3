@@ -394,6 +394,7 @@ function assignNextPrayerFromIntake(record,matches){
  const last=currentIndices[currentIndices.length-1];
  const following=importedCues.slice(last+1).find(row=>prayerNameFromIntake(row)&&prayerNameFromIntake(row)!==current);
  record.production.nextPrayer=following?prayerNameFromIntake(following):"";
+ record.production.nextPrayerFull=record.production.nextPrayer;
  record.production.nextPrayerSource="csv";
 }
 
@@ -431,16 +432,29 @@ async function attachV2Summaries(records=pageMetadata){
   // A cue ID is only identity evidence: summary and instruction ownership remains on the prayer.
   const candidates=db.prayers.filter(p=>
    (p.sourceCueIds||[]).some(id=>ids.has(id))||
-   [p.englishName,p.hebrewName,p.canonicalName,...(p.aliases||[]),...(p.aliasesEnglish||[]),...(p.aliasesHebrew||[])].some(name=>name&&names.some(n=>normalize(name)===normalize(n))));
+   [p.englishName,p.hebrewName,p.shortEnglishName,p.shortHebrewName,p.canonicalName,...(p.aliases||[]),...(p.aliasesEnglish||[]),...(p.aliasesHebrew||[])].some(name=>name&&names.some(n=>normalize(name)===normalize(n))));
   const unique=[...new Map(candidates.map(p=>[p.prayerId,p])).values()];
+  record.production??={};
+  if(record.production.nextPrayerSource!=="manual")record.production.nextPrayerDisplay=nextPrayerDisplayName(record,db);
   record.prayerLibraryMatches=unique.map(p=>({prayerId:p.prayerId,name:p.englishName||p.canonicalName}));
   if(unique.length!==1){record.prayerLibrary=null;continue;}
   const p=unique[0];
-  record.prayerLibrary={prayerId:p.prayerId,englishName:p.englishName||p.canonicalName,hebrewName:p.hebrewName||"",
+  record.prayerLibrary={prayerId:p.prayerId,englishName:p.englishName||p.canonicalName,hebrewName:p.hebrewName||"",shortEnglishName:p.shortEnglishName||"",shortHebrewName:p.shortHebrewName||"",
    summaryIds:[...p.summaryIds],instructionIds:[...p.instructionIds],
    summaries:p.summaryIds.map(id=>summaries.get(id)).filter(Boolean),
    instructions:p.instructionIds.map(id=>instructions.get(id)).filter(Boolean)};
  }
+}
+function nextPrayerDisplayName(record,db){
+ const full=String(record?.production?.nextPrayerFull||record?.production?.nextPrayer||record?.identification?.nextPrayer||"").trim();
+ if(!full)return "";
+ if(record?.production?.nextPrayerSource==="manual")return String(record.production.nextPrayer||full);
+ const key=prayerIdentity(full);
+ const candidates=(db?.prayers||[]).filter(p=>[p.englishName,p.hebrewName,p.canonicalName,...(p.aliases||[]),...(p.aliasesEnglish||[]),...(p.aliasesHebrew||[])].some(n=>prayerIdentity(n)===key));
+ if(candidates.length!==1)return full;
+ const p=candidates[0];
+ const hebrew=/[\u0590-\u05ff]/.test(full);
+ return (hebrew?p.shortHebrewName:p.shortEnglishName)||full;
 }
 function pageSummaryForLayout(record){
  const draft=String(record?.prayerDraft?.summary||"").trim();
@@ -857,7 +871,7 @@ function prayerForRecord(db,record){
  const id=names.find(n=>db.prayers.some(p=>p.prayerId===n));
  if(id)return db.prayers.find(p=>p.prayerId===id);
  for(const name of names){
-  const matches=db.prayers.filter(p=>[p.englishName,p.hebrewName,p.canonicalName,...(p.aliases||[]),...(p.aliasesEnglish||[]),...(p.aliasesHebrew||[])].some(n=>prayerIdentity(n)===prayerIdentity(name)));
+  const matches=db.prayers.filter(p=>[p.englishName,p.hebrewName,p.shortEnglishName,p.shortHebrewName,p.canonicalName,...(p.aliases||[]),...(p.aliasesEnglish||[]),...(p.aliasesHebrew||[])].some(n=>prayerIdentity(n)===prayerIdentity(name)));
   if(matches.length===1)return matches[0];
   if(matches.length>1)throw Error("Ambiguous prayer name: "+name);
  }
@@ -880,10 +894,10 @@ async function savePrayerWorkingDatabase(){
    const matches=copy.prayers.filter(p=>[p.englishName,p.hebrewName].some(n=>n&&(prayerIdentity(n)===prayerIdentity(english)||prayerIdentity(n)===prayerIdentity(hebrew))));
    if(matches.length)throw Error("Existing prayer name needs review before creating a new record");
    const next=Math.max(0,...copy.prayers.map(p=>Number(String(p.prayerId||"").replace(/^PR-/,""))||0))+1;
-   prayer={prayerId:"PR-"+String(next).padStart(4,"0"),canonicalName:english||hebrew,englishName:english,hebrewName:hebrew,aliases:[],aliasesEnglish:[],aliasesHebrew:[],locations:[],summaryIds:[],instructionIds:[],sourceCueIds:[]};
+   prayer={prayerId:"PR-"+String(next).padStart(4,"0"),canonicalName:english||hebrew,englishName:english,hebrewName:hebrew,aliases:[],aliasesEnglish:[],aliasesHebrew:[],shortEnglishName:"",shortHebrewName:"",locations:[],summaryIds:[],instructionIds:[],sourceCueIds:[]};
    copy.prayers.push(prayer);
   }
-  prayer.englishName=english;prayer.hebrewName=hebrew;prayer.canonicalName=english||hebrew;
+  prayer.englishName=english;prayer.hebrewName=hebrew;prayer.shortEnglishName=String(draft.shortEnglishName||"").trim();prayer.shortHebrewName=String(draft.shortHebrewName||"").trim();prayer.canonicalName=english||hebrew;
   const siddur=String(record.source?.sourceId||record.source?.siddurId||"").trim(),page=String(record.source?.originalPageNumber||"").trim();
   if(siddur&&page&&!prayer.locations.some(x=>x.siddurId===siddur&&x.printedPage===page))prayer.locations.push({siddurId:siddur,printedPage:page});
   const summaryText=String(draft.summary||"").trim();
@@ -931,6 +945,8 @@ function renderPageCueEditor(){
    const draft=prayerDraftForRecord(record);
    if(draft.englishName===undefined)draft.englishName=record.prayerLibrary?.englishName??record.leadership?.instructionPrayer??record.prayerTitle??record.identification?.prayerName??"";
    if(draft.hebrewName===undefined)draft.hebrewName=record.prayerLibrary?.hebrewName??"";
+   if(draft.shortEnglishName===undefined)draft.shortEnglishName=record.prayerLibrary?.shortEnglishName??"";
+   if(draft.shortHebrewName===undefined)draft.shortHebrewName=record.prayerLibrary?.shortHebrewName??"";
    const prayerPanel=document.createElement("fieldset");prayerPanel.style.cssText="display:grid;gap:6px;margin:8px 0;padding:10px;border:1px solid #9db6ac";
    const legend=document.createElement("legend");legend.textContent="Prayer Library — browser working copy";prayerPanel.append(legend);
    const addField=(label,value,key,multiline=false)=>{
@@ -940,6 +956,8 @@ function renderPageCueEditor(){
    };
    addField("English prayer name",draft.englishName??record.prayerLibrary?.englishName??record.leadership?.instructionPrayer??record.prayerTitle??record.identification?.prayerName??"","englishName");
    addField("Hebrew prayer name",draft.hebrewName??"","hebrewName");
+   addField("Short English name (NEXT display)",draft.shortEnglishName??"","shortEnglishName");
+   addField("Short Hebrew name (NEXT display)",draft.shortHebrewName??"","shortHebrewName");
    addField("Summary",draft.summary??pageSummaryForLayout(record)?.summaryText??"","summary",true);
    const matchInfo=document.createElement("div");matchInfo.style.cssText="font-size:12px;color:#425b55";
    matchInfo.textContent=record.prayerLibrary?"Matched "+record.prayerLibrary.prayerId+" · "+record.prayerLibrary.summaries.length+" summary record(s)":record.prayerLibraryMatches?.length>1?"Multiple prayer matches — select prayer identity before editing":"No verified prayer match — summary not assigned";prayerPanel.append(matchInfo);
@@ -3986,7 +4004,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   {label:"FORMAT",image:chosenFormat,value:chosenFormat?null:"—"},
   {label:"MODE",image:chosenMode,value:chosenMode?null:"—"},
   {label:"PITCH",value:String(record?.production?.pitch||(!layoutMelody.isStub?layoutMelody.pitch:"")||"—")},
-  {label:"NEXT",value:String(record?.production?.nextPrayer||record?.identification?.nextPrayer||"—")}
+  {label:"NEXT",value:String(record?.production?.nextPrayerDisplay||record?.production?.nextPrayer||record?.identification?.nextPrayer||"—")}
  ];
  for(let i=0;i<4;i++){
   const col=i%2,row=Math.floor(i/2),x=gridX+col*cellSize;
