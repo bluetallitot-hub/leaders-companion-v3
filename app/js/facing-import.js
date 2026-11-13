@@ -3670,29 +3670,81 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  const railX=side===0?20.16:444.96,railW=146.88;
  const railInk=PDFLib.rgb(.12,.23,.27),railMuted=PDFLib.rgb(.39,.44,.47);
  const center=(value,size,f=font)=>railX+(railW-f.widthOfTextAtSize(value,size))/2;
- const cell=(label,value,x,y,w)=>{
-  page.drawText(label,{x:x+5,y:y+31,size:8,font:bold,color:railMuted});
-  let text=String(value||"—");
-  while(text&&bold.widthOfTextAtSize(text,10)>w-10)text=text.slice(0,-1);
-  if(text)page.drawText(text,{x:x+5,y:y+13,size:10,font:bold,color:railInk});
+ // Match the role badge's approved 3pt inset on every side. The four
+ // square cells start exactly 3pt below the role field (bottom y=711).
+ const inset=3,gridX=railX+inset,gridTop=711-inset;
+ const gridW=railW-2*inset,cellSize=gridW/2,gridBottom=gridTop-gridW;
+ const formatOptions={SOLO:"FORMAT_SOLO.png",UNISON:"FORMAT_UNISON.png",
+  ALTERN:"FORMAT_ALTERN.png",ALTERNATING:"FORMAT_ALTERN.png",
+  RESP:"FORMAT_RESP.png",RESPONSIVE:"FORMAT_RESP.png"};
+ const modeOptions={MELODY_E:"MODE_MELODY_E.png",MELODY_H:"MODE_MELODY_H.png",
+  READING_E:"MODE_READING_E.png",READING_H:"MODE_READING_H.png",
+  TORAH:"MODE_TORAH.jpg",SHOFAR:"MODE_SHOFAR.jpg"};
+ // Explicit metadata drives image selection; no guessed format or mode.
+ // Accept historical short names and full asset filenames, but only from
+ // this fixed allowlist (never fetch arbitrary paths from page metadata).
+ const formatKey=String(record?.production?.formatIcon||record?.production?.format||"").toUpperCase().trim().replace(/^FORMAT_/,"").replace(/\\.(PNG|JPG)$/,"");
+ const modeKey=String(record?.production?.modeIcon||record?.production?.mode||"").toUpperCase().trim().replace(/^MODE_/,"").replace(/\\.(PNG|JPG)$/,"");
+ const chosenFormat=formatOptions[formatKey]||null;
+ const chosenMode=modeOptions[modeKey]||null;
+ const iconCache=drawApprovedPageFields.iconCache||(drawApprovedPageFields.iconCache=new Map());
+ const iconImage=async name=>{
+  if(!name)return null;
+  if(!iconCache.has(name))iconCache.set(name,(async()=>{
+   const url=new URL("../../assets/v2-icons/"+name,document.baseURI);
+   const response=await fetch(url);
+   if(!response.ok)throw Error("V2 sidebar icon unavailable: "+name+" ("+response.status+")");
+   return new Uint8Array(await response.arrayBuffer());
+  })());
+  const bytes=await iconCache.get(name);
+  return name.toLowerCase().endsWith(".jpg")?out.embedJpg(bytes):out.embedPng(bytes);
  };
- // 2×2 Format/Mode/Pitch/Next grid, exact full rail width.
- const gridY=630,gridH=70,half=railW/2;
- const gridValues=[
-  ["FORMAT",String(record?.source?.language||"").toUpperCase()||"—"],
-  ["MODE","—"],
-  ["PITCH",layoutMelody.pitch||"—"],
-  ["NEXT","—"]
+ const fitCellText=(value,maxW,initial=13)=>{
+  let size=initial,lines=String(value||"—").split(/\\s+/),result=[];
+  while(size>=8){
+   result=[];let line="";
+   for(const word of lines){const candidate=line?line+" "+word:word;
+    if(bold.widthOfTextAtSize(candidate,size)>maxW&&line){result.push(line);line=word;}else line=candidate;
+   }
+   if(line)result.push(line);
+   if(result.length<=2&&result.every(t=>bold.widthOfTextAtSize(t,size)<=maxW))break;
+   size-=.5;
+  }
+  return {size,lines:result.slice(0,2)};
+ };
+ const cells=[
+  {label:"FORMAT",image:chosenFormat,value:chosenFormat?null:"—"},
+  {label:"MODE",image:chosenMode,value:chosenMode?null:"—"},
+  {label:"PITCH",value:layoutMelody.pitch||"—"},
+  {label:"NEXT",value:String(record?.production?.nextPrayer||record?.identification?.nextPrayer||"—")}
  ];
- gridValues.forEach(([label,value],i)=>{
-  const col=i%2,row=Math.floor(i/2);
-  cell(label,value,railX+col*half,gridY+(1-row)*gridH/2,half);
- });
- // Reserved Quick Summary module; do not fabricate prayer-linked content.
+ for(let i=0;i<4;i++){
+  const col=i%2,row=Math.floor(i/2),x=gridX+col*cellSize;
+  const y=gridTop-(row+1)*cellSize;
+  page.drawRectangle({x,y,width:cellSize,height:cellSize,borderWidth:.65,borderColor:railMuted});
+  const label=cells[i].label,headerSize=10;
+  page.drawText(label,{x:x+(cellSize-bold.widthOfTextAtSize(label,headerSize))/2,
+   y:y+cellSize-16,size:headerSize,font:bold,color:railInk});
+  if(cells[i].image){
+   const img=await iconImage(cells[i].image);
+   const boxW=cellSize-16,boxH=cellSize-27;
+   const scale=Math.min(boxW/img.width,boxH/img.height);
+   const w=img.width*scale,h=img.height*scale;
+   page.drawImage(img,{x:x+(cellSize-w)/2,y:y+5+(boxH-h)/2,width:w,height:h});
+  }else{
+   const fitted=fitCellText(cells[i].value,cellSize-8);
+   fitted.lines.forEach((line,j)=>{
+    const baseline=y+cellSize*.37+(fitted.lines.length-1-j)*fitted.size*1.15;
+    page.drawText(line,{x:x+(cellSize-bold.widthOfTextAtSize(line,fitted.size))/2,
+     y:baseline,size:fitted.size,font:bold,color:railInk});
+   });
+  }
+ }
+ // Reserved Quick Summary module: moved down to clear the 2x2 squares.
  const heading="QUICK SUMMARY";
- page.drawText(heading,{x:center(heading,10,bold),y:611,size:10,font:bold,color:railInk});
+ page.drawText(heading,{x:center(heading,10,bold),y:gridBottom-21,size:10,font:bold,color:railInk});
  const summary="Summary pending";
- page.drawText(summary,{x:center(summary,9),y:589,size:9,font,color:railMuted});
+ page.drawText(summary,{x:center(summary,9),y:gridBottom-42,size:9,font,color:railMuted});
  // QR is a true square equal to the commentary rail width. A non-playable
  // stub URL must never produce a misleading scannable QR code.
  const qrY=240;
