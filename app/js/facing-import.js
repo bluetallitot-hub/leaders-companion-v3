@@ -3740,6 +3740,15 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
    });
   }
  }
+ // Square-corner Quick Summary panel: same 3pt inset from rail edges,
+ // 3pt below the four-square grid and 3pt above the QR square.
+ // This is a tall rectangular panel, not a forced 1:1 square; its content
+ // must fit between the fixed grid and the bottom-anchored QR module.
+ const summaryPanelTop=gridBottom-inset;
+ const summaryPanelBottom=64+26+(railW-2*inset)+inset;
+ page.drawRectangle({x:railX+inset,y:summaryPanelBottom,
+  width:railW-2*inset,height:summaryPanelTop-summaryPanelBottom,
+  borderWidth:.65,borderColor:railMuted});
  // Reserved Quick Summary module: moved down to clear the 2x2 squares.
  const heading="QUICK SUMMARY";
  page.drawText(heading,{x:center(heading,10,bold),y:gridBottom-21,size:10,font:bold,color:railInk});
