@@ -50,7 +50,7 @@ async function drawKnownFrameworkFields(page,record,side,font,boldFont=font,embe
  const cues=embedded?.cues||record?.leadership?.cues||[];
  const number=String(embedded?.printedPage||source.originalPageNumber||downloadPageNumber(source.sourcePdfPage)||"").split("-")[0].trim();
  const service=embedded?.serviceName||embedded?.service_name||record?.identification?.serviceName||ident.serviceName||"";
- const title=record?.leadership?.instructionPrayer||record?.prayerTitle||record?.identification?.prayerName||embedded?.prayerTitle||embedded?.prayerName||ident.prayerName||"";
+ const title=prayerTitleForPage(record)||embedded?.prayerTitle||embedded?.prayerName||ident.prayerName||"";
  const instruction=embedded?.instructionText||record?.instructionText||"";
  const colorCode=String(embedded?.pageColor||record?.pageColor||"W").toUpperCase().slice(0,1);
  // Very light ink tints: visible on white stock but unobtrusive on
@@ -395,6 +395,7 @@ function assignNextPrayerFromIntake(record,matches){
  const following=importedCues.slice(last+1).find(row=>prayerNameFromIntake(row)&&prayerNameFromIntake(row)!==current);
  record.production.nextPrayer=following?prayerNameFromIntake(following):"";
  record.production.nextPrayerFull=record.production.nextPrayer;
+ record.production.nextCueLanguage=following?String(following.language||"").toUpperCase():"";
  record.production.nextPrayerSource="csv";
 }
 
@@ -445,16 +446,31 @@ async function attachV2Summaries(records=pageMetadata){
    instructions:p.instructionIds.map(id=>instructions.get(id)).filter(Boolean)};
  }
 }
+function isHebrewPage(record){
+ const code=String(record?.source?.languageCode||"").toUpperCase();
+ if(code==="H"||code==="HEBREW")return true;
+ if(code==="E"||code==="ENGLISH")return false;
+ const cues=record?.leadership?.cues||[];
+ const h=cues.filter(c=>String(c.cueLanguage||"").toLowerCase()==="hebrew").length;
+ const e=cues.filter(c=>String(c.cueLanguage||"").toLowerCase()==="english").length;
+ return h>e;
+}
+function prayerTitleForPage(record){
+ const p=record?.prayerLibrary||{};
+ const original=String(record?.leadership?.instructionPrayer||record?.prayerTitle||record?.identification?.prayerName||"").trim();
+ return isHebrewPage(record)?(p.hebrewName||original):(p.englishName||original);
+}
 function nextPrayerDisplayName(record,db){
  const full=String(record?.production?.nextPrayerFull||record?.production?.nextPrayer||record?.identification?.nextPrayer||"").trim();
  if(!full)return "";
  if(record?.production?.nextPrayerSource==="manual")return String(record.production.nextPrayer||full);
  const key=prayerIdentity(full);
- const candidates=(db?.prayers||[]).filter(p=>[p.englishName,p.hebrewName,p.canonicalName,...(p.aliases||[]),...(p.aliasesEnglish||[]),...(p.aliasesHebrew||[])].some(n=>prayerIdentity(n)===key));
+ const candidates=(db?.prayers||[]).filter(p=>[p.englishName,p.hebrewName,p.shortEnglishName,p.shortHebrewName,p.canonicalName,...(p.aliases||[]),...(p.aliasesEnglish||[]),...(p.aliasesHebrew||[])].some(n=>prayerIdentity(n)===key));
  if(candidates.length!==1)return full;
  const p=candidates[0];
- const hebrew=/[\u0590-\u05ff]/.test(full);
- return (hebrew?p.shortHebrewName:p.shortEnglishName)||full;
+ const language=String(record?.production?.nextCueLanguage||"").toUpperCase();
+ const hebrew=language==="H"||language==="HEBREW"||language==="H/L"||language==="H+E"||(!language&&/[\u0590-\u05ff]/.test(full));
+ return hebrew?(p.shortHebrewName||p.hebrewName||full):(p.shortEnglishName||p.englishName||full);
 }
 function pageSummaryForLayout(record){
  const draft=String(record?.prayerDraft?.summary||"").trim();
