@@ -2451,6 +2451,9 @@ async function analyzeCanonicalPreview({reuseSaved=false}={}){
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null,serviceRoleOpacity=new Map(),serviceRoleAssignments=new Map(),serviceRoleDisplayNames=new Map(),serviceHighlightColors=["#F5D03C","#75C56A","#74B9E7","#F3A65B","#DA88B8","#AE93DC"],embeddedPageRecords=[];
 const spreadEdits=new Map();
+// Persisted rendered two-page spreads and assembled PDF: download never renders pages.
+let renderedSpreadPdfs=new Map();
+let assembledWorkingPdf=null;
 const CHECKPOINT_DB="leaders-companion-editor-checkpoints-v1";
 function checkpointKey(){return filename+"|"+sourcePdfPages+"|"+(sourcePdfBytes?.length||0);}
 function checkpointDb(){
@@ -2466,7 +2469,7 @@ async function checkpointWrite(){
  const snapshot={schema:"leaders-companion-checkpoint-v1",savedAt:new Date().toISOString(),
   filename,sourcePages:sourcePdfPages,sourceBytes:sourcePdfBytes.length,
   coverMetadata,sections:serviceManifest?.sections||[],spreads:[...spreadEdits.entries()],excludedFromProof:[...excludedFromProof],cueTextEdits:[...cueTextEdits.entries()],
-  cueRoleEdits:[...cueRoleEdits.entries()]};
+  cueRoleEdits:[...cueRoleEdits.entries()],renderedSpreadPdfs:[...renderedSpreadPdfs.entries()],assembledWorkingPdf};
  const db=await checkpointDb();
  try{
   await new Promise((resolve,reject)=>{
@@ -2475,7 +2478,6 @@ async function checkpointWrite(){
    tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
   });
  }finally{db.close();}
- excludedFromProof=new Set();
  explicitlySavedPages=new Map(snapshot.spreads.flatMap(([,spread])=>(spread.pages||[]).filter(Boolean).map(record=>[Number(record.sourcePdfPage||record.source?.sourcePdfPage),JSON.parse(JSON.stringify(record))])).filter(([n])=>Number.isInteger(n)&&n>0));
  const label=$("checkpoint-status");if(label)label.textContent="Saved locally: "+snapshot.savedAt+" — "+explicitlySavedPages.size+" pages in checkpoint, "+verifiedWorkingPages().length+" approved.";
  return snapshot;
@@ -2493,6 +2495,8 @@ async function checkpointRead(){
  if(serviceManifest&&snapshot.sections)serviceManifest.sections=snapshot.sections;
  spreadEdits.clear();
  for(const [key,value] of snapshot.spreads||[])spreadEdits.set(Number(key),value);
+ renderedSpreadPdfs=new Map((snapshot.renderedSpreadPdfs||[]).map(([key,bytes])=>[Number(key),new Uint8Array(bytes)]));
+ assembledWorkingPdf=snapshot.assembledWorkingPdf?new Uint8Array(snapshot.assembledWorkingPdf):null;
  excludedFromProof=new Set(snapshot.excludedFromProof||[]);
  explicitlySavedPages=new Map((snapshot.spreads||[]).flatMap(([,spread])=>(spread.pages||[]).filter(Boolean).map(record=>[Number(record.sourcePdfPage||record.source?.sourcePdfPage),JSON.parse(JSON.stringify(record))])).filter(([n])=>Number.isInteger(n)&&n>0));
  cueTextEdits.clear();for(const [key,value] of snapshot.cueTextEdits||[])cueTextEdits.set(key,value);
@@ -2502,8 +2506,26 @@ async function checkpointRead(){
 }
 async function saveCheckpointNow(){
  saveCurrentSpreadEdits();
- const label=$("checkpoint-status");if(label)label.textContent="Saving checkpoint…";
- try{await checkpointWrite()}catch(e){if(label)label.textContent="SAVE FAILED: "+e.message;throw e;}
+ const label=$("checkpoint-status");if(label)label.textContent="Rendering and saving current two-page spread…";
+ try{
+  const previousSpread=renderedSpreadPdfs.get(selectedSpreadFirst);
+  const previousPdf=assembledWorkingPdf;
+  try{
+   const spread=spreadEdits.get(selectedSpreadFirst);
+   if(spread?.pages?.some(Boolean)){
+    renderedSpreadPdfs.set(selectedSpreadFirst,await renderSavedSpreadPdf(selectedSpreadFirst,spread));
+   }
+   assembledWorkingPdf=await assembleCachedWorkingPdf();
+   await checkpointWrite();
+  }catch(e){
+   if(previousSpread)renderedSpreadPdfs.set(selectedSpreadFirst,previousSpread);
+   else renderedSpreadPdfs.delete(selectedSpreadFirst);
+   assembledWorkingPdf=previousPdf;
+   throw e;
+  }
+  const statusLabel=$("export-status");
+  if(statusLabel)statusLabel.textContent="PDF updated and saved locally. Download PDF is ready.";
+ }catch(e){if(label)label.textContent="SAVE FAILED: "+e.message;throw e;}
 }
 $("save-checkpoint")?.addEventListener("click",()=>saveCheckpointNow().catch(e=>status("Save failed: "+e.message)));
 
@@ -3050,50 +3072,77 @@ function showCoverEditor(){
 const coverButton=document.createElement("button");coverButton.type="button";coverButton.textContent="Edit cover metadata";
 coverButton.onclick=showCoverEditor;
 document.getElementById("download-front-matter")?.parentElement?.append(coverButton);
-// Single-click working-copy download: exactly cover, first section title,
-// first section contents, then explicitly saved pages. No other pages.
-async function exportSavedPagesDownload(){
- const saved=checkpointSavedPages().filter(([n])=>!excludedFromProof.has(n));
+// Render exactly the current facing spread on Save. These finished PDF pages
+// are persisted in IndexedDB; downloading never revisits source scans.
+async function renderSavedSpreadPdf(first,spread){
+ if(!sourcePdfBytes)throw Error("Load the source Siddur before saving a spread.");
  const out=await PDFLib.PDFDocument.create();
- await createMasterFrontMatter(out,{includeSections:false,totalPages:3+saved.length});
+ const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
+ const master=await PDFLib.PDFDocument.load(await window.LCV3Templates.load("siddur"));
+ const font=await out.embedFont(PDFLib.StandardFonts.Helvetica);
+ const bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
+ const records=(spread.pages||[]).filter(Boolean).map(record=>[
+  Number(record.sourcePdfPage||record.source?.sourcePdfPage),record
+ ]).filter(([index])=>Number.isInteger(index)&&index>=1&&index<=sourcePdfPages).sort((a,b)=>a[0]-b[0]);
+ if(records.length>2)throw Error("A saved facing spread may contain at most two pages.");
+ for(const [sourceIndex,record] of records){
+  const defaultSide=String(serviceManifest?.facingPageDirection||"hebrew").toLowerCase()==="hebrew"?(sourceIndex%2):((sourceIndex-1)%2);
+  const side=Number(record?.source?.sideIndex??record?.sideIndex??defaultSide)===1?1:0;
+  await renderCanonicalSiddurPage({out,master,source,sourceIndex,record,side,font,bold});
+ }
+ if(!out.getPageCount())throw Error("No pages in spread "+first+".");
+ return new Uint8Array(await out.save());
+}
+// Assemble from finished, cached spread PDFs. This runs on Save, never Download.
+async function assembleCachedWorkingPdf(){
+ const out=await PDFLib.PDFDocument.create();
+ const saved=checkpointSavedPages().filter(([index])=>!excludedFromProof.has(index));
+ // The checkpoint map is refreshed only after the write; use the current
+ // spreadEdits snapshot while assembling the just-saved spread.
+ const records=[...new Map([...spreadEdits.values()].flatMap(spread=>
+  (spread.pages||[]).filter(Boolean).map(record=>[
+   Number(record.sourcePdfPage||record.source?.sourcePdfPage),record
+  ])).filter(([index])=>Number.isInteger(index)&&index>0))].sort((a,b)=>a[0]-b[0])
+  .filter(([index])=>!excludedFromProof.has(index));
+ const expected=3+records.length;
+ await createMasterFrontMatter(out,{includeSections:false,totalPages:expected});
  const firstSection=editableSectionRecords()[0]||null;
  const sectionTitle=String(firstSection?.title||effectiveCover().serviceName||"").trim();
- const entries=saved.slice(0,23).map(([index,record])=>({
+ if(records.length>23)throw Error("First section contents supports 23 entries; cannot omit saved pages silently.");
+ const entries=records.map(([index,record])=>({
   title:String(approvedPrayerName(record)||record?.identification?.prayerName||"Source page "+index).trim(),
   page:String(record?.source?.originalPageNumber||record?.identification?.printedPageNumber||index)
  }));
  await addSectionMasterPages(out,{title:sectionTitle},entries);
- if(saved.length){
-  if(!sourcePdfBytes)throw Error("Load the source Siddur PDF to include saved pages.");
-  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
-  if(!window.LCV3Templates)throw Error("Approved Siddur Page Master is unavailable.");
-  const master=await PDFLib.PDFDocument.load(await window.LCV3Templates.load("siddur"));
-  const font=await out.embedFont(PDFLib.StandardFonts.Helvetica);
-  const bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
-  for(const [sourceIndex,record] of saved){
-   const defaultSide=String(serviceManifest?.facingPageDirection||"hebrew").toLowerCase()==="hebrew"?(sourceIndex%2):((sourceIndex-1)%2);
-   const side=Number(record?.source?.sideIndex??record?.sideIndex??defaultSide)===1?1:0;
-   await renderCanonicalSiddurPage({out,master,source,sourceIndex,record,side,font,bold});
-  }
+ const indexToPdf=new Map();
+ for(const [first,bytes] of [...renderedSpreadPdfs].sort((a,b)=>a[0]-b[0])){
+  const spread=spreadEdits.get(first);
+  const spreadRecords=(spread?.pages||[]).filter(Boolean).map(record=>Number(record.sourcePdfPage||record.source?.sourcePdfPage))
+   .filter(index=>Number.isInteger(index)&&index>0).sort((a,b)=>a-b);
+  if(!spreadRecords.length)continue;
+  const part=await PDFLib.PDFDocument.load(bytes);
+  if(part.getPageCount()!==spreadRecords.length)throw Error("Cached spread "+first+" is out of date; save that spread again.");
+  spreadRecords.forEach((index,i)=>indexToPdf.set(index,{part,i}));
  }
- if(out.getPageCount()!==3+saved.length)throw Error("Unexpected PDF page count.");
+ for(const [index] of records){
+  const item=indexToPdf.get(index);
+  if(!item)throw Error("Source page "+index+" has not been rendered. Save its two-page spread first.");
+  const [page]=await out.copyPages(item.part,[item.i]);out.addPage(page);
+ }
+ if(out.getPageCount()!==expected)throw Error("Assembled PDF page count mismatch.");
  await out.attach(new TextEncoder().encode(JSON.stringify({
-  schema:"leaders-companion-v3-saved-working-copy",
-  sourceFilename:filename,
-  savedSourcePages:saved.map(([sourceIndex,record])=>({sourceIndex,record}))
+  schema:"leaders-companion-v3-incremental-web-pdf",sourceFilename:filename,
+  savedSourcePages:records.map(([sourceIndex,record])=>({sourceIndex,record}))
  })),"leaders-companion-project.json",{mimeType:"application/json",description:"Saved web-editor page records"});
- return {bytes:new Uint8Array(await out.save()),saved:saved.length,total:out.getPageCount()};
+ return new Uint8Array(await out.save());
 }
-$("download-front-matter")?.addEventListener("click",async()=>{
- const button=$("download-front-matter");button.disabled=true;
- try{
-  const result=await exportSavedPagesDownload();
-  const url=URL.createObjectURL(new Blob([result.bytes],{type:"application/pdf"}));
-  const a=document.createElement("a");a.href=url;a.download=(filename||"leaders-companion")+"-saved-pages.pdf";
-  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-  const label=$("export-status");if(label)label.textContent="Downloaded "+result.total+" pages: cover, first section title, first section contents, and "+result.saved+" saved Siddur page(s).";
- }catch(e){const label=$("export-status");if(label)label.textContent="PDF download failed: "+e.message;console.error(e)}
- finally{button.disabled=false}
+$("download-front-matter")?.addEventListener("click",()=>{
+ const label=$("export-status");
+ if(!assembledWorkingPdf){if(label)label.textContent="No saved PDF yet. Save the current two-page spread first.";return;}
+ const url=URL.createObjectURL(new Blob([assembledWorkingPdf],{type:"application/pdf"}));
+ const a=document.createElement("a");a.href=url;a.download=(filename||"leaders-companion")+"-saved-pages.pdf";
+ document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+ if(label)label.textContent="Downloaded the saved PDF; no pages were regenerated.";
 });
 function pdfWrapLines(text,font,size,maxWidth){
  const words=printable(text).split(/\s+/).filter(Boolean),lines=[];let line="";
