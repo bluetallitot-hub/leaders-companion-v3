@@ -3695,8 +3695,12 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   // facing pages. The x=59.76,y=21.24 measurements used in V3.369
   // came from the unrelated V1 punch-margin PDF and were incorrect.
   // Match the V3 locked status field below the cue box (cue y=48).
-  const statusX=side===0?20.16:59.76,statusW=532.08,statusY=34,statusH=12;
-  const centerY=statusY+statusH/2;
+  // The master strip extends below the track: center across its full
+  // vertical interior, not the old 12pt band at the top of the box.
+  // Both the grey bar and red capsule use this one shared centerline.
+  const statusX=side===0?20.16:59.76,statusW=532.08;
+  const stripBottom=21.24,stripTop=46;
+  const centerY=(stripBottom+stripTop)/2;
   const grey=PDFLib.rgb(.78,.80,.81),red=PDFLib.rgb(.82,.12,.16);
   // Keep the track inside the fixed V3 status field.
   const trackThickness=4.5,trackInset=trackThickness/2+2;
