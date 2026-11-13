@@ -490,7 +490,7 @@ function instructionLayout(text){
  const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");
  ctx.font=fontSize+"px Arial, sans-serif";
  const maxWidth=width-padding*2,maxLines=Math.floor((height-1)/(fontSize*leading));
- const words=String(text||"").trim().split(/\\s+/).filter(Boolean);
+ const words=String(text||"").trim().split(/\s+/).filter(Boolean);
  const lines=[];let current="";
  for(const word of words){
   const trial=current?current+" "+word:word;
@@ -504,7 +504,7 @@ function instructionLayout(text){
  if(trimmed&&visible.length){
   let last=visible[visible.length-1],ellipsis="…";
   while(last&&ctx.measureText(last+ellipsis).width>maxWidth){
-   const shorter=last.replace(/\\s+\\S+$/,"");
+   const shorter=last.replace(/\s+\S+$/,"");
    last=shorter===last?last.slice(0,-1):shorter;
   }
   visible[visible.length-1]=last+ellipsis;
@@ -658,6 +658,9 @@ function renderFacingInstructions(){
    const message=document.createElement("span");message.setAttribute("role","status");
    const save=document.createElement("button");save.type="button";save.textContent="Save instruction";
    save.onclick=async()=>{const value=textarea.value.trim();if(!value){message.textContent="Enter instruction text.";return;}
+    const proposed=entries.map(e=>e.key===entry.key?{...e,text:value}:e);
+    const test=instructionLayout(proposed.map(e=>e.text).join(" "));
+    if(test.trimmed&&!window.confirm("These instructions need "+test.totalLines+" lines, but the top field fits "+test.maxLines+". The PDF will trim the displayed text; the database text remains complete. Save anyway?"))return;
     save.disabled=true;const current=catalogInstruction(entry.id);const newId=storeCustomInstruction(current?.name||"Edited instruction",value,entry.id.startsWith("V3-")?entry.id:null);await saveInstructions(entries.map(e=>e.key===entry.key?{id:newId,text:value}:e));};
    const revert=document.createElement("button");revert.type="button";revert.textContent="Revert";
    revert.onclick=()=>{textarea.value=entry.text||"";message.textContent="Unsaved changes reverted.";};
