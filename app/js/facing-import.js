@@ -53,8 +53,14 @@ async function drawKnownFrameworkFields(page,record,side,font,boldFont=font,embe
  const title=record?.leadership?.instructionPrayer||record?.prayerTitle||record?.identification?.prayerName||embedded?.prayerTitle||embedded?.prayerName||ident.prayerName||"";
  const instruction=embedded?.instructionText||record?.instructionText||"";
  const colorCode=String(embedded?.pageColor||record?.pageColor||"W").toUpperCase().slice(0,1);
- const palette={W:[.975,.975,.975],N:[.7,1,.15],B:[.14,.36,.83],R:[.86,.16,.18],O:[.98,.54,.1],G:[.18,.65,.29]};
- const rgb=palette[colorCode]||palette.W;
+ // Very light ink tints: visible on white stock but unobtrusive on
+ // matching colored stock. Never use opaque saturated fills in this locator.
+ const paperPalette={W:[.985,.985,.985],N:[.7,1,.15],B:[.14,.36,.83],R:[.86,.16,.18],O:[.98,.54,.1],G:[.18,.65,.29]};
+ const displayedColor=Object.hasOwn(paperPalette,colorCode)?colorCode:"W";
+ const base=paperPalette[displayedColor];
+ const tint=(channel,coverage)=>1-(1-channel)*coverage;
+ const rgb=displayedColor==="W"?base:base.map(channel=>tint(channel,.13));
+ const inkRgb=displayedColor==="W"?[.66,.66,.66]:base.map(channel=>tint(channel,.43));
  const textX=side===0?171.36:59.76,numberX=side===0?20.16:544.96;
  const colorX=side===0?numberX+48:numberX-18;
  const serviceX=side===0?colorX+18:59.76;
@@ -68,8 +74,7 @@ async function drawKnownFrameworkFields(page,record,side,font,boldFont=font,embe
  page.drawRectangle({x:colorX+1,y:749,width:16,height:18,color:PDFLib.rgb(...rgb)});
  // Paper-stock locator: code is printed inside the existing locked color box.
  // W defaults to light gray. Never tint the source Siddur page.
- const displayedColor="WN BROG".replace(/ /g,"").includes(colorCode)?colorCode:"W";
- const ink=displayedColor==="B"||displayedColor==="R"?PDFLib.rgb(1,1,1):PDFLib.rgb(.12,.16,.19);
+ const ink=PDFLib.rgb(...inkRgb);
  const codeWidth=boldFont.widthOfTextAtSize(displayedColor,11);
  page.drawText(displayedColor,{x:colorX+9-codeWidth/2,y:753,size:11,font:boldFont,color:ink});
  fit(service,serviceX+4,751,458,18,boldFont);
