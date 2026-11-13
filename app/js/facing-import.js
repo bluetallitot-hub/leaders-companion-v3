@@ -3655,9 +3655,11 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   const statusX=59.76,statusW=532.08,statusY=21.24,statusH=7.20;
   const centerY=statusY+statusH/2;
   const grey=PDFLib.rgb(.78,.80,.81),red=PDFLib.rgb(.82,.12,.16);
-  const trackInset=0;
+  // Heavier status track; keep the stroke and end caps inside the
+  // approved 7.2pt-high status rectangle.
+  const trackThickness=4.5,trackInset=trackThickness/2+2;
   page.drawLine({start:{x:statusX+trackInset,y:centerY},
-   end:{x:statusX+statusW-trackInset,y:centerY},thickness:3,color:grey});
+   end:{x:statusX+statusW-trackInset,y:centerY},thickness:trackThickness,color:grey});
   const direction=String(record?.identification?.readingDirection||record?.readingDirection||"").toLowerCase();
   const leftToRight=["ltr","english","left-to-right"].includes(direction);
   // One 48pt slot reserves a 10pt identifier of format "000.0" plus
