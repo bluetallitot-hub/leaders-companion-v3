@@ -2730,14 +2730,31 @@ async function loadSelectedSpread(){
  baseOutput=output.slice();
  const saved=spreadEdits.get(selectedSpreadFirst);
  const savedComplete=!!saved?.pages?.length;
- // The legacy staging PDF exists only to initialize source records. Never
- // display it or run recognition against a separately reconstructed layout.
+ // Restore approved metadata BEFORE building the visible PDF. A saved spread
+ // must never briefly display default content or run OCR on stale page geometry.
+ if(savedComplete){
+  pageMetadata.forEach((record,i)=>{
+   const prior=saved.pages?.[i];if(!record||!prior)return;
+   if(prior.source?.sourcePdfPage&&Number(prior.source.sourcePdfPage)!==Number(record.source?.sourcePdfPage))
+    throw Error("Saved spread source-page identity mismatch. Refusing to display incorrect approval.");
+   record.leadership=JSON.parse(JSON.stringify(prior.leadership));
+   if(prior.production)record.production=JSON.parse(JSON.stringify(prior.production));
+   record.leadership.highlights=record.leadership.highlights||[];
+   record.prayerTitle=prior.prayerTitle;
+   if(prior.identification)record.identification=JSON.parse(JSON.stringify(prior.identification));
+  });
+  selectedCueBySide=[...(saved.selectedCues||["",""])];
+ }else selectedCueBySide=["",""];
+ applyCueRoleEdits();
  canonicalPreviewEnabled=true;
  await renderCanonicalSpread(++canonicalPreviewEpoch);
+ // OCR operates on the canonical approved-master PDF canvases only.
  await preview(output,{reuseSaved:savedComplete,canonicalOnly:true});
- // Individual-page download controls were retired; the working PDF is the only export.
- applyCueRoleEdits();
- if(savedComplete){pageMetadata.forEach((record,i)=>{const prior=saved.pages?.[i];if(record&&prior){record.leadership=JSON.parse(JSON.stringify(prior.leadership));if(prior.production)record.production=JSON.parse(JSON.stringify(prior.production));record.leadership.highlights=record.leadership.highlights||[];record.prayerTitle=prior.prayerTitle;if(prior.identification)record.identification=JSON.parse(JSON.stringify(prior.identification))}});selectedCueBySide=[...(saved.selectedCues||["",""])];renderPageCueEditor();drawHighlights();const label=$("highlight-loading-label");if(label)label.textContent="Saved match methods and geometry reused — no recognition rerun";}else selectedCueBySide=["",""];
+ if(savedComplete){
+  renderPageCueEditor();drawHighlights();
+  const label=$("highlight-loading-label");
+  if(label)label.textContent="Saved match methods and geometry reused — no recognition rerun";
+ }
  if($("metadata-dialog").open)refreshMetadataDialog();
  $("download").disabled=false;
  status(cueMatchReport);updateSpanStatus();
