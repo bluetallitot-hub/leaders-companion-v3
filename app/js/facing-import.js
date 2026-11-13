@@ -2572,6 +2572,13 @@ function updateIntakeInventory(){
 // Interaction remains on transparent selection canvases; artwork is never HTML-overlaid.
 let canonicalPreviewEnabled=false,canonicalPreviewTimer=null,canonicalPreviewEpoch=0,canonicalPreviewRendering=false;
 let canonicalPreviewLastSignature="";
+// Changes in text inputs also invalidate the live PDF even when highlight geometry is unchanged.
+document.addEventListener("input",event=>{
+ if(canonicalPreviewEnabled&&event.target?.closest?.("#facing-instructions, #spread-preview, [aria-label='Edit cues on current spread']"))scheduleCanonicalPreview();
+},true);
+document.addEventListener("change",event=>{
+ if(canonicalPreviewEnabled&&event.target?.closest?.("#facing-instructions, [aria-label='Edit cues on current spread']"))scheduleCanonicalPreview();
+},true);
 function scheduleCanonicalPreview(){
  if(!canonicalPreviewEnabled||!sourcePdfBytes||!pageMetadata.length)return;
  const epoch=++canonicalPreviewEpoch;
