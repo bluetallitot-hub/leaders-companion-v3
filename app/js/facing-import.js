@@ -3892,13 +3892,21 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  // Temporary explicit Friday Evening printed-page service span confirmed by
  // the user: 151–181 inclusive. The two language sides sharing printed 159
  // intentionally share progress. Do not infer PDF source index from 159.
- const serviceLabel=String(record?.identification?.serviceName||serviceManifest?.serviceName||"").trim();
+ const serviceLabel=String(
+  record?.identification?.serviceName||
+  serviceManifest?.serviceName||
+  serviceManifest?.service||
+  record?.source?.runningHeaderOCR||
+  $("assembly-service")?.value||""
+ ).trim();
  const printedRef=String(record?.source?.originalPageNumber||record?.identification?.printedPageNumber||"").trim();
- const printedMatch=/^(\\d+)(?:[A-Za-z])?$/.exec(printedRef);
+ // Match actual digits: the previous regexp accidentally matched a literal
+ // backslash and 'd', leaving every printed page unresolved.
+ const printedMatch=/^(\d+)(?:[A-Za-z])?$/.exec(printedRef);
  const printed=printedMatch?Number(printedMatch[1]):NaN;
- const fridayEvening=/^Friday Evening$/i.test(serviceLabel);
+ const fridayEvening=/Friday Evening/i.test(serviceLabel);
  const progress=fridayEvening&&printed>=151&&printed<=181
-  ? (printed-151+1)/(181-151+1) : null;
+  ? (printed-151+1)/31 : null;
  if(true){
   // V3 Outer Lines Only master: the status FIELD is mirrored between
   // facing pages. The x=59.76,y=21.24 measurements used in V3.369
