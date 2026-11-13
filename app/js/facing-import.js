@@ -3611,11 +3611,15 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  if(!pageRoles.length&&String(state.role||"").trim())pageRoles.push(String(state.role).trim());
  if(pageRoles.length){
   const roleNames=cueRoleOptions();
-  const badgeX=side===0?59.76:445.0,badgeY=707,badgeW=side===0?96:146.84,badgeH=29;
+  // Same 29pt-high row as the prayer title (drawKnownFrameworkFields).
+  // The title begins at x=171.36 on the left page and x=59.76 on
+  // the right page. The opposite role fields are both 146.88pt wide.
+  // Do not change the approved field geometry.
+  const badgeX=side===0?20.16:444.96,badgeY=707,badgeW=146.88,badgeH=29;
   const scale=3,canvas=document.createElement("canvas");
   canvas.width=Math.round(badgeW*scale);canvas.height=Math.round(badgeH*scale);
   const ctx=canvas.getContext("2d");
-  const inset=3*scale,corner=5*scale;
+  const inset=1.5*scale,corner=5*scale;
   const x=inset,y=inset,w=canvas.width-2*inset,h=canvas.height-2*inset;
   // Clip all role-color panels to the same rounded badge outline.
   ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,corner);ctx.clip();
