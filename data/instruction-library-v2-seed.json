@@ -1,0 +1,970 @@
+{
+  "schema": "leaders-companion-v3-instruction-catalog",
+  "source": "Leader's Companion Instruction Library v2.0",
+  "sourceSheetId": "1yieDC1sXLVdK_FA7s9q2znI0ptTGQA66WCIjYLWI0Lw",
+  "entries": [
+    {
+      "id": "INS-001",
+      "name": "Low-Volume English Reading",
+      "text": "From Take heed → Lord gives you; use low volume.",
+      "category": "Delivery",
+      "status": "Approved",
+      "notes": "Migrated from SH-FE-C028 Leader Notes.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-002",
+      "name": "English Reading with Hebrew Refrain",
+      "text": "Read in English; Hebrew refrain follows.",
+      "category": "Language / Sequence",
+      "status": "Approved",
+      "notes": "Reusable Achot Ketanah instruction.",
+      "linkedCueCount": 6
+    },
+    {
+      "id": "INS-003",
+      "name": "Repeat Hebrew Refrain",
+      "text": "Repeat after each English middle stanza.",
+      "category": "Repetition",
+      "status": "Approved",
+      "notes": "Achot Ketanah refrain instruction.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-004",
+      "name": "Israel Prayer Sequence",
+      "text": "Immediately after candle lighting and before the regular Friday evening service.",
+      "category": "Sequence",
+      "status": "Approved",
+      "notes": "CTI local practice for Prayer for the State of Israel.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-005",
+      "name": "Sing Hebrew Refrain",
+      "text": "Sing Hebrew refrain.",
+      "category": "Delivery",
+      "status": "Approved",
+      "notes": "Reusable Achot Ketanah refrain instruction.",
+      "linkedCueCount": 6
+    },
+    {
+      "id": "INS-006",
+      "name": "Sing Final Hebrew Stanza",
+      "text": "Sing final stanza in Hebrew, including final line.",
+      "category": "Delivery",
+      "status": "Approved",
+      "notes": "Achot Ketanah final stanza instruction.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-007",
+      "name": "Hashkavot Supplement Navigation",
+      "text": "Leave time in the middle for Jery to recite memorial names",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "Migrated from RH-AM-C072 Leader Notes.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-008",
+      "name": "Shabbat Candle Blessing",
+      "text": "We begin with the blessing over the Shabbat candles.",
+      "category": "Sequence",
+      "status": "AI Draft",
+      "notes": "Friday Evening pilot; derived from Blessing unit and SOLO H/L treatment.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-009",
+      "name": "English Responsive Reading",
+      "text": "Please join in this English responsive reading.",
+      "category": "Participation",
+      "status": "Approved",
+      "notes": "Reusable for English RESP readings.",
+      "linkedCueCount": 4
+    },
+    {
+      "id": "INS-010",
+      "name": "Hebrew Solo",
+      "text": "We continue in Hebrew.",
+      "category": "Language / Delivery",
+      "status": "AI Draft",
+      "notes": "Reusable for Hebrew SOLO units where no additional congregational action is established.",
+      "linkedCueCount": 8
+    },
+    {
+      "id": "INS-011",
+      "name": "Hebrew Responsive",
+      "text": "Please join responsively in Hebrew.",
+      "category": "Participation",
+      "status": "AI Draft",
+      "notes": "Reusable for Hebrew RESP units.",
+      "linkedCueCount": 3
+    },
+    {
+      "id": "INS-012",
+      "name": "Hebrew Unison",
+      "text": "Please join in Hebrew.",
+      "category": "Participation",
+      "status": "AI Draft",
+      "notes": "Reusable for Hebrew UNISON units.",
+      "linkedCueCount": 18
+    },
+    {
+      "id": "INS-013",
+      "name": "English Solo Reading",
+      "text": "Please listen to this English reading.",
+      "category": "Language / Delivery",
+      "status": "AI Draft",
+      "notes": "Reusable for English SOLO readings.",
+      "linkedCueCount": 8
+    },
+    {
+      "id": "INS-014",
+      "name": "Shema and VeAhavta",
+      "text": "Please join in Hebrew for the Shema and VeAhavta.",
+      "category": "Prayer / Participation",
+      "status": "Approved",
+      "notes": "Prayer-specific Friday Evening treatment.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-015",
+      "name": "English Unison Reading",
+      "text": "Please join in this English reading.",
+      "category": "Participation",
+      "status": "Approved",
+      "notes": "Reusable for English UNISON readings.",
+      "linkedCueCount": 4
+    },
+    {
+      "id": "INS-016",
+      "name": "Amidah — Rise",
+      "text": "We continue with the Amidah. Please rise.",
+      "category": "Prayer / Posture",
+      "status": "Approved",
+      "notes": "Prayer-specific common Jewish practice; no page number in v2.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-017",
+      "name": "English Solo Prayer",
+      "text": "We continue with this English prayer.",
+      "category": "Language / Delivery",
+      "status": "AI Draft",
+      "notes": "Reusable for English SOLO prayer units.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-018",
+      "name": "English Unison Prayer",
+      "text": "Please join in this English prayer.",
+      "category": "Participation",
+      "status": "AI Draft",
+      "notes": "Reusable for English UNISON prayer units.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-019",
+      "name": "Hashkabot Memorial",
+      "text": "We pause for **Hashkabot**, our memorial prayers.",
+      "category": "Memorial",
+      "status": "AI Draft",
+      "notes": "Friday Evening Hashkabot treatment.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-020",
+      "name": "English Responsive Rogativo",
+      "text": "Please join in the English responsive **Rogativo**.",
+      "category": "Prayer / Participation",
+      "status": "AI Draft",
+      "notes": "Friday Evening Rogativo treatment.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-021",
+      "name": "Parashah and Announcements",
+      "text": "We pause for the weekly parashah and announcements.",
+      "category": "Notice / Sequence",
+      "status": "Approved",
+      "notes": "Friday Evening notice treatment.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-022",
+      "name": "Multilingual Sabbath Blessings",
+      "text": "We continue with the Sabbath blessings in Hebrew, English, and Ladino.",
+      "category": "Language / Blessing",
+      "status": "AI Draft",
+      "notes": "Derived from ALTERN and H/E/L fields.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-023",
+      "name": "Kiddush in Hebrew",
+      "text": "Please join in Hebrew for **Kiddush**.",
+      "category": "Prayer / Participation",
+      "status": "AI Draft",
+      "notes": "Friday Evening Kiddush treatment.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-024",
+      "name": "Achot Ketanah — Hebrew Opening",
+      "text": "Rabbi sings the first two stanzas in Hebrew, with the Hebrew refrain after each stanza.",
+      "category": "Prayer / Participation",
+      "status": "Approved",
+      "notes": "RH-FE Achot Ketanah v2 page-level instruction; simplified for leader/congregational use.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-025",
+      "name": "Achot Ketanah — English Continuation 1",
+      "text": "Reader continues in English, with the Hebrew refrain sung after each stanza.",
+      "category": "Language / Sequence",
+      "status": "Approved",
+      "notes": "RH-FE Achot Ketanah v2 page-level instruction for 67E.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-026",
+      "name": "Achot Ketanah — English Continuation 2",
+      "text": "Reader continues in English, with the Hebrew refrain sung after each stanza.",
+      "category": "Language / Sequence",
+      "status": "Approved",
+      "notes": "RH-FE Achot Ketanah v2 page-level instruction for 68E.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-027",
+      "name": "Achot Ketanah — Hebrew Conclusion",
+      "text": "Rabbi concludes with the final stanza in Hebrew.",
+      "category": "Prayer / Participation",
+      "status": "Approved",
+      "notes": "RH-FE Achot Ketanah v2 page-level concluding instruction.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-028",
+      "name": "RH-FE Mizmor LeDavid",
+      "text": "Please join responsively in Hebrew for Mizmor LeDavid.",
+      "category": "Prayer / Participation",
+      "status": "Approved",
+      "notes": "RH-FE simplified instruction derived from RESP + H cue.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-029",
+      "name": "RH-FE L'cha Dodi Opening",
+      "text": "Reader reads the English verses; Rabbi and congregation sing the Hebrew refrain between verses.",
+      "category": "Language / Sequence",
+      "status": "Approved",
+      "notes": "RH-FE page-level choreography; linked at opening L'cha Dodi cue.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-030",
+      "name": "RH-FE L'cha Dodi Continuation",
+      "text": "Reader continues in English; Rabbi and congregation sing the Hebrew refrain between verses.",
+      "category": "Language / Sequence",
+      "status": "Approved",
+      "notes": "RH-FE continuation instruction for second L'cha Dodi page.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-031",
+      "name": "RH-FE Boi V'Shalom",
+      "text": "Please join in Hebrew for the final stanza of L'cha Dodi.",
+      "category": "Prayer / Participation",
+      "status": "Approved",
+      "notes": "RH-FE final L'cha Dodi stanza.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-032",
+      "name": "Holiday Kaddish after Achot Ketanah",
+      "text": "Rabbi chants the Holiday Kaddish to the melody of Achot Ketanah.",
+      "category": "Melody / Transition",
+      "status": "Approved",
+      "notes": "RH-FE tradition explicitly requested; follows Achot Ketanah.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-033",
+      "name": "Barchu Response",
+      "text": "Please respond in Hebrew to Barchu.",
+      "category": "Prayer / Participation",
+      "status": "Approved",
+      "notes": "Reusable for RH-FE opening and concluding Barchu.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-034",
+      "name": "RH-FE Mi Chamocha",
+      "text": "Please join in Hebrew for Mi Chamocha.",
+      "category": "Prayer / Participation",
+      "status": "Approved",
+      "notes": "RH-FE simplified unison instruction.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-035",
+      "name": "RH-FE Hashkiveinu",
+      "text": "Please join in Hebrew for Hashkiveinu.",
+      "category": "Prayer / Participation",
+      "status": "Approved",
+      "notes": "RH-FE simplified unison instruction.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-036",
+      "name": "RH-FE Veshamru",
+      "text": "Please join in Hebrew for Veshamru.",
+      "category": "Prayer / Participation",
+      "status": "Approved",
+      "notes": "RH-FE simplified unison instruction.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-037",
+      "name": "RH-FE Vayechulu",
+      "text": "Please join in Hebrew for Vayechulu.",
+      "category": "Prayer / Participation",
+      "status": "Approved",
+      "notes": "RH-FE simplified unison instruction.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-038",
+      "name": "RH-FE Short Repetition",
+      "text": "Rabbi continues with the short Friday evening repetition.",
+      "category": "Prayer / Sequence",
+      "status": "Approved",
+      "notes": "RH-FE concise stage direction.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-039",
+      "name": "RH-FE Psalm 23",
+      "text": "Please join in English for Psalm 23.",
+      "category": "Prayer / Participation",
+      "status": "Approved",
+      "notes": "RH-FE simplified English unison instruction.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-040",
+      "name": "RH-FE Memorial Kaddish",
+      "text": "Please join in Hebrew for the memorial Kaddish.",
+      "category": "Memorial / Participation",
+      "status": "Approved",
+      "notes": "RH-FE cue Kaddish Shalem for All Lost.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-041",
+      "name": "RH-FE Hashkavot Sequence",
+      "text": "We pause for Hashkavot; memorial names are read between the two Hebrew portions.",
+      "category": "Memorial / Sequence",
+      "status": "Approved",
+      "notes": "Matches corrected canonical Hashkavot order.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-042",
+      "name": "RH-FE Hashkavot Names",
+      "text": "Memorial names are read here; Rabbi then concludes Hashkavot in Hebrew.",
+      "category": "Memorial / Sequence",
+      "status": "Approved",
+      "notes": "Linked to names cue between Hebrew opening and conclusion.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-043",
+      "name": "RH-FE Aleinu",
+      "text": "Please join in Hebrew for Aleinu.",
+      "category": "Prayer / Participation",
+      "status": "Approved",
+      "notes": "RH-FE simplified unison instruction.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-044",
+      "name": "RH-FE Yigdal",
+      "text": "Please join in Hebrew for Yigdal.",
+      "category": "Prayer / Participation",
+      "status": "Approved",
+      "notes": "RH-FE simplified unison instruction.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-045",
+      "name": "Rosh Hashanah Blessings",
+      "text": "We conclude with the Rosh Hashanah blessings in Hebrew, English, and Ladino.",
+      "category": "Language / Blessing",
+      "status": "Approved",
+      "notes": "RH-FE multilingual closing blessing.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-046",
+      "name": "Rosh Hashanah Candle Blessing",
+      "text": "We begin with the blessing over the Rosh Hashanah candles.",
+      "category": "Sequence / Blessing",
+      "status": "Approved",
+      "notes": "RH-FE opening instruction.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-047",
+      "name": "RH-FE Shema English Continuation",
+      "text": "Please join in English for the remaining paragraphs of the Shema.",
+      "category": "Prayer / Participation",
+      "status": "Approved",
+      "notes": "RH-FE page-level instruction for English Shema continuation.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-048",
+      "name": "Page Gap — Nishmat 166",
+      "text": "We continue with Nishmat in Hebrew on page 166.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; RH-AM 132 → 166.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-049",
+      "name": "Page Gap — Kaddish L'Eila 232",
+      "text": "We continue with Kaddish L'Eila in Hebrew on page 232.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; RH-AM day-specific Torah readings → 232.",
+      "linkedCueCount": 2
+    },
+    {
+      "id": "INS-050",
+      "name": "Page Gap — In the Mouth 133",
+      "text": "We continue with In the Mouth in English on page 133.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-AM 91 → 133.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-051",
+      "name": "Page Gap — Kedushah 154",
+      "text": "We continue with Kedushah in Hebrew on page 154.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-AM 149 → 154.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-052",
+      "name": "Page Gap — Ashamnu 162",
+      "text": "We continue with Ashamnu in Hebrew on page 162.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-AM 155 → 162.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-053",
+      "name": "Page Gap — Lema'ancha Elohai 173",
+      "text": "We continue with Lema'ancha Elohai in Hebrew on page 173.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-AM reused Kaddish page 39 → 173.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-054",
+      "name": "Page Gap — Our God in Heaven 192",
+      "text": "We continue with Our God in Heaven in English on page 192.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-AM 186 → 192.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-055",
+      "name": "Page Gap — Vezot HaTorah 200",
+      "text": "We continue with Vezot HaTorah in Hebrew on page 200.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-AM reused Kaddish page 39 → 200.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-056",
+      "name": "Page Gap — Happy the Eye 245",
+      "text": "We continue with Happy the Eye in English on page 245.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-AM 224 → 245.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-057",
+      "name": "Page Gap — Adon Olam 263",
+      "text": "We continue with Adon Olam in Hebrew on page 263.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-AM reused Kaddish page 86 → 263.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-058",
+      "name": "Page Gap — Kohanecha 25",
+      "text": "Open the Ark and prepare the Torah scrolls; congregation rises. Continue with Kohanecha in Hebrew on page 25.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-KN transition into Torah service.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-059",
+      "name": "Page Gap — Yimloch 31",
+      "text": "Rabbi recites Shehecheyanu, then continue with Yimloch in Hebrew on page 31.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-KN 26 → 31.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-060",
+      "name": "Page Gap — We Thank Thee 45",
+      "text": "We continue with We Thank Thee in English on page 45.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-KN 40 → 45.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-061",
+      "name": "Page Gap — Ana B'Korenu 52",
+      "text": "Remain standing through this Kaddish; then be seated. Continue with Ana B'Korenu in Hebrew on page 52.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-KN reused Kaddish page 39 → 52.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-062",
+      "name": "Page Gap — God Long Suffering 269",
+      "text": "We continue with God Long Suffering in English on page 269.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-MN reused Kaddish page 39 → 269.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-063",
+      "name": "Page Gap — Yehallelu / Shuva 280",
+      "text": "We continue with Yehallelu and Shuva in Hebrew on page 280.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-MN blessings after Haftarah → 280.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-064",
+      "name": "Page Gap — Opening of Amidah 281",
+      "text": "We continue with the Opening of the Amidah in Hebrew on page 281.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-MN reused Kaddish page 39 → 281.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-065",
+      "name": "Page Gap — I Wait on the Lord 306",
+      "text": "We continue with I Wait on the Lord in English on page 306.",
+      "category": "Source / Navigation",
+      "status": "Approved",
+      "notes": "IGR-001 page-gap navigation; YK-NE reused Kaddish page 39 → 306.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-066",
+      "name": "Silent Amidah — RH-AM Shacharit",
+      "text": "We continue silently until page 188, where we rejoin the President with We Thank Thee.",
+      "category": "Sequence / Navigation",
+      "status": "Approved",
+      "notes": "IGR-009 silent Amidah transition; RH-AM Shacharit.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-067",
+      "name": "Silent Amidah — RH-AM Musaf",
+      "text": "We continue silently until page 238, where we rejoin the Rabbi with Aleinu.",
+      "category": "Sequence / Navigation",
+      "status": "Approved",
+      "notes": "IGR-009 silent Amidah transition; RH-AM Musaf.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-068",
+      "name": "Silent Amidah — YK-AM Shacharit",
+      "text": "We continue silently until page 165, where we rejoin the Soloist with Adir V'Naor.",
+      "category": "Sequence / Navigation",
+      "status": "Approved",
+      "notes": "IGR-009 silent Amidah transition; YK-AM Shacharit.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-069",
+      "name": "Silent Amidah — YK-AM Musaf",
+      "text": "We continue silently until page 223, where we rejoin the Rabbi with Aleinu.",
+      "category": "Sequence / Navigation",
+      "status": "Approved",
+      "notes": "IGR-009 silent Amidah transition; YK-AM Musaf.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-070",
+      "name": "Silent Amidah — Kol Nidrei",
+      "text": "We continue silently until pages 43–44, where we rejoin the President with Our God, God of Our Fathers.",
+      "category": "Sequence / Navigation",
+      "status": "Approved",
+      "notes": "IGR-009 silent Amidah transition; YK-KN. Supersedes generic page-gap wording on this cue.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-071",
+      "name": "Silent Amidah — YK Mincha",
+      "text": "We continue silently until page 288, where we rejoin the President with Our God.",
+      "category": "Sequence / Navigation",
+      "status": "Approved",
+      "notes": "IGR-009 silent Amidah transition; YK-MN.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-072",
+      "name": "Silent Amidah — YK Ne'ilah",
+      "text": "We continue silently until page 313, where we rejoin the President with Our God.",
+      "category": "Sequence / Navigation",
+      "status": "Approved",
+      "notes": "IGR-009 silent Amidah transition; YK-NE.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-073",
+      "name": "RH-AM Torah Removal — Open Ark",
+      "text": "Open the Ark. Congregation rises.",
+      "category": "Torah / Ark / Posture",
+      "status": "Approved",
+      "notes": "RH-AM operational choreography; CTI practice corroborated by DSP structure.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-074",
+      "name": "RH-AM Torah Removal — Prepare Scrolls",
+      "text": "Remove and prepare the Torah scrolls.",
+      "category": "Torah / Handling",
+      "status": "Approved",
+      "notes": "RH-AM operational choreography; linked to Take Out / Adorn Torahs.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-075",
+      "name": "RH-AM Torah Procession — Out",
+      "text": "Begin the Torah procession.",
+      "category": "Torah / Procession",
+      "status": "Approved",
+      "notes": "RH-AM operational choreography.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-076",
+      "name": "RH-AM Hagbah",
+      "text": "Call the person designated for Hagbah.",
+      "category": "Torah / Handling",
+      "status": "Approved",
+      "notes": "RH-AM operational choreography before V'Zot HaTorah.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-077",
+      "name": "RH-AM Hashkavot — Rise",
+      "text": "Congregation rises for Hashkavot.",
+      "category": "Memorial / Posture",
+      "status": "Approved",
+      "notes": "CTI RH-AM practice.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-078",
+      "name": "RH-AM Shofar — Rise",
+      "text": "Congregation rises for the sounding of the shofar.",
+      "category": "Shofar / Posture",
+      "status": "Approved",
+      "notes": "CTI RH-AM practice; reusable at first shofar service.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-079",
+      "name": "RH-AM Torah Procession — Return",
+      "text": "Congregation rises. Begin the Torah procession back to the Ark.",
+      "category": "Torah / Procession / Posture",
+      "status": "Approved",
+      "notes": "RH-AM operational choreography.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-080",
+      "name": "RH-AM Torah Return — Ark",
+      "text": "Return the Torah scrolls to the Ark, then close the Ark.",
+      "category": "Torah / Ark / Handling",
+      "status": "Approved",
+      "notes": "State-completion instruction for RH-AM Torah return.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-081",
+      "name": "RH-AM Musaf Amidah — Rise",
+      "text": "Congregation rises for the Musaf Amidah.",
+      "category": "Prayer / Posture",
+      "status": "Approved",
+      "notes": "CTI RH-AM practice at opening of Musaf Amidah.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-082",
+      "name": "RH-AM Musaf Shofar — Rise",
+      "text": "Congregation rises for the shofar.",
+      "category": "Shofar / Posture",
+      "status": "Approved",
+      "notes": "CTI RH-AM practice at Musaf shofar points; Not on Shabbat inherited from linked cues.",
+      "linkedCueCount": 3
+    },
+    {
+      "id": "INS-083",
+      "name": "RH-AM Torah Aliyot",
+      "text": "Call the aliyot in order; the Torah reader and each oleh use the blessings on page 204.",
+      "category": "Torah / Sequence",
+      "status": "AI Draft",
+      "notes": "RH-AM leader-useful Torah service instruction.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-084",
+      "name": "Torah and Haftarah Reading",
+      "text": "Reader chants the assigned Torah or Haftarah reading in Hebrew.",
+      "category": "Torah / Delivery",
+      "status": "AI Draft",
+      "notes": "Reusable RH-AM reader instruction for Torah, Maftir, and Haftarah reading cues.",
+      "linkedCueCount": 6
+    },
+    {
+      "id": "INS-085",
+      "name": "RH-AM Bidding for Honors",
+      "text": "President conducts the bidding for synagogue honors before the Torah service continues.",
+      "category": "Notice / Sequence",
+      "status": "AI Draft",
+      "notes": "RH-AM leader-facing instruction for the S&P bidding practice.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-086",
+      "name": "RH-AM Ein Keloheinu",
+      "text": "Please join in Hebrew and Ladino for Ein Keloheinu.",
+      "category": "Prayer / Participation",
+      "status": "AI Draft",
+      "notes": "RH-AM multilingual unison instruction.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-087",
+      "name": "RH-AM Shofar Blowing",
+      "text": "Shofar blower sounds the prescribed sequence after the calls.",
+      "category": "Shofar / Delivery",
+      "status": "AI Draft",
+      "notes": "Reusable RH-AM instruction for shofar blowing cues.",
+      "linkedCueCount": 6
+    },
+    {
+      "id": "INS-088",
+      "name": "YK-KN Va'ani — Enter and Bow",
+      "text": "On entering the synagogue, bow reverently toward the Ark and recite Va'ani.",
+      "category": "Posture / Entry",
+      "status": "AI Draft",
+      "notes": "DSP-YK evening-prayer rubric: bow reverently toward the Ark on entering.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-089",
+      "name": "YK-KN Tallit Before Twilight",
+      "text": "Before twilight, put on the tallit and recite its blessing.",
+      "category": "Blessing / Timing",
+      "status": "AI Draft",
+      "notes": "DSP-YK rubric: tallit is worn and the blessing is recited if twilight has not yet set in.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-090",
+      "name": "YK-KN Bidding for Honors",
+      "text": "Announce those designated for the Ark, Torah scrolls, and other service honors before the Torah ceremony begins.",
+      "category": "Notice / Sequence",
+      "status": "AI Draft",
+      "notes": "DSP-YK explicitly directs announcement of designated Ark, Torah, reader-assistance, and Haftarah honors.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-091",
+      "name": "YK-KN Kohanecha — Approach Ark",
+      "text": "As the service leaders approach the Ark, congregation stands and joins in Kohanecha.",
+      "category": "Torah / Posture / Participation",
+      "status": "AI Draft",
+      "notes": "DSP-YK: as Reader and Parnas proceed to the Ark, congregation stands and sings Kohanecha.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-092",
+      "name": "YK-KN Gadlu — Torah Removal",
+      "text": "With the Ark open and Torah scrolls removed, Rabbi chants Gadlu.",
+      "category": "Torah / Ark / Delivery",
+      "status": "AI Draft",
+      "notes": "DSP-YK: Ark doors are opened, Torah scrolls removed, then Reader chants Gadlu.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-093",
+      "name": "YK-KN Torah Procession — Out",
+      "text": "Carry the Torah scrolls from the Ark toward the reading desk.",
+      "category": "Torah / Procession",
+      "status": "AI Draft",
+      "notes": "DSP-YK procession from Ark toward Tebah/readers' desk.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-094",
+      "name": "YK-KN Romemu — Procession",
+      "text": "Congregation joins in Romemu as the Torah scrolls are carried to the reading desk.",
+      "category": "Torah / Procession / Participation",
+      "status": "AI Draft",
+      "notes": "DSP-YK: congregation chants Romemu as Torah scrolls are carried to the Tebah.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-095",
+      "name": "YK-KN B'Yeshiva — Remain Standing",
+      "text": "Congregation remains standing while the President reads B'Yeshiva Shel Ma'ala.",
+      "category": "Posture / Delivery",
+      "status": "AI Draft",
+      "notes": "DSP-YK directs the congregation to stand for the solemn B'Yeshiva declaration; local President role preserved.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-096",
+      "name": "YK-KN Kol Nidrei — Three Recitations",
+      "text": "Kol Nidrei is intoned with profound solemnity; the formula is recited three times.",
+      "category": "Prayer / Repetition",
+      "status": "AI Draft",
+      "notes": "DSP-YK says Kol Nidrei is intoned three times with profound solemnity; Lev Shalem also marks three recitations.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-097",
+      "name": "YK-KN Kol Nidrei — Complete Repetitions",
+      "text": "Rabbi repeats Kol Nidrei in Hebrew to complete the traditional three recitations.",
+      "category": "Prayer / Repetition",
+      "status": "AI Draft",
+      "notes": "Completes the three-recitation rubric while preserving the current YK-KN Rabbi role for the repetition cue.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-098",
+      "name": "YK-KN Torah Procession — Return",
+      "text": "Begin the return procession with the Torah scrolls.",
+      "category": "Torah / Procession",
+      "status": "AI Draft",
+      "notes": "DSP-YK return-to-Ark choreography.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-099",
+      "name": "YK-KN Mizmor L'David — Torah Return",
+      "text": "Congregation joins Mizmor L'David while the Torah scrolls are returned to the Ark.",
+      "category": "Torah / Procession / Participation",
+      "status": "AI Draft",
+      "notes": "DSP-YK: Psalm 29 is chanted while Torah scrolls are returned to the Ark.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-100",
+      "name": "YK-KN Return Torahs — Ark Open",
+      "text": "Replace the Torah scrolls in the Ark and leave the Ark open for Return O Lord and Shuva.",
+      "category": "Torah / Ark / Sequence",
+      "status": "AI Draft",
+      "notes": "DSP-YK directs that scrolls be replaced while the Ark remains open for the return prayers.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-101",
+      "name": "YK-KN Barchu — Rise, Bow, Sit",
+      "text": "Congregation rises for Barchu, bows for the response, then is seated.",
+      "category": "Prayer / Posture / Response",
+      "status": "AI Draft",
+      "notes": "DSP-YK marks the response while bowing and then seated; Lev Shalem explicitly says rise, bow/respond, then sit.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-102",
+      "name": "YK-KN Amidah — Stand Through Kaddish",
+      "text": "Congregation rises for the Amidah and remains standing through the Kaddish that follows.",
+      "category": "Prayer / Posture",
+      "status": "AI Draft",
+      "notes": "DSP-YK rubric: silent Amidah standing facing Ark; stand until end of Kaddish following Amidah.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-103",
+      "name": "YK-KN Ana B'Korenu — Responses",
+      "text": "Soloist chants Ana B'Korenu; congregation answers the recurring Hebrew responses.",
+      "category": "Prayer / Participation",
+      "status": "AI Draft",
+      "notes": "DSP-YK and existing summary identify Ana B'Korenu as responsorial; current Soloist lead role preserved.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-104",
+      "name": "YK-KN Five Psalm Readers",
+      "text": "Assign five readers, one each for Psalms 1, 2, 3, 4, and 24.",
+      "category": "Reader / Sequence",
+      "status": "AI Draft",
+      "notes": "Derived from the canonical YK-KN five-reader cue followed by Psalms 1, 2, 3, 4, and 24.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-105",
+      "name": "YK-KN Mourner's Kaddish — Read",
+      "text": "Rabbi reads Mourner's Kaddish in Hebrew; do not chant it.",
+      "category": "Kaddish / Delivery",
+      "status": "AI Draft",
+      "notes": "CTI local practice explicitly confirmed by user; no melody assigned.",
+      "linkedCueCount": 1
+    },
+    {
+      "id": "INS-106",
+      "name": "Yom Kippur Candle Blessing",
+      "text": "We begin by lighting a candle in memory of the six million, then continue with the blessing over the Yom Kippur candles.",
+      "category": "Sequence / Blessing",
+      "status": "Approved",
+      "notes": "YK-KN opening instruction; user-confirmed CTI practice adds a memorial candle for the six million before the Yom Kippur candle blessing.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "INS-107",
+      "name": "Gather Tallit Corners for Shema",
+      "text": "When we get to Hasten we gather the four corners of our tallit together in preparation for the Shema",
+      "category": "Prayer / Preparation",
+      "status": "Approved",
+      "notes": "YK-AM Ahavat Olam; user-confirmed CTI practice at “Hasten.”",
+      "linkedCueCount": 1
+    }
+  ]
+}
