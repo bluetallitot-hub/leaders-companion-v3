@@ -3614,9 +3614,18 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
    canvas.width=Math.max(1,Math.ceil((w+2)*factor));canvas.height=Math.ceil(row.lineH*factor);
    const ctx=canvas.getContext("2d");
    ctx.font=(row.font*factor)+"px "+(row.hebrew?'"Noto Serif Hebrew", "David", "Times New Roman", serif':'Georgia, "Times New Roman", serif');
-   ctx.fillStyle=row.color;ctx.textBaseline="middle";ctx.direction=row.hebrew?"rtl":"ltr";
+   ctx.fillStyle=row.color;ctx.textBaseline="alphabetic";ctx.direction=row.hebrew?"rtl":"ltr";
    ctx.textAlign=row.hebrew?"right":"left";
-   ctx.fillText(text,row.hebrew?canvas.width-1:1,canvas.height/2);
+   // Canvas "middle" is a typographic baseline, not the visible glyph center.
+   // Center the actual ink bounds (including Hebrew niqqud when present)
+   // against the arrow and the immutable cue-row center.
+   const metrics=ctx.measureText(text);
+   const ascent=metrics.actualBoundingBoxAscent||row.font*factor*.78;
+   const descent=metrics.actualBoundingBoxDescent||row.font*factor*.22;
+   const baseline=(canvas.height+ascent-descent)/2;
+   if(baseline-ascent<0||baseline+descent>canvas.height)
+    throw Error("Cue glyph exceeds approved row height");
+   ctx.fillText(text,row.hebrew?canvas.width-1:1,baseline);
    const image=await out.embedPng(canvas.toDataURL("image/png"));
    page.drawImage(image,{x,y:row.y,width:canvas.width/factor,height:canvas.height/factor});
   };
