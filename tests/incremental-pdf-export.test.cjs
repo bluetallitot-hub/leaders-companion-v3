@@ -1,0 +1,30 @@
+"use strict";
+const fs=require("node:fs"),assert=require("node:assert/strict");
+const js=fs.readFileSync("app/js/facing-import.js","utf8");
+const html=fs.readFileSync("app/html/facing-import.html","utf8");
+function part(start,end){
+ const a=js.indexOf(start),b=js.indexOf(end,a+start.length);
+ assert.ok(a>=0&&b>a,"Missing section: "+start);
+ return js.slice(a,b);
+}
+const save=part("async function saveCheckpointNow(){","$(\"save-checkpoint\")?.addEventListener");
+assert.match(save,/renderSavedSpreadPdf\(targetSpread,spread\)/,"Save must render the current spread");
+assert.match(save,/assembledWorkingPdf=await assembleCachedWorkingPdf\(\)/,"Save must update assembled PDF");
+assert.match(save,/await checkpointWrite\(\)/,"Save must persist PDF and metadata");
+const persist=part("async function checkpointWrite(){","async function checkpointRead(){");
+assert.match(persist,/renderedSpreadPdfs:\[\.\.\.renderedSpreadPdfs\.entries\(\)\]/);
+assert.match(persist,/assembledWorkingPdf/);
+const restore=part("async function checkpointRead(){","async function saveCheckpointNow(){");
+assert.match(restore,/snapshot\.assembledWorkingPdf/,"Restore cached PDF");
+assert.match(restore,/if\(!assembledWorkingPdf\)/,"Upgrade older checkpoints at restore");
+const build=part("async function assembleCachedWorkingPdf(){","$(\"download-front-matter\")?.addEventListener");
+assert.match(build,/out\.copyPages\(item\.part,\[item\.i\]\)/,"Assemble cached pages, not source images");
+assert.doesNotMatch(build,/renderCanonicalSiddurPage/,"Assembly must not render source scans");
+assert.match(build,/expected=3\+records\.length/,"Only three front pages plus saved pages");
+const download=part("$(\"download-front-matter\")?.addEventListener","function pdfWrapLines(");
+assert.match(download,/new Blob\(\[assembledWorkingPdf\]/);
+assert.doesNotMatch(download,/await|renderSavedSpreadPdf|assembleCachedWorkingPdf|exportSavedPagesDownload/,"Download must not generate PDF");
+assert.equal((html.match(/id="download-front-matter"/g)||[]).length,1);
+assert.match(html,/id="download-front-matter"[^>]*>Download PDF<\/button>/);
+assert.match(html,/id="preview-final-pdf"[^>]*>Legacy preview/,"Old preview controls retained only hidden for JS compatibility");
+console.log("PASS: saved spread PDF generated and persisted on Save, cached PDF restored, Download only transfers bytes.");
