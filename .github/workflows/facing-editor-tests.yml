@@ -1,0 +1,23 @@
+name: Facing editor regression tests
+on:
+  push:
+    paths:
+      - 'app/js/cue-layout.js'
+      - 'app/js/facing-import.js'
+      - 'tests/**'
+      - '.github/workflows/facing-editor-tests.yml'
+  workflow_dispatch:
+jobs:
+  cue-layout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax
+        run: |
+          node --check app/js/cue-layout.js
+          node --check app/js/facing-import.js
+      - name: Verify cue geometry
+        run: node tests/cue-layout.test.cjs
