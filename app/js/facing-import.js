@@ -3952,8 +3952,15 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   const trackThickness=4.5,trackInset=trackThickness/2+2;
   page.drawLine({start:{x:statusX+trackInset,y:centerY},
    end:{x:statusX+statusW-trackInset,y:centerY},thickness:trackThickness,color:grey});
-  const direction=String(record?.identification?.readingDirection||record?.readingDirection||"").toLowerCase();
-  const leftToRight=["ltr","english","left-to-right"].includes(direction);
+  // Direction belongs to the SIDDUR / service layout, never the
+  // language of the individual English or Hebrew facing page.
+  // Hebrew-layout Siddur is the default, even for English pages.
+  const direction=String(
+   serviceManifest?.siddurLayoutDirection||
+   serviceManifest?.layoutDirection||
+   "rtl"
+  ).toLowerCase();
+  const leftToRight=["ltr","left-to-right","english-layout"].includes(direction);
   // The red status marker is a text-capable capsule, not a tiny dot.
   // It fits a 3-digit cue identifier plus decimal (e.g. "123.4") in
   // 6–9pt type without exceeding the immutable 12pt-high master strip.
