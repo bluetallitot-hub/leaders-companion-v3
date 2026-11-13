@@ -3085,15 +3085,11 @@ function drawLeaderPageFooter(page,record,font,bold){
 // Cover printed template guide words, retaining the approved box geometry.
 async function drawApprovedPageFields(page,record,side,out,font,bold){
  const textX=side===0?171.36:59.76;
- const white=PDFLib.rgb(1,1,1),ink=PDFLib.rgb(.1,.17,.2);
- const wipe=(x,y,w,h)=>page.drawRectangle({x,y,width:w,height:h,color:white});
+ const ink=PDFLib.rgb(.1,.17,.2);
  const state=record.leadership||{};
- // Keep the approved geometries while hiding construction labels and dashed
- // internal guides. The source image is never erased or rescaled here.
- const boxes={instructions:{x:textX+2,y:645,w:376,h:57},cues:{x:textX+2,y:48,w:376,h:50}};
- for(const b of Object.values(boxes))wipe(b.x,b.y,b.w,b.h);
- // Do not erase the approved master's header, footer or side panel.
- // These are master-owned regions, not editable placeholder content.
+ // The selected Outer Lines Only PDF is the actual page artwork.
+ // Do not paint white rectangles over its section borders or reconstruct them.
+ // Place editable text only inside its pre-existing blank regions.
  const instructions=instructionTextForPage(state).filter(x=>String(x||"").trim());
  const render=async(text,x,y,w,h,{fontSize=12,color="#182c36",rtl=false}={})=>{
   const factor=3,canvas=document.createElement("canvas");
