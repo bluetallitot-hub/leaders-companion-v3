@@ -360,6 +360,24 @@ function cueHasHebrewScript(cue){
  return hebrew>latin;
 }
 function pageHasHebrewCue(record){return (record?.leadership?.cues||[]).some(cueHasHebrewScript);}
+// Canonical intake Mode mapping. Roles identify musical/reading delivery;
+// language suffix chooses only the matching original V2 icon artwork.
+function intakeModeFromRole(role){
+ const value=String(role||"").trim().toUpperCase().replace(/[ _-]+/g," ");
+ if(["P","PRESIDENT","READER","READERS"].includes(value))return "READING";
+ if(["R","RABBI","S1","S2","SOLOIST","SOLOIST 1","SOLOIST 2"].includes(value))return "MELODY";
+ return "";
+}
+function intakeModeFromRow(row){
+ const explicit=String(row.mode||row.delivery_mode||"").trim().toUpperCase();
+ if(["READING","MELODY"].includes(explicit))return explicit;
+ return intakeModeFromRole(row.leader_role||row.role_name||row.role_code||row.role);
+}
+function pageModeFromIntake(rows,languageCode){
+ const values=[...new Set(rows.map(intakeModeFromRow).filter(Boolean))];
+ if(values.length!==1)return ""; // Do not silently choose between conflicting roles.
+ return values[0]+"_"+(String(languageCode||"").toUpperCase()==="H"?"H":"E");
+}
 function applyImportedCues(){
  if(!pageMetadata.length)return;
  for(const record of pageMetadata){
@@ -378,6 +396,13 @@ function applyImportedCues(){
    const languageMatches=true;
    return (supplement?ref.toUpperCase()===manifestRef.toUpperCase():(sameReference||(!manifestRef&&inRange)))&&languageMatches;
   });
+  // Intake-derived Mode populates the four-square panel unless manually overridden.
+  // Mixed Reading/Melody roles on one page remain unassigned for review.
+  record.production??={};
+  if(!record.production.modeIcon||record.production.modeSource==="csv"){
+   record.production.modeIcon=pageModeFromIntake(matches,code);
+   record.production.modeSource="csv";
+  }
   // Canonical CSV begin_cue/end_cue are logical reading boundaries.
   // Physical cue_left/cue_right are used only when explicitly supplied.
   record.leadership.cues=matches.map((c,i)=>{
@@ -386,7 +411,7 @@ function applyImportedCues(){
    const ending=String(c.end_cue||c.end_cue_hebrew||(isHebrew?c.cue_left:c.cue_right)||"");
    return {
     cueId:c.cue_id||c.test_id||"import-"+i,service:c.service_name||c.service||null,role:c.leader_role||c.role_name||c.role_code||c.role||null,
-    style:c.performance_style||c.style||null,styleSlot:null,cueLanguage:/[\u0590-\u05ff]/.test(beginning+" "+ending)?"hebrew":/[A-Za-z]/.test(beginning+" "+ending)?"english":"unknown",startCue:beginning,endCue:ending,
+    style:c.performance_style||c.style||null,mode:intakeModeFromRow(c),styleSlot:null,cueLanguage:/[\u0590-\u05ff]/.test(beginning+" "+ending)?"hebrew":/[A-Za-z]/.test(beginning+" "+ending)?"english":"unknown",startCue:beginning,endCue:ending,
     startCueHebrew:isHebrew?(beginning||c.begin_cue_hebrew||""):(c.begin_cue_hebrew||""),
     endCueHebrew:isHebrew?(ending||c.end_cue_hebrew||""):(c.end_cue_hebrew||""),
     prayer:c.prayer_name||c.prayer_action||c.prayer||null,sourceRow:c.leader_map_source_row||null,
@@ -779,7 +804,7 @@ function renderPageCueEditor(){
     ["","Not assigned"],
     ["MELODY_"+suffix,"Melody"],["READING_"+suffix,"Reading"],
     ["TORAH","Torah"],["SHOFAR","Shofar"]
-   ],record.production.modeIcon,v=>record.production.modeIcon=v));
+   ],record.production.modeIcon,v=>{record.production.modeIcon=v;record.production.modeSource="manual";}));
    const pitch=document.createElement("input");pitch.type="text";
    pitch.value=String(record.production.pitch||pageMelodyForLayout(record).pitch||"");
    pitch.placeholder="Pitch";pitch.style.cssText="width:100%;min-width:0;padding:6px;box-sizing:border-box";
@@ -3190,7 +3215,7 @@ $("cue-file").addEventListener("change",async()=>{
   if(!rows.length||!rows.every(c=>c.printed_page&&c.language&&
     (c.begin_cue||c.begin_cue_hebrew)&&(c.end_cue||c.end_cue_hebrew)))
     throw Error("CSV needs printed_page, language, and beginning/ending cues (begin_cue/end_cue or Hebrew equivalents).");
-  importedCues=rows;cueCsvRows=rows.map(row=>({...row}));cueCsvHeaders=Object.keys(rows[0]||{});
+  importedCues=rows.map(row=>({...row,mode:intakeModeFromRow(row)}));cueCsvRows=importedCues.map(row=>({...row}));cueCsvHeaders=[...new Set([...Object.keys(rows[0]||{}),"mode"])];
   cueTextEdits.clear();
   updateIntakeInventory();
   applyImportedCues();refreshCueVisibilityPicker();
