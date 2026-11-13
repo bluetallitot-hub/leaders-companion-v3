@@ -2503,7 +2503,8 @@ async function checkpointWrite(){
    tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
   });
  }finally{db.close();}
- const label=$("checkpoint-status");if(label)label.textContent="Saved locally: "+snapshot.savedAt+" — "+verifiedWorkingPages().length+" verified pages, "+spreadEdits.size+" spreads.";
+ explicitlySavedPages=new Map(snapshot.spreads.flatMap(([,spread])=>(spread.pages||[]).filter(Boolean).map(record=>[Number(record.sourcePdfPage||record.source?.sourcePdfPage),JSON.parse(JSON.stringify(record))])).filter(([n])=>Number.isInteger(n)&&n>0));
+ const label=$("checkpoint-status");if(label)label.textContent="Saved locally: "+snapshot.savedAt+" — "+explicitlySavedPages.size+" pages in checkpoint, "+verifiedWorkingPages().length+" approved.";
  return snapshot;
 }
 async function checkpointRead(){
@@ -2519,6 +2520,7 @@ async function checkpointRead(){
  if(serviceManifest&&snapshot.sections)serviceManifest.sections=snapshot.sections;
  spreadEdits.clear();
  for(const [key,value] of snapshot.spreads||[])spreadEdits.set(Number(key),value);
+ explicitlySavedPages=new Map((snapshot.spreads||[]).flatMap(([,spread])=>(spread.pages||[]).filter(Boolean).map(record=>[Number(record.sourcePdfPage||record.source?.sourcePdfPage),JSON.parse(JSON.stringify(record))])).filter(([n])=>Number.isInteger(n)&&n>0));
  cueTextEdits.clear();for(const [key,value] of snapshot.cueTextEdits||[])cueTextEdits.set(key,value);
  cueRoleEdits.clear();for(const [key,value] of snapshot.cueRoleEdits||[])cueRoleEdits.set(key,value);
  const label=$("checkpoint-status");if(label)label.textContent="Restored local checkpoint from "+snapshot.savedAt+".";
@@ -2908,9 +2910,34 @@ function workingPages(){
  }
  return [...bySource].sort((a,b)=>a[0]-b[0]);
 }
-function verifiedWorkingPages(){
- return workingPages().filter(([,record])=>pageApprovalCurrent(record));
+// A saved checkpoint, not mere navigation or automatic OCR, defines the
+// exportable working set. The user can inspect this list before PDF proof.
+let explicitlySavedPages=new Map();
+function checkpointSavedPages(){
+ return [...explicitlySavedPages].sort((a,b)=>a[0]-b[0]);
 }
+function verifiedWorkingPages(){
+ return checkpointSavedPages().filter(([,record])=>pageApprovalCurrent(record));
+}
+function showSavedPageInventory(){
+ const pages=checkpointSavedPages();
+ const lines=pages.map(([n,r])=>"Source page "+n+" | "+(pageApprovalCurrent(r)?"Approved":"Draft")+" | "+(approvedPrayerName(r)||"Prayer title missing"));
+ const text="SAVED CHECKPOINT — "+pages.length+" pages\n"+(lines.join("\n")||"No pages have been explicitly saved yet.");
+ const dialog=document.createElement("dialog");dialog.style.cssText="padding:22px;max-width:min(760px,94vw);max-height:80vh;overflow:auto";
+ const heading=document.createElement("h2");heading.textContent="Pages actually saved";dialog.append(heading);
+ const pre=document.createElement("pre");pre.style.cssText="white-space:pre-wrap;line-height:1.6";pre.textContent=text;dialog.append(pre);
+ const close=document.createElement("button");close.textContent="Close";close.onclick=()=>dialog.close();dialog.append(close);
+ dialog.addEventListener("close",()=>dialog.remove());document.body.append(dialog);dialog.showModal();
+}
+function installSavedPageInventory(){
+ if(document.getElementById("show-saved-page-inventory"))return;
+ const target=document.getElementById("save-checkpoint");if(!target)return;
+ const button=document.createElement("button");button.id="show-saved-page-inventory";button.type="button";
+ button.textContent="Show pages actually saved";button.addEventListener("click",showSavedPageInventory);
+ target.insertAdjacentElement("afterend",button);
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",installSavedPageInventory);
+else installSavedPageInventory();
 function cueCompletionReport(){
  const pages=workingPages();
  const missing=pages.flatMap(([index,record])=>(record.leadership?.cues||[])
@@ -3188,8 +3215,7 @@ async function renderCanonicalSiddurPage({out,master,source,sourceIndex,record,s
 
 async function exportVerifiedWorkingCopy(){
  if(!sourcePdfBytes)throw Error("Load the source siddur first.");
- saveCurrentSpreadEdits();
- // Only explicitly approved, unchanged pages may enter the downloadable book.
+ // Export only pages in the last successfully persisted checkpoint.\n // Merely opening or processing a page must never add it to the proof.
  const approved=verifiedWorkingPages();
  // Validate all approved records before constructing the PDF, so the user gets
  // the exact missing field instead of a late, generic export failure.
@@ -3453,7 +3479,7 @@ $("preview-exported-spread")?.addEventListener("click",async()=>{
 let finalPdfProof=null,finalPdfProofUrl=null;
 function finalPdfSignature(){
  saveCurrentSpreadEdits();
- return JSON.stringify({pages:workingPages(),sections:editableSectionRecords(),cover:effectiveCover(),
+ return JSON.stringify({pages:checkpointSavedPages(),sections:editableSectionRecords(),cover:effectiveCover(),
   service:serviceManifest,filename,sourcePages:sourcePdfPages});
 }
 function invalidateFinalPdfProof(){
