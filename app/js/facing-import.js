@@ -2344,6 +2344,9 @@ async function createPdf(bytes){
  const out=await PDFLib.PDFDocument.create(),first=Math.max(0,Math.min(source.numPages-1,selectedSpreadFirst-1)),count=Math.min(2,source.numPages-first);
  if(!count)throw Error("No PDF pages found.");
  const font=await out.embedFont(PDFLib.StandardFonts.Helvetica),boldFont=await out.embedFont(PDFLib.StandardFonts.HelveticaBold),records=[];
+ const approvedMasterBytes=await window.LCV3Templates.load("siddur");
+ const approvedMaster=await PDFLib.PDFDocument.load(approvedMasterBytes);
+ if(!approvedMaster.getPageCount())throw Error("Approved Siddur master has no pages.");
  for(let i=0;i<count;i++){
   status("Processing source page "+(i+1)+" of "+count+"...");
   const src=await source.getPage(first+i+1),v=src.getViewport({scale:2});
@@ -2380,8 +2383,11 @@ async function createPdf(bytes){
  applyCueTextEdits();
  
  for(let i=0;i<records.length;i++){
-  const {meta,png}=records[i],page=out.addPage([W,H]);
-  drawTemplate(page,i);drawKnownFrameworkFields(page,pageMetadata[i],i,font,boldFont,null);
+  const {meta,png}=records[i];
+  const masterIndex=approvedMaster.getPageCount()>1?Math.min(i,approvedMaster.getPageCount()-1):0;
+  const [approvedPage]=await out.copyPages(approvedMaster,[masterIndex]);
+  const page=out.addPage(approvedPage);
+  drawKnownFrameworkFields(page,pageMetadata[i],i,font,boldFont,null);
   const r=REGIONS[i],pad=6,scale=Math.min((r.w-2*pad)/png.width,(r.h-2*pad)/png.height);
   const dw=png.width*scale,dh=png.height*scale;
   page.drawImage(png,{x:r.x+(r.w-dw)/2,y:r.y+(r.h-dh)/2,width:dw,height:dh});
