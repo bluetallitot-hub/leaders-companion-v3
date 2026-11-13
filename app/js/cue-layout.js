@@ -21,8 +21,8 @@ function layout({cues=[],side=0,language="",measure,roleColor=()=>"#182c36"}){
  };
  return cues.map((cue,i)=>{
   const font=Math.min(11,Math.max(7.5,rowH*.48));
-  const begin=shorten(hebrew?(cue.startCueHebrew||cue.startCue||cue.beginCue):(cue.startCue||cue.beginCue||cue.startCueHebrew),font,155,hebrew);
-  const end=shorten(hebrew?(cue.endCueHebrew||cue.endCue||cue.endCueText):(cue.endCue||cue.endCueText||cue.endCueHebrew),font,155,!hebrew);
+  const begin=shorten(hebrew?(cue.startCueHebrew||cue.startCue||cue.beginCue):(cue.startCue||cue.beginCue||cue.startCueHebrew),font,155,false);
+  const end=shorten(hebrew?(cue.endCueHebrew||cue.endCue||cue.endCueText):(cue.endCue||cue.endCueText||cue.endCueHebrew),font,155,true);
   const beginW=width(begin,font),endW=width(end,font);
   const beginX=hebrew?right-beginW:left,endX=hebrew?left:right-endW;
   const gapLeft=hebrew?endX+endW:beginX+beginW;
