@@ -965,6 +965,52 @@
       "status": "Approved",
       "notes": "YK-AM Ahavat Olam; user-confirmed CTI practice at “Hasten.”",
       "linkedCueCount": 1
+    },
+    {
+      "id": "PAPER-N",
+      "name": "Neon — Rosh Chodesh",
+      "text": "Only done on Rosh Chodesh.",
+      "category": "Paper color / conditional use",
+      "status": "Approved",
+      "notes": "Automatically appended by paper color N; not manually assigned to page instructionIds.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "PAPER-B",
+      "name": "Blue — Shabbat",
+      "text": "Only on Shabbat.",
+      "category": "Paper color / conditional use",
+      "status": "Approved",
+      "notes": "Automatically appended by paper color B; not manually assigned to page instructionIds.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "PAPER-R",
+      "name": "Red — Weekday",
+      "text": "Not on Shabbat.",
+      "category": "Paper color / conditional use",
+      "status": "Approved",
+      "notes": "Automatically appended by paper color R; not manually assigned to page instructionIds.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "PAPER-O",
+      "name": "Orange — First Day",
+      "text": "First day only.",
+      "category": "Paper color / conditional use",
+      "status": "Approved",
+      "notes": "Automatically appended by paper color O; not manually assigned to page instructionIds.",
+      "linkedCueCount": 0
+    },
+    {
+      "id": "PAPER-G",
+      "name": "Green — Second Day",
+      "text": "Second day only.",
+      "category": "Paper color / conditional use",
+      "status": "Approved",
+      "notes": "Automatically appended by paper color G; not manually assigned to page instructionIds.",
+      "linkedCueCount": 0
     }
-  ]
+  ],
+  "notes": "Original 107 V2 entries retained; PAPER-* entries are V3 derived instructions."
 }
