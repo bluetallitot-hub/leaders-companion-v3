@@ -2441,9 +2441,9 @@ function displayMetadata(){
  }
  refreshMetadataDialog();
 }
-async function preview(bytes,{reuseSaved=false}={}){
+async function preview(bytes,{reuseSaved=false,canonicalOnly=false}={}){
  const doc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
- for(let i=0;i<2;i++){
+ if(!canonicalOnly)for(let i=0;i<2;i++){
   const canvas=$(i===0?"output-left":"output-right");
   if(i>=doc.numPages){canvas.hidden=true;continue}
   canvas.hidden=false;
@@ -2698,14 +2698,18 @@ async function loadSelectedSpread(){
  baseOutput=output.slice();
  const saved=spreadEdits.get(selectedSpreadFirst);
  const savedComplete=!!saved?.pages?.length;
- await preview(output,{reuseSaved:savedComplete});
+ // The legacy staging PDF exists only to initialize source records. Never
+ // display it or run recognition against a separately reconstructed layout.
+ canonicalPreviewEnabled=true;
+ await renderCanonicalSpread(++canonicalPreviewEpoch);
+ await preview(output,{reuseSaved:savedComplete,canonicalOnly:true});
  // Individual-page download controls were retired; the working PDF is the only export.
  applyCueRoleEdits();
  if(savedComplete){pageMetadata.forEach((record,i)=>{const prior=saved.pages?.[i];if(record&&prior){record.leadership=JSON.parse(JSON.stringify(prior.leadership));if(prior.production)record.production=JSON.parse(JSON.stringify(prior.production));record.leadership.highlights=record.leadership.highlights||[];record.prayerTitle=prior.prayerTitle;if(prior.identification)record.identification=JSON.parse(JSON.stringify(prior.identification))}});selectedCueBySide=[...(saved.selectedCues||["",""])];renderPageCueEditor();drawHighlights();const label=$("highlight-loading-label");if(label)label.textContent="Saved match methods and geometry reused — no recognition rerun";}else selectedCueBySide=["",""];
  if($("metadata-dialog").open)refreshMetadataDialog();
  $("download").disabled=false;
  status(cueMatchReport);updateSpanStatus();
- canonicalPreviewEnabled=true;scheduleCanonicalPreview();
+ canonicalPreviewEnabled=true;canonicalPreviewLastSignature="";scheduleCanonicalPreview();
 }
 $("load-spread").addEventListener("click",async()=>{
  if(!sourcePdfBytes)return;
