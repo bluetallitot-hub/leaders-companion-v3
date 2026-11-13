@@ -2451,6 +2451,7 @@ async function analyzeCanonicalPreview({reuseSaved=false}={}){
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null,serviceRoleOpacity=new Map(),serviceRoleAssignments=new Map(),serviceRoleDisplayNames=new Map(),serviceHighlightColors=["#F5D03C","#75C56A","#74B9E7","#F3A65B","#DA88B8","#AE93DC"],embeddedPageRecords=[];
 const spreadEdits=new Map();
+const savedSpreadRecords=new Map(); // Only explicit Save commits pages to the working PDF.
 // Persisted rendered two-page spreads and assembled PDF: download never renders pages.
 let renderedSpreadPdfs=new Map();
 let assembledWorkingPdf=null;
@@ -2468,7 +2469,7 @@ async function checkpointWrite(){
  if(!sourcePdfBytes)throw Error("No source PDF loaded.");
  const snapshot={schema:"leaders-companion-checkpoint-v1",savedAt:new Date().toISOString(),
   filename,sourcePages:sourcePdfPages,sourceBytes:sourcePdfBytes.length,
-  coverMetadata,sections:serviceManifest?.sections||[],spreads:[...spreadEdits.entries()],excludedFromProof:[...excludedFromProof],cueTextEdits:[...cueTextEdits.entries()],
+  coverMetadata,sections:serviceManifest?.sections||[],spreads:[...savedSpreadRecords.entries()],excludedFromProof:[...excludedFromProof],cueTextEdits:[...cueTextEdits.entries()],
   cueRoleEdits:[...cueRoleEdits.entries()],renderedSpreadPdfs:[...renderedSpreadPdfs.entries()],assembledWorkingPdf};
  const db=await checkpointDb();
  try{
@@ -2493,8 +2494,8 @@ async function checkpointRead(){
  if(!snapshot||snapshot.sourceBytes!==sourcePdfBytes.length||snapshot.sourcePages!==sourcePdfPages)return false;
  coverMetadata=snapshot.coverMetadata||coverMetadata;
  if(serviceManifest&&snapshot.sections)serviceManifest.sections=snapshot.sections;
- spreadEdits.clear();
- for(const [key,value] of snapshot.spreads||[])spreadEdits.set(Number(key),value);
+ spreadEdits.clear();savedSpreadRecords.clear();
+ for(const [key,value] of snapshot.spreads||[]){spreadEdits.set(Number(key),value);savedSpreadRecords.set(Number(key),JSON.parse(JSON.stringify(value)));}
  renderedSpreadPdfs=new Map((snapshot.renderedSpreadPdfs||[]).map(([key,bytes])=>[Number(key),new Uint8Array(bytes)]));
  assembledWorkingPdf=snapshot.assembledWorkingPdf?new Uint8Array(snapshot.assembledWorkingPdf):null;
  excludedFromProof=new Set(snapshot.excludedFromProof||[]);
@@ -2528,17 +2529,22 @@ async function saveCheckpointNow(){
  try{
   const targetSpread=selectedSpreadFirst;
   const previousSpread=renderedSpreadPdfs.get(targetSpread);
+  const previousRecords=savedSpreadRecords.get(targetSpread);
   const previousPdf=assembledWorkingPdf;
   try{
-   const spread=spreadEdits.get(targetSpread);
+   const spread=JSON.parse(JSON.stringify(spreadEdits.get(targetSpread)||{pages:[]}));
    if(spread?.pages?.some(Boolean)){
-    renderedSpreadPdfs.set(targetSpread,await renderSavedSpreadPdf(targetSpread,spread));
+    const bytes=await renderSavedSpreadPdf(targetSpread,spread);
+    renderedSpreadPdfs.set(targetSpread,bytes);
+    savedSpreadRecords.set(targetSpread,spread);
    }
    assembledWorkingPdf=await assembleCachedWorkingPdf();
    await checkpointWrite();
   }catch(e){
    if(previousSpread)renderedSpreadPdfs.set(targetSpread,previousSpread);
    else renderedSpreadPdfs.delete(targetSpread);
+   if(previousRecords)savedSpreadRecords.set(targetSpread,previousRecords);
+   else savedSpreadRecords.delete(targetSpread);
    assembledWorkingPdf=previousPdf;
    throw e;
   }
@@ -3116,8 +3122,8 @@ async function renderSavedSpreadPdf(first,spread){
 async function assembleCachedWorkingPdf(){
  const out=await PDFLib.PDFDocument.create();
  // The checkpoint map is refreshed only after the write; use the current
- // spreadEdits snapshot while assembling the just-saved spread.
- const records=[...new Map([...spreadEdits.values()].flatMap(spread=>
+ // savedSpreadRecords snapshot, updated only by explicit Save.
+ const records=[...new Map([...savedSpreadRecords.values()].flatMap(spread=>
   (spread.pages||[]).filter(Boolean).map(record=>[
    Number(record.sourcePdfPage||record.source?.sourcePdfPage),record
   ])).filter(([index])=>Number.isInteger(index)&&index>0))].sort((a,b)=>a[0]-b[0])
@@ -3134,7 +3140,7 @@ async function assembleCachedWorkingPdf(){
  await addSectionMasterPages(out,{title:sectionTitle},entries);
  const indexToPdf=new Map();
  for(const [first,bytes] of [...renderedSpreadPdfs].sort((a,b)=>a[0]-b[0])){
-  const spread=spreadEdits.get(first);
+  const spread=savedSpreadRecords.get(first);
   const spreadRecords=(spread?.pages||[]).filter(Boolean).map(record=>Number(record.sourcePdfPage||record.source?.sourcePdfPage))
    .filter(index=>Number.isInteger(index)&&index>0).sort((a,b)=>a-b);
   if(!spreadRecords.length)continue;
