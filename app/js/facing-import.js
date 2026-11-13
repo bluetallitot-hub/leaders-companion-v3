@@ -3497,7 +3497,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   ctx.fillStyle=color;ctx.textBaseline="top";
   ctx.direction=rtl?"rtl":"ltr";ctx.textAlign=rtl?"right":"left";
   const safeText=String(text||"").replace(/י[\u0591-\u05c7]*ה[\u0591-\u05c7]*ו[\u0591-\u05c7]*ה[\u0591-\u05c7]*/g,"ה׳");
-  const words=prewrapped?[]:safeText.split(/\s+/).filter(Boolean),lines=prewrapped?safeText.split("\\n"):[];let line="";
+  const words=prewrapped?[]:safeText.split(/\s+/).filter(Boolean),lines=prewrapped?safeText.split("\n"):[];let line="";
   for(const word of words){
    const trial=line?line+" "+word:word;
    if(ctx.measureText(trial).width>canvas.width-18&&line){lines.push(line);line=word;}
@@ -3514,7 +3514,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  if(instructions.length){
   const joined=instructions.join(" ");
   const fitted=instructionLayout(joined);
-  await render(fitted.lines.join("\\n"),textX+3,648,374,54,{fontSize:12,rtl:/[\\u0590-\\u05ff]/.test(joined),prewrapped:true});
+  await render(fitted.lines.join("\n"),textX+3,648,374,54,{fontSize:12,rtl:/[\u0590-\u05ff]/.test(joined),prewrapped:true});
  }
  const plan=v3CuePlan(record,side);
  for(const row of plan){
