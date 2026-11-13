@@ -25,6 +25,8 @@ const download=part("$(\"download-front-matter\")?.addEventListener","function p
 assert.match(download,/new Blob\(\[assembledWorkingPdf\]/);
 assert.doesNotMatch(download,/await|renderSavedSpreadPdf|assembleCachedWorkingPdf|exportSavedPagesDownload/,"Download must not generate PDF");
 assert.equal((html.match(/id="download-front-matter"/g)||[]).length,1);
+assert.match(js,/function resetIncrementalPdfState\\(\\)/,"Different source PDFs must not share cache");
+assert.match(js,/async function ensureInitialWorkingPdf\\(\\)/,"Front matter exists before first saved spread");
 assert.match(html,/id="download-front-matter"[^>]*>Download PDF<\/button>/);
 assert.match(html,/id="preview-final-pdf"[^>]*>Legacy preview/,"Old preview controls retained only hidden for JS compatibility");
 console.log("PASS: saved spread PDF generated and persisted on Save, cached PDF restored, Download only transfers bytes.");
