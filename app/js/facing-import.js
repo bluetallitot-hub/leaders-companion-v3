@@ -3644,22 +3644,36 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   page.drawLine({start:{x:tip,y},end:{x:back,y:y+3},thickness:1.3,color:ink});
   page.drawLine({start:{x:tip,y},end:{x:back,y:y-3},thickness:1.3,color:ink});
  }
- // Status-strip placeholders. Do not fabricate V2 tag/subtag values:
- // one marker per cue, with 10pt reserved identifier width ("00.0").
- // The existing master status strip is never moved or resized.
+ // Continuous status track, inside the existing immutable master strip.
+ // The default reading progression is Hebrew (right to left). Only an
+ // explicit English/LTR page direction reverses the starting edge.
+ // Tag/subtag values are intentionally blank until V2 lineage is verified.
  const cueCount=Math.min(3,(state.cues||[]).length);
  if(cueCount){
   const statusX=textX+2,statusW=376,statusY=34,statusH=12;
-  const markerDiameter=5.5,numberSlot=29;
-  const red=PDFLib.rgb(.82,.12,.16);
-  for(let i=0;i<cueCount;i++){
-   const centerX=statusX+statusW*(i+.5)/cueCount;
-   const totalW=markerDiameter+3+numberSlot;
-   const left=centerX-totalW/2;
-   const centerY=statusY+statusH/2;
-   page.drawCircle({x:left+markerDiameter/2,y:centerY,size:markerDiameter/2,color:red});
-   // Reserve 29pt beside the red dot for up to "00.0" at 10pt.
-   // No digits are printed until V2 tag/subtag mapping is verified.
+  const centerY=statusY+statusH/2;
+  const grey=PDFLib.rgb(.78,.80,.81),red=PDFLib.rgb(.82,.12,.16);
+  const trackInset=4;
+  page.drawLine({start:{x:statusX+trackInset,y:centerY},
+   end:{x:statusX+statusW-trackInset,y:centerY},thickness:2,color:grey});
+  const direction=String(record?.identification?.readingDirection||record?.readingDirection||"").toLowerCase();
+  const leftToRight=["ltr","english","left-to-right"].includes(direction);
+  // 48pt wide reserves a 10pt identifier of format "000.0" plus
+  // horizontal padding. The red circular marker is 10pt in diameter.
+  const slotW=48,markerDiameter=10,edgePad=5;
+  const slotStart=statusX+edgePad,slotEnd=statusX+statusW-edgePad-slotW;
+  const positions=cueCount===1?[0]:Array.from({length:cueCount},(_,i)=>i/(cueCount-1));
+  for(const fraction of positions){
+   const left=leftToRight
+    ?slotStart+(slotEnd-slotStart)*fraction
+    :slotEnd-(slotEnd-slotStart)*fraction;
+   // White knockout behind the identifier keeps the gray track from
+   // running through the future 10pt text; geometry remains unchanged.
+   page.drawRectangle({x:left,y:statusY+.5,width:slotW,height:statusH-1,
+    color:PDFLib.rgb(1,1,1)});
+   const markerX=leftToRight?left+markerDiameter/2:left+slotW-markerDiameter/2;
+   page.drawCircle({x:markerX,y:centerY,size:markerDiameter/2,color:red});
+   // Remaining 38pt is reserved for the verified V2 tag/subtag identifier.
   }
  }
  // Identity is sourced only from record metadata, never from master labels.
