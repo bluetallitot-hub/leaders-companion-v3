@@ -529,13 +529,17 @@ function renderPageCueEditor(){
    pageTitleInput.setAttribute("aria-label",(side===0?"Left":"Right")+" page prayer title");
    pageTitleRow.append(pageTitleInput);panel.append(pageTitleRow);
    const savePageTitle=document.createElement("button");savePageTitle.type="button";savePageTitle.textContent="Save page prayer title";
-   savePageTitle.onclick=()=>{
+   savePageTitle.onclick=async()=>{
     const value=pageTitleInput.value.trim();
     if(!value){$("page-cue-editor-status").textContent="Page prayer title cannot be empty.";return;}
     record.prayerTitle=value;record.identification??={};record.identification.prayerName=value;
     record.leadership.instructionPrayer=value;record.leadership.highlightConfirmed=false;
     saveCurrentSpreadEdits();renderFacingInstructions();
-    $("page-cue-editor-status").textContent="Page prayer title updated. Save Project Checkpoint to persist.";
+    savePageTitle.disabled=true;
+    $("page-cue-editor-status").textContent="Saving title and rebuilding PDF preview…";
+    try{await saveCheckpointNow();scheduleCanonicalPreview();$("page-cue-editor-status").textContent="Page prayer title saved and PDF rebuilt.";}
+    catch(error){$("page-cue-editor-status").textContent="Title PDF save failed: "+error.message;}
+    finally{savePageTitle.disabled=false;}
    };
    panel.append(savePageTitle);
    const addCue=document.createElement("button");addCue.type="button";addCue.textContent="Add cue to this page";
