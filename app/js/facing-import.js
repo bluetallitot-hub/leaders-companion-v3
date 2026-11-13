@@ -608,7 +608,6 @@ function renderInstructionPreviews(){
 }
 function pageApprovalFingerprint(record){
  const state=record.leadership||{};
- const layoutMelody=pageMelodyForLayout(record); // Every page has a stub fallback; geometry render pending.
  return JSON.stringify({highlights:state.highlights||[],cues:state.cues||[],instructionIds:state.instructionIds||[],instructionPrayer:state.instructionPrayer||"",instructionPosition:state.instructionPosition||"top",instructionOverrides:state.instructionOverrides||{},approvedCrop:record.production?.approvedCrop||null});
 }
 function pageApprovalCurrent(record){
@@ -3591,6 +3590,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  const textX=side===0?171.36:59.76;
  const ink=PDFLib.rgb(.1,.17,.2);
  const state=record.leadership||{};
+ const layoutMelody=pageMelodyForLayout(record); // Local to PDF sidebar renderer.
  // The selected Outer Lines Only PDF is the actual page artwork.
  // Do not paint white rectangles over its section borders or reconstruct them.
  // Place editable text only inside its pre-existing blank regions.
