@@ -75,9 +75,10 @@ function layout({cues=[],side=0,language="",measure,roleColor=()=>"#182c36"}){
   const lineH=font*1.18;
   // Optical adjustment within the immutable cue rectangle: the previous
   // rasterized serif text sat visibly above the box center in PDF preview.
-  const y=rowCenters[i]-lineH/2-6;
+  const opticalShift=Math.min(6,Math.max(0,(rowH-lineH)/2));
+  const y=rowCenters[i]-lineH/2-opticalShift;
   const row={begin,end,beginX,endX,beginW,endW,arrowX:(gapLeft+gapRight)/2,
-   y,font,rowH,lineH,centerY:rowCenters[i],hebrew,cueLanguage:cueScript,color:roleColor(cue.role||cue.roleId)};
+   y,font,rowH,lineH,centerY:rowCenters[i],opticalShift,hebrew,cueLanguage:cueScript,color:roleColor(cue.role||cue.roleId)};
   for(const [x,w] of [[beginX,beginW],[endX,endW]]){
    if(x<left-.001||x+w>right+.001)throw Error("Cue text exceeds approved bounds");
   }
