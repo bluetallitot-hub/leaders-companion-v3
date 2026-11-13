@@ -3704,17 +3704,22 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
    end:{x:statusX+statusW-trackInset,y:centerY},thickness:trackThickness,color:grey});
   const direction=String(record?.identification?.readingDirection||record?.readingDirection||"").toLowerCase();
   const leftToRight=["ltr","english","left-to-right"].includes(direction);
-  // One 48pt slot reserves a 10pt identifier of format "000.0" plus
-  // padding. Marker diameter fits inside the fixed V3 strip.
-  const slotW=48,markerDiameter=6,edgePad=5;
+  // The red status marker is a text-capable capsule, not a tiny dot.
+  // It fits a 3-digit cue identifier plus decimal (e.g. "123.4") in
+  // 6–9pt type without exceeding the immutable 12pt-high master strip.
+  const slotW=48,markerW=38,markerH=11,edgePad=5;
   const slotStart=statusX+edgePad,slotEnd=statusX+statusW-edgePad-slotW;
-  // One page-level status marker, regardless of the number of cues.
-  // When verified V2 tag/subtag IDs are available, the displayed value
-  // must be the highest cue number on this page, never one per cue.
+  // One page-level marker, regardless of the number of cues. The highest
+  // verified page cue identifier will be displayed here once available.
   const left=leftToRight?slotStart:slotEnd;
-  const markerX=leftToRight?left+markerDiameter/2:left+slotW-markerDiameter/2;
-  page.drawCircle({x:markerX,y:centerY,size:markerDiameter/2,color:red});
-  // Remaining 38pt reserved for the highest verified page cue identifier.
+  const markerLeft=leftToRight?left:left+slotW-markerW;
+  const markerBottom=centerY-markerH/2;
+  const radius=markerH/2;
+  page.drawRectangle({x:markerLeft+radius,y:markerBottom,width:markerW-markerH,height:markerH,color:red});
+  page.drawCircle({x:markerLeft+radius,y:centerY,size:radius,color:red});
+  page.drawCircle({x:markerLeft+markerW-radius,y:centerY,size:radius,color:red});
+  // Do not print a placeholder number: only verified cue identifiers
+  // may be typeset into the reserved capsule.
  }
  // Identity is sourced only from record metadata, never from master labels.
  await drawKnownFrameworkFields(page,{...record,leadership:{...state,cues:[]},instructionText:""},side,font,bold,{cues:[],instructionText:""},out);
