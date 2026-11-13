@@ -2455,6 +2455,16 @@ const savedSpreadRecords=new Map(); // Only explicit Save commits pages to the w
 // Persisted rendered two-page spreads and assembled PDF: download never renders pages.
 let renderedSpreadPdfs=new Map();
 let assembledWorkingPdf=null;
+function resetIncrementalPdfState(){
+ savedSpreadRecords.clear();renderedSpreadPdfs.clear();assembledWorkingPdf=null;
+ explicitlySavedPages.clear();excludedFromProof.clear();
+}
+async function ensureInitialWorkingPdf(){
+ if(assembledWorkingPdf)return;
+ assembledWorkingPdf=await assembleCachedWorkingPdf();
+ await checkpointWrite();
+}
+
 const CHECKPOINT_DB="leaders-companion-editor-checkpoints-v1";
 function checkpointKey(){return filename+"|"+sourcePdfPages+"|"+(sourcePdfBytes?.length||0);}
 function checkpointDb(){
@@ -2796,9 +2806,10 @@ $("source").addEventListener("change",async()=>{
   if(!window.PDFLib||!window.pdfjsLib)throw Error("PDF libraries unavailable.");
   sourcePdfBytes=new Uint8Array(await file.arrayBuffer());
   const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
-  sourcePdfPages=source.numPages;selectedSpreadFirst=1;selectedCueBySide=["",""];spreadEdits.clear();
+  sourcePdfPages=source.numPages;selectedSpreadFirst=1;selectedCueBySide=["",""];spreadEdits.clear();resetIncrementalPdfState();
   updateIntakeInventory();
   await checkpointRead();
+  await ensureInitialWorkingPdf();
   await loadSelectedSpread();
  }catch(e){console.error(e);status("Import failed: "+e.message)}
 });
@@ -3671,9 +3682,10 @@ async function restoreSiddurIntake(){
  serviceManifest=data.manifest||null;coverMetadata={...coverMetadata,...(serviceManifest?.cover||{})};servicePageMapping=data.pageMapping||null;serviceRoleOpacity=new Map(data.roleOpacity||serviceManifest?.opacity||[]);serviceRoleAssignments=new Map(data.roleAssignments||[]);serviceRoleDisplayNames=new Map(data.roleDisplayNames||[]);populateHighlightRoles();
  sourcePdfBytes=new Uint8Array(data.pdf);embeddedPageRecords=[];
  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
- sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();cueRoleEdits.clear();
+ sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();resetIncrementalPdfState();cueRoleEdits.clear();
  updateIntakeInventory();
  await checkpointRead();
+ await ensureInitialWorkingPdf();
  await loadSelectedSpread();
  status("Restored "+data.pdfName+" and "+importedCues.length+" cue rows. The PDF contains selected service pages.");
 }
