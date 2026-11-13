@@ -1,0 +1,17 @@
+{
+  "schema": "leaders-companion-v3-melody-stub-catalog",
+  "schemaVersion": 1,
+  "temporary": true,
+  "description": "Geometry-only development fixture. Not an authoritative melody or playable recording. Apply to every page until replaced by a verified selection from the existing V2 Melody Library.",
+  "melodies": [
+    {
+      "melodyId": "STUB-MELODY-001",
+      "name": "Stub Melody — Layout Test",
+      "pitch": "C (STUB)",
+      "recordingId": "STUB-RECORDING-001",
+      "url": "https://example.com/leaders-companion/stub-melody",
+      "urlStatus": "placeholder-not-playable",
+      "isStub": true
+    }
+  ]
+}
