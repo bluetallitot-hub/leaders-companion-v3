@@ -7,7 +7,7 @@ const layout=context.LCV3CueLayout.layout;
 const measure=(t,f)=>Array.from(t).length*f*.58;
 for(const side of [0,1]){
  for(const count of [1,2,3]){
-  const cues=Array.from({length:count},(_,i)=>({startCue:"Come let us sing",endCue:"We are his people",startCueHebrew:"לכו נרננה",endCueHebrew:"עם מרעיתו"}));
+  const cues=Array.from({length:count},(_,i)=>side===0?({startCue:"לכו נרננה",endCue:"עם מרעיתו"}):({startCue:"Come let us sing",endCue:"We are his people",startCueHebrew:"לכו נרננה",endCueHebrew:"עם מרעיתו"}));
   const rows=layout({cues,side,language:side===0?"he":"en",measure});
   assert.equal(rows.length,count);
   assert.ok(Math.abs(rows[0].rowH-50/count)<1e-8);
@@ -28,4 +28,12 @@ assert.ok(long[0].begin.length<52);
 assert.ok(long[0].arrowX>long[0].beginX+long[0].beginW);
 assert.equal(layout({cues:[],side:0,measure}).length,0);
 assert.throws(()=>layout({cues:Array(4).fill({}),measure}),/Maximum three/);
+const mixed=layout({cues:[
+ {startCue:"ברוך אתה",endCue:"להדליק נר",cueLanguage:"english"},
+ {startCue:"Light the candles",endCue:"Blessed are You",startCueHebrew:"ברוך",cueLanguage:"hebrew"}
+],side:0,language:"hebrew",measure});
+assert.equal(mixed[0].hebrew,true,"Hebrew cue remains RTL even with incorrect metadata");
+assert.equal(mixed[1].hebrew,false,"English cue remains LTR on Hebrew page");
+assert.equal(mixed[0].cueLanguage,"hebrew");
+assert.equal(mixed[1].cueLanguage,"english");
 console.log("Cue layout: 6 Hebrew/English × row-count cases, bounds, arrow midpoint, centering and shortening PASS");
