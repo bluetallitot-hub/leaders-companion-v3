@@ -446,7 +446,10 @@ function v3CuePlan(record,side){
  const state=record?.leadership||{},cues=(state.cues||[]).slice(0,3);
  const ctx=document.createElement("canvas").getContext("2d");
  const measure=(text,font)=>{ctx.font=font+"px Arial, sans-serif";return ctx.measureText(text).width;};
- const lang=String(record?.source?.languageCode||record?.source?.language||"").toLowerCase();
+ const sample=cues.map(c=>[c.startCueHebrew,c.endCueHebrew,c.startCue,c.endCue].filter(Boolean).join(" ")).join(" ");
+ const hebrewChars=(sample.match(/[\\u0590-\\u05ff]/g)||[]).length;
+ const latinChars=(sample.match(/[A-Za-z]/g)||[]).length;
+ const lang=hebrewChars>latinChars?"hebrew":latinChars>hebrewChars?"english":String(record?.source?.languageCode||record?.source?.language||"").toLowerCase();
  return window.LCV3CueLayout.layout({cues,side,language:lang,measure,roleColor:role=>roleColor(role||state.role)});
 }
 function renderInstructionPreviews(){
@@ -3320,7 +3323,11 @@ $("preview-exported-spread")?.addEventListener("click",async()=>{
   $("final-pdf-proof-status").textContent="Actual exported PDF proof ready ("+result.total+" pages). Download uses these exact bytes.";
  }catch(e){
   showSpreadEditingMode();
-  $("spread-proof-status").textContent="Exported PDF preview unavailable: "+e.message;
+  if(/No confirmed sections|confirmed sections|section boundaries/i.test(e.message)){
+   canonicalPreviewEnabled=true;canonicalPreviewLastSignature="";
+   await renderCanonicalSpread(++canonicalPreviewEpoch);
+   $("spread-proof-status").textContent="Current pages are previewed with the PDF export page renderer. Complete-book export remains blocked until section boundaries are confirmed in Intake.";
+  }else $("spread-proof-status").textContent="Exported PDF preview unavailable: "+e.message;
   console.error(e);
  }finally{button.disabled=false}
 });
