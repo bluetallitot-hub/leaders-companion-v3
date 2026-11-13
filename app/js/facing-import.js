@@ -1620,10 +1620,11 @@ function drawHighlights(){
   const overlay=$("highlight-"+i),base=$(i===0?"output-left":"output-right");
   if(!overlay||!base)continue;
   // Keep instructions and cue rows synchronized with the facing-page preview.
-  if(i===0)renderInstructionPreviews();
+  if(i===0&&!canonicalPreviewEnabled)renderInstructionPreviews();
   overlay.width=base.width;overlay.height=base.height;
   const ctx=overlay.getContext("2d");
   ctx.clearRect(0,0,overlay.width,overlay.height);
+  if(canonicalPreviewEnabled&&highlightView!=="detection"){if(i===1&&!canonicalPreviewRendering)scheduleCanonicalPreview();continue;}
   if(highlightView==="detection"){
    // Detection is a geometry diagnostic ONLY: never color text or cues.
    // In particular, titles and page numbers may be detected but are not prayers.
@@ -2567,8 +2568,62 @@ function updateIntakeInventory(){
  $("spread-first").value=String(selectedSpreadFirst);
  updateSpreadNavigation();
 }
+// The visible editor canvases render the same PDF-lib page builder as export.
+// Interaction remains on transparent selection canvases; artwork is never HTML-overlaid.
+let canonicalPreviewEnabled=false,canonicalPreviewTimer=null,canonicalPreviewEpoch=0,canonicalPreviewRendering=false;
+let canonicalPreviewLastSignature="";
+function scheduleCanonicalPreview(){
+ if(!canonicalPreviewEnabled||!sourcePdfBytes||!pageMetadata.length)return;
+ const epoch=++canonicalPreviewEpoch;
+ clearTimeout(canonicalPreviewTimer);
+ const label=$("spread-proof-status");if(label)label.textContent="Updating exact PDF preview…";
+ canonicalPreviewTimer=setTimeout(()=>renderCanonicalSpread(epoch).catch(e=>{
+  if(epoch===canonicalPreviewEpoch){canonicalPreviewEnabled=false;status("Canonical PDF preview failed: "+e.message);if(label)label.textContent="PDF preview failed — do not trust the editing view.";}
+ }),350);
+}
+async function renderCanonicalSpread(epoch){
+ if(epoch!==canonicalPreviewEpoch||!canonicalPreviewEnabled)return;
+ const signature=JSON.stringify({spread:selectedSpreadFirst,pages:pageMetadata.map(r=>r&&({leadership:r.leadership,production:r.production,source:r.source,identification:r.identification,prayerTitle:r.prayerTitle}))});
+ if(signature===canonicalPreviewLastSignature)return;
+ canonicalPreviewRendering=true;
+ try{
+  const out=await PDFLib.PDFDocument.create();
+  const masterBytes=await window.LCV3Templates.load("siddur");
+  const master=await PDFLib.PDFDocument.load(masterBytes);
+  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
+  const font=await out.embedFont(PDFLib.StandardFonts.Helvetica);
+  const bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
+  const available=[];
+  for(let side=0;side<2;side++){
+   const record=pageMetadata[side];if(!record)continue;
+   await renderCanonicalSiddurPage({out,master,source,sourceIndex:selectedSpreadFirst+side,record,side,font,bold});
+   available.push(side);
+  }
+  if(epoch!==canonicalPreviewEpoch)return;
+  const bytes=new Uint8Array(await out.save());
+  const pdf=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
+  for(let i=0;i<available.length;i++){
+   if(epoch!==canonicalPreviewEpoch)return;
+   const side=available[i],canvas=$(side===0?"output-left":"output-right");
+   const page=await pdf.getPage(i+1),viewport=page.getViewport({scale:1});
+   canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+   await page.render({canvasContext:canvas.getContext("2d"),viewport}).promise;
+  }
+  if(epoch!==canonicalPreviewEpoch)return;
+  canonicalPreviewLastSignature=signature;
+  for(const node of document.querySelectorAll(".instruction-page-preview,.cue-page-preview"))node.remove();
+  for(let side=0;side<2;side++){
+   const overlay=$("highlight-"+side);if(!overlay)continue;
+   overlay.width=$(side===0?"output-left":"output-right").width;
+   overlay.height=$(side===0?"output-left":"output-right").height;
+  }
+  const label=$("spread-proof-status");if(label)label.textContent="Live PDF-rendered pages: same page builder as export. Changes regenerate the preview.";
+ }finally{canonicalPreviewRendering=false;}
+}
+
 async function loadSelectedSpread(){
  if(!sourcePdfBytes)return;
+ canonicalPreviewEnabled=false;canonicalPreviewEpoch++;canonicalPreviewLastSignature="";clearTimeout(canonicalPreviewTimer);
  $("download").disabled=true;
  if($("metadata-dialog").open){$("metadata-spread-label").textContent=$("spread-position").textContent+" — loading";$("metadata-dialog-content").textContent="Loading metadata for the selected spread…";}output=null;baseOutput=null;pageMetadata=[];
  ocrWordGeometry=[new Map(),new Map()];$("spread-preview").hidden=true;
@@ -2585,6 +2640,7 @@ async function loadSelectedSpread(){
  if($("metadata-dialog").open)refreshMetadataDialog();
  $("download").disabled=false;
  status(cueMatchReport);updateSpanStatus();
+ canonicalPreviewEnabled=true;scheduleCanonicalPreview();
 }
 $("load-spread").addEventListener("click",async()=>{
  if(!sourcePdfBytes)return;
@@ -2963,6 +3019,45 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  // Identity is sourced only from record metadata, never from master labels.
  drawKnownFrameworkFields(page,{...record,leadership:{...state,cues:[]},instructionText:""},side,font,bold,{cues:[],instructionText:""});
 }
+// One authoritative PDF page renderer for both live facing-page preview and final export.
+async function renderCanonicalSiddurPage({out,master,source,sourceIndex,record,side,font,bold}){
+  const masterIndex=master.getPageCount()>1?Math.min(side,master.getPageCount()-1):0;
+  const [masterPage]=await out.copyPages(master,[masterIndex]);
+  const page=out.addPage(masterPage);
+  const region=REGIONS[side],pad=6;
+  // Export the same cleaned, cropped Siddur content used by the Facing Editor,
+  // not a scaled copy of the original uncropped PDF page.
+  const sourcePage=await source.getPage(sourceIndex);
+  const viewport=sourcePage.getViewport({scale:2});
+  const scan=document.createElement("canvas");
+  scan.width=Math.ceil(viewport.width);scan.height=Math.ceil(viewport.height);
+  const scanCtx=scan.getContext("2d");
+  scanCtx.fillStyle="#fff";scanCtx.fillRect(0,0,scan.width,scan.height);
+  await sourcePage.render({canvasContext:scanCtx,viewport}).promise;
+  // Reuse the Intake crop detector; record the crop for reproducibility.
+  const crop=record.production?.approvedCrop||detectCrop(scan,{ocrLines:[],number:null,heading:null});
+  const cleaned=canvasCrop(scan,crop);cleanPixels(cleaned);
+  const image=await out.embedPng(cleaned.toDataURL("image/png"));
+  const scale=Math.min((region.w-2*pad)/image.width,(region.h-2*pad)/image.height);
+  const width=image.width*scale,height=image.height*scale;
+  const pageX=region.x+(region.w-width)/2,pageY=region.y+(region.h-height)/2;
+  page.drawImage(image,{x:pageX,y:pageY,width,height});
+  // Highlight geometry is measured against the full Facing Editor page,
+  // not the original source page. Keep that coordinate system in export.
+  for(const [key,rects] of uniquePhysicalHighlights(record.leadership?.highlights||[])){
+   const [hex,opacity]=key.split("|"),n=parseInt(hex.slice(1),16);
+   if(!Number.isFinite(n))continue;
+   for(const mark of rects)page.drawRectangle({
+    x:mark.x*W,y:(1-mark.y-mark.height)*H,
+    width:mark.width*W,height:mark.height*H,
+    color:PDFLib.rgb(((n>>16)&255)/255,((n>>8)&255)/255,(n&255)/255),
+    opacity:Number(opacity),blendMode:"Multiply"
+   });
+  }
+  await drawApprovedPageFields(page,record,side,out,font,bold);
+  return page;
+}
+
 async function exportVerifiedWorkingCopy(){
  if(!sourcePdfBytes)throw Error("Load the source siddur first.");
  saveCurrentSpreadEdits();
@@ -3021,40 +3116,7 @@ async function exportVerifiedWorkingCopy(){
 
   const defaultSide=String(serviceManifest?.facingPageDirection||"hebrew").toLowerCase()==="hebrew"?(sourceIndex%2):((sourceIndex-1)%2);
   const side=Number(record?.source?.sideIndex ?? record?.sideIndex ?? defaultSide)===1?1:0;
-  const masterIndex=master.getPageCount()>1?Math.min(side,master.getPageCount()-1):0;
-  const [masterPage]=await out.copyPages(master,[masterIndex]);
-  const page=out.addPage(masterPage);
-  const region=REGIONS[side],pad=6;
-  // Export the same cleaned, cropped Siddur content used by the Facing Editor,
-  // not a scaled copy of the original uncropped PDF page.
-  const sourcePage=await source.getPage(sourceIndex);
-  const viewport=sourcePage.getViewport({scale:2});
-  const scan=document.createElement("canvas");
-  scan.width=Math.ceil(viewport.width);scan.height=Math.ceil(viewport.height);
-  const scanCtx=scan.getContext("2d");
-  scanCtx.fillStyle="#fff";scanCtx.fillRect(0,0,scan.width,scan.height);
-  await sourcePage.render({canvasContext:scanCtx,viewport}).promise;
-  // Reuse the Intake crop detector; record the crop for reproducibility.
-  const crop=record.production?.approvedCrop||detectCrop(scan,{ocrLines:[],number:null,heading:null});
-  const cleaned=canvasCrop(scan,crop);cleanPixels(cleaned);
-  const image=await out.embedPng(cleaned.toDataURL("image/png"));
-  const scale=Math.min((region.w-2*pad)/image.width,(region.h-2*pad)/image.height);
-  const width=image.width*scale,height=image.height*scale;
-  const pageX=region.x+(region.w-width)/2,pageY=region.y+(region.h-height)/2;
-  page.drawImage(image,{x:pageX,y:pageY,width,height});
-  // Highlight geometry is measured against the full Facing Editor page,
-  // not the original source page. Keep that coordinate system in export.
-  for(const [key,rects] of uniquePhysicalHighlights(record.leadership?.highlights||[])){
-   const [hex,opacity]=key.split("|"),n=parseInt(hex.slice(1),16);
-   if(!Number.isFinite(n))continue;
-   for(const mark of rects)page.drawRectangle({
-    x:mark.x*W,y:(1-mark.y-mark.height)*H,
-    width:mark.width*W,height:mark.height*H,
-    color:PDFLib.rgb(((n>>16)&255)/255,((n>>8)&255)/255,(n&255)/255),
-    opacity:Number(opacity),blendMode:"Multiply"
-   });
-  }
-  await drawApprovedPageFields(page,record,side,out,font,bold);
+  await renderCanonicalSiddurPage({out,master,source,sourceIndex,record,side,font,bold});
   projectPages.push({sourcePdfPage:sourceIndex,leaderPdfPage:out.getPageCount(),side,
    record:JSON.parse(JSON.stringify(record))});
   exportProgress(j+1,approved.length,"Attaching approved pages to Siddur Page Master");
