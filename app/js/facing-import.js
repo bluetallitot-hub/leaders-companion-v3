@@ -400,27 +400,34 @@ function loadPrayerLibrary(){
  return prayerLibraryPromise;
 }
 async function attachV2Summaries(records=pageMetadata){
- const library=await loadPrayerLibrary();
+ const db=await prayerWorkingLibrary();
+ const normalize=x=>String(x||"").normalize("NFKC").trim().replace(/\\s+/g," ").toLocaleLowerCase();
+ const summaries=new Map(db.summaries.map(x=>[x.summaryId,x]));
+ const instructions=new Map(db.instructions.map(x=>[x.id,x]));
  for(const record of records||[]){
   if(!record)continue;
-  record.leadership??={};
-  const cues=record.leadership.cues||[];
-  const names=[...new Set(cues.map(c=>String(c.prayer||"").trim()).filter(Boolean))];
-  if(!names.length&&record.identification?.prayerName)names.push(record.identification.prayerName);
-  const matches=names.flatMap(name=>library.names.get(library.normalize(name))||[]);
-  const unique=[...new Map(matches.map(p=>[p.prayerId,p])).values()];
-  if(unique.length!==1)continue; // Ambiguous or mixed prayer pages need review.
-  const prayer=unique[0],siddur=String(record.source?.sourceId||record.source?.siddurId||"").trim();
-  const page=String(record.source?.originalPageNumber||"").trim();
-  // A new Siddur/page occurrence is valid; do not suppress a verified prayer-name match.
-  record.prayerLibrary={prayerId:prayer.prayerId,englishName:prayer.englishName||prayer.canonicalName,hebrewName:prayer.hebrewName||"",summaryIds:[...prayer.summaryIds],instructionIds:[...prayer.instructionIds]};
-  record.prayerLibrary.summaries=prayer.summaryIds.map(id=>library.summaries.get(id)).filter(Boolean);
-  record.prayerLibrary.instructions=prayer.instructionIds.map(id=>library.instructions.get(id)).filter(Boolean);
+  const cues=record.leadership?.cues||[];
+  const names=[record.leadership?.instructionPrayer,record.prayerTitle,record.identification?.prayerName,...cues.map(c=>c.prayer)].filter(Boolean);
+  const ids=new Set(cues.map(c=>String(c.cueId||"").trim()).filter(Boolean));
+  // A cue ID is only identity evidence: summary and instruction ownership remains on the prayer.
+  const candidates=db.prayers.filter(p=>
+   (p.sourceCueIds||[]).some(id=>ids.has(id))||
+   [p.englishName,p.hebrewName,p.canonicalName,...(p.aliases||[]),...(p.aliasesEnglish||[]),...(p.aliasesHebrew||[])].some(name=>name&&names.some(n=>normalize(name)===normalize(n))));
+  const unique=[...new Map(candidates.map(p=>[p.prayerId,p])).values()];
+  record.prayerLibraryMatches=unique.map(p=>({prayerId:p.prayerId,name:p.englishName||p.canonicalName}));
+  if(unique.length!==1){record.prayerLibrary=null;continue;}
+  const p=unique[0];
+  record.prayerLibrary={prayerId:p.prayerId,englishName:p.englishName||p.canonicalName,hebrewName:p.hebrewName||"",
+   summaryIds:[...p.summaryIds],instructionIds:[...p.instructionIds],
+   summaries:p.summaryIds.map(id=>summaries.get(id)).filter(Boolean),
+   instructions:p.instructionIds.map(id=>instructions.get(id)).filter(Boolean)};
  }
 }
 function pageSummaryForLayout(record){
+ const draft=String(record?.prayerDraft?.summary||"").trim();
+ if(draft)return {summaryText:draft,summaryStatus:"Working draft"};
  const entries=record?.prayerLibrary?.summaries||[];
- const entry=entries.find(x=>String(x.summary||"").trim());
+ const entry=[...entries].reverse().find(x=>String(x.summary||"").trim());
  return entry?{summaryId:entry.summaryId,summaryText:entry.summary,summaryStatus:entry.status}:null;
 }
 function applyImportedCues(){
@@ -910,7 +917,9 @@ function renderPageCueEditor(){
    };
    addField("English prayer name",draft.englishName??record.prayerLibrary?.englishName??record.leadership?.instructionPrayer??record.prayerTitle??record.identification?.prayerName??"","englishName");
    addField("Hebrew prayer name",draft.hebrewName??"","hebrewName");
-   addField("Summary",draft.summary??record.prayerLibrary?.summaries?.at(-1)?.summary??"","summary",true);
+   addField("Summary",draft.summary??pageSummaryForLayout(record)?.summaryText??"","summary",true);
+   const matchInfo=document.createElement("div");matchInfo.style.cssText="font-size:12px;color:#425b55";
+   matchInfo.textContent=record.prayerLibrary?"Matched "+record.prayerLibrary.prayerId+" · "+record.prayerLibrary.summaries.length+" summary record(s)":record.prayerLibraryMatches?.length>1?"Multiple prayer matches — select prayer identity before editing":"No verified prayer match — summary not assigned";prayerPanel.append(matchInfo);
    addField("Instruction (new text creates a permanent instruction ID)",draft.instruction??record.prayerLibrary?.instructions?.at(-1)?.text??"","instruction",true);
    panel.append(prayerPanel);
    // Sidebar production controls are page-specific and survive spread saves.
@@ -3295,7 +3304,6 @@ async function loadSelectedSpread(){
  visibleCueId="";
  await initializeSiddurSpread(sourcePdfBytes.slice());
  const saved=spreadEdits.get(selectedSpreadFirst);
- await attachV2Summaries(pageMetadata);
  const savedComplete=!!saved?.pages?.length;
  // Restore approved metadata BEFORE building the visible PDF. A saved spread
  // must never briefly display default content or run OCR on stale page geometry.
@@ -3315,6 +3323,7 @@ async function loadSelectedSpread(){
   selectedCueBySide=[...(saved.selectedCues||["",""])];
  }else selectedCueBySide=["",""];
  applyCueRoleEdits();
+ await attachV2Summaries(pageMetadata);
  // Restore editor before asynchronous PDF/OCR work, so an OCR failure cannot hide it.
  renderFacingInstructions();
  canonicalPreviewEnabled=true;
