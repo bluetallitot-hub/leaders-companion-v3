@@ -41,7 +41,7 @@ function setupHighlightParameterControls(){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",setupHighlightParameterControls);
 else setupHighlightParameterControls();
 
-let output=null,baseOutput=null,filename="siddur",pageMetadata=[],roleConfig=null,highlightDraft=null,importedCues=[];
+let filename="siddur",pageMetadata=[],roleConfig=null,highlightDraft=null,importedCues=[];
 function status(s){if($("status"))$("status").textContent=s;if($("editor-status")&&(!sourcePdfPages||/failed|error|cannot/i.test(s)))$("editor-status").textContent=s}
 function updateSpanStatus(){const el=$("editor-status");if(!el)return;const total=Math.ceil(sourcePdfPages/2);el.hidden=!total;if(total)el.textContent="Displaying span "+Math.ceil(selectedSpreadFirst/2)+" of "+total;}
 const workerURL="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
@@ -2371,9 +2371,9 @@ async function autoMatchCues(){
 async function syncHighlightMetadata(){
  for(const record of pageMetadata)for(const h of record?.leadership?.highlights||[])h.visibleInPdf=false;
 }
-async function createPdf(bytes){
+async function initializeSiddurSpread(bytes){
  const source=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
- const out=await PDFLib.PDFDocument.create(),first=Math.max(0,Math.min(source.numPages-1,selectedSpreadFirst-1)),count=Math.min(2,source.numPages-first);
+ const first=Math.max(0,Math.min(source.numPages-1,selectedSpreadFirst-1)),count=Math.min(2,source.numPages-first);
  if(!count)throw Error("No PDF pages found.");
  const records=[];
  for(let i=0;i<count;i++){
@@ -2383,8 +2383,7 @@ async function createPdf(bytes){
   const ctx=canvas.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,canvas.width,canvas.height);
   await src.render({canvasContext:ctx,viewport:v}).promise;
   const meta=await readMetadata(source,first+i,canvas);
-  const crop=detectCrop(canvas,meta),cleaned=canvasCrop(canvas,crop);
-  cleanPixels(cleaned);
+  const crop=detectCrop(canvas,meta);
   records.push({meta,crop,sourceIndex:first+i});
  }
  // Facing placement follows the document's reading direction, never prayer identity.
@@ -2410,10 +2409,7 @@ async function createPdf(bytes){
  applyImportedCues();
  applyCueTextEdits();
  
- // Intake-only page count carrier. It is NEVER rendered or exported.
- // The canonical approved-master renderer is the sole visual page builder.
- for(let i=0;i<records.length;i++)out.addPage([W,H]);
- return new Uint8Array(await out.save());
+ return records.length;
 }
 function refreshMetadataDialog(){
  const dialog=$("metadata-dialog");if(!dialog)return;
@@ -2461,20 +2457,18 @@ function displayMetadata(){
  }
  refreshMetadataDialog();
 }
-async function preview(bytes,{reuseSaved=false,canonicalOnly=false}={}){
- const doc=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
- if(!canonicalOnly)for(let i=0;i<2;i++){
-  const canvas=$(i===0?"output-left":"output-right");
-  if(i>=doc.numPages){canvas.hidden=true;continue}
-  canvas.hidden=false;
-  const page=await doc.getPage(i+1),v=page.getViewport({scale:1});
-  canvas.width=Math.ceil(v.width);canvas.height=Math.ceil(v.height);
-  await page.render({canvasContext:canvas.getContext("2d"),viewport:v}).promise;
- }
- displayMetadata();detectedLines=[0,1].map(i=>i<doc.numPages?detectPrintedLines($(i===0?"output-left":"output-right"),i):[]);drawHighlights();status("Detected "+detectedLines.map(a=>a.length).join(" / ")+" candidate printed lines.");await runRivokAutomatically();
+async function analyzeCanonicalPreview({reuseSaved=false}={}){
+ // The preview canvases are already rendered from the approved master.
+ // No staging PDF, blank carrier, or alternative page artwork is involved.
+ displayMetadata();
+ detectedLines=[0,1].map(i=>pageMetadata[i]?detectPrintedLines($(i===0?"output-left":"output-right"),i):[]);
+ drawHighlights();
+ status("Detected "+detectedLines.map(a=>a.length).join(" / ")+" candidate printed lines.");
+ await runRivokAutomatically();
  if(!reuseSaved)await autoMatchCues();
  $("spread-preview").hidden=false;$("empty-preview").hidden=true;
 }
+
 pdfjsLib.GlobalWorkerOptions.workerSrc=workerURL;
 let selectedSpreadFirst=1,sourcePdfBytes=null,sourcePdfPages=0,serviceManifest=null,servicePageMapping=null,serviceRoleOpacity=new Map(),serviceRoleAssignments=new Map(),serviceRoleDisplayNames=new Map(),serviceHighlightColors=["#F5D03C","#75C56A","#74B9E7","#F3A65B","#DA88B8","#AE93DC"],embeddedPageRecords=[];
 const spreadEdits=new Map();
@@ -2710,12 +2704,11 @@ async function loadSelectedSpread(){
  if(!sourcePdfBytes)return;
  canonicalPreviewEnabled=false;canonicalPreviewEpoch++;canonicalPreviewLastSignature="";clearTimeout(canonicalPreviewTimer);
  $("download").disabled=true;
- if($("metadata-dialog").open){$("metadata-spread-label").textContent=$("spread-position").textContent+" — loading";$("metadata-dialog-content").textContent="Loading metadata for the selected spread…";}output=null;baseOutput=null;pageMetadata=[];
+ if($("metadata-dialog").open){$("metadata-spread-label").textContent=$("spread-position").textContent+" — loading";$("metadata-dialog-content").textContent="Loading metadata for the selected spread…";}pageMetadata=[];
  ocrWordGeometry=[new Map(),new Map()];$("spread-preview").hidden=true;
  rivokOverlay=null;rivokWordsBySide=[null,null];
  visibleCueId="";
- output=await createPdf(sourcePdfBytes.slice());
- baseOutput=output.slice();
+ await initializeSiddurSpread(sourcePdfBytes.slice());
  const saved=spreadEdits.get(selectedSpreadFirst);
  const savedComplete=!!saved?.pages?.length;
  // Restore approved metadata BEFORE building the visible PDF. A saved spread
@@ -2737,7 +2730,7 @@ async function loadSelectedSpread(){
  canonicalPreviewEnabled=true;
  await renderCanonicalSpread(++canonicalPreviewEpoch);
  // OCR operates on the canonical approved-master PDF canvases only.
- await preview(output,{reuseSaved:savedComplete,canonicalOnly:true});
+ await analyzeCanonicalPreview({reuseSaved:savedComplete});
  if(savedComplete){
   renderPageCueEditor();drawHighlights();
   const label=$("highlight-loading-label");
