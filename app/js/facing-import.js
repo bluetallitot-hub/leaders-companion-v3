@@ -45,12 +45,12 @@ let filename="siddur",pageMetadata=[],roleConfig=null,highlightDraft=null,import
 function status(s){if($("status"))$("status").textContent=s;if($("editor-status")&&(!sourcePdfPages||/failed|error|cannot/i.test(s)))$("editor-status").textContent=s}
 function updateSpanStatus(){const el=$("editor-status");if(!el)return;const total=Math.ceil(sourcePdfPages/2);el.hidden=!total;if(total)el.textContent="Displaying span "+Math.ceil(selectedSpreadFirst/2)+" of "+total;}
 const workerURL="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
-function drawKnownFrameworkFields(page,record,side,font,boldFont=font,embedded=null){
+async function drawKnownFrameworkFields(page,record,side,font,boldFont=font,embedded=null,out){
  const source=record?.source||{},ident=record?.identification||{};
  const cues=embedded?.cues||record?.leadership?.cues||[];
  const number=String(embedded?.printedPage||source.originalPageNumber||downloadPageNumber(source.sourcePdfPage)||"").split("-")[0].trim();
  const service=embedded?.serviceName||embedded?.service_name||record?.identification?.serviceName||ident.serviceName||"";
- const title=embedded?.prayerName||embedded?.prayerTitle||record?.identification?.prayerName||ident.prayerName||"";
+ const title=record?.leadership?.instructionPrayer||record?.prayerTitle||record?.identification?.prayerName||embedded?.prayerTitle||embedded?.prayerName||ident.prayerName||"";
  const instruction=embedded?.instructionText||record?.instructionText||"";
  const colorCode=String(embedded?.pageColor||record?.pageColor||"W").toUpperCase().slice(0,1);
  const palette={W:[.975,.975,.975],N:[.7,1,.15],B:[.14,.36,.83],R:[.86,.16,.18],O:[.98,.54,.1],G:[.18,.65,.29]};
@@ -67,7 +67,19 @@ function drawKnownFrameworkFields(page,record,side,font,boldFont=font,embedded=n
  if(number){const n=safe(number),w=boldFont.widthOfTextAtSize(n,18);if(w<=42)page.drawText(n,{x:numberX+24-w/2,y:750,size:18,font:boldFont,color:PDFLib.rgb(.82,.12,.16)});}
  page.drawRectangle({x:colorX+1,y:749,width:16,height:18,color:PDFLib.rgb(...rgb)});
  fit(service,serviceX+4,751,458,18,boldFont);
- fit(title,textX+4,714,372.8,20,boldFont);
+ // The approved title field is 372.8pt wide; Hebrew must be rasterized,
+ // since PDF standard fonts cannot encode Hebrew. Align RTL text to the right.
+ if(String(title).trim()){
+  const rtl=/[\u0590-\u05ff]/u.test(title),w=372.8,h=29,scale=3;
+  const canvas=document.createElement("canvas");canvas.width=Math.ceil(w*scale);canvas.height=Math.ceil(h*scale);
+  const ctx=canvas.getContext("2d");ctx.font="bold "+(20*scale)+"px Arial, sans-serif";
+  ctx.textBaseline="middle";ctx.direction=rtl?"rtl":"ltr";ctx.textAlign=rtl?"right":"left";
+  ctx.fillStyle="#203b45";
+  if(ctx.measureText(String(title)).width>canvas.width-18)throw Error("Prayer title exceeds approved field: "+title);
+  ctx.fillText(String(title),rtl?canvas.width-9:9,canvas.height/2);
+  const png=await out.embedPng(canvas.toDataURL("image/png"));
+  page.drawImage(png,{x:textX+4,y:707,width:w,height:h});
+ }
  // Instruction text is explicitly sourced; an ID alone is not the instruction text.
  if(instruction){
   const words=safe(instruction).split(/\\s+/),lines=[];let line="";
@@ -3378,7 +3390,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   page.drawLine({start:{x:tip,y},end:{x:back,y:y-3},thickness:1.3,color:ink});
  }
  // Identity is sourced only from record metadata, never from master labels.
- drawKnownFrameworkFields(page,{...record,leadership:{...state,cues:[]},instructionText:""},side,font,bold,{cues:[],instructionText:""});
+ await drawKnownFrameworkFields(page,{...record,leadership:{...state,cues:[]},instructionText:""},side,font,bold,{cues:[],instructionText:""},out);
 }
 // One authoritative PDF page renderer for both live facing-page preview and final export.
 async function renderCanonicalSiddurPage({out,master,source,sourceIndex,record,side,font,bold}){
