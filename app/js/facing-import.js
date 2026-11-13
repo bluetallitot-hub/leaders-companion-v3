@@ -3605,6 +3605,29 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   const fitted=instructionLayout(joined);
   await render(fitted.lines.join("\n"),textX+3,648,374,54,{fontSize:12,rtl:/[\u0590-\u05ff]/.test(joined),prewrapped:true});
  }
+ // Role badge occupies the existing blank side field alongside the prayer
+ // title, never the title itself. All approved master rectangles stay locked.
+ const pageRoleCode=String((state.cues||[]).find(c=>String(c.role||"").trim())?.role||state.role||"").trim();
+ if(pageRoleCode){
+  const roleName=cueRoleOptions().get(pageRoleCode)||pageRoleCode;
+  const badgeX=side===0?59.76:445.0,badgeY=707,badgeW=side===0?96:146.84,badgeH=29;
+  const scale=3,canvas=document.createElement("canvas");
+  canvas.width=Math.round(badgeW*scale);canvas.height=Math.round(badgeH*scale);
+  const ctx=canvas.getContext("2d");
+  const inset=3*scale,corner=5*scale;
+  ctx.fillStyle="#ffed6b";
+  ctx.beginPath();
+  ctx.roundRect(inset,inset,canvas.width-2*inset,canvas.height-2*inset,corner);
+  ctx.fill();
+  const label=String(roleName).toUpperCase();
+  let fontPx=15*scale;
+  ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle="#151515";
+  do{ctx.font="bold "+fontPx+"px Arial, sans-serif";if(ctx.measureText(label).width<=canvas.width-4*inset)break;fontPx-=scale;}while(fontPx>=8*scale);
+  if(ctx.measureText(label).width>canvas.width-4*inset)throw Error("Role label exceeds fixed role field: "+label);
+  ctx.fillText(label,canvas.width/2,canvas.height/2);
+  const png=await out.embedPng(canvas.toDataURL("image/png"));
+  page.drawImage(png,{x:badgeX,y:badgeY,width:badgeW,height:badgeH});
+ }
  const plan=v3CuePlan(record,side);
  for(const row of plan){
   // Use the same measured text, font, anchors and arrow midpoint as the editor.
