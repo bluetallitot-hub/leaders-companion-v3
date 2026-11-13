@@ -26,10 +26,10 @@ function layout({cues=[],side=0,language="",measure,roleColor=()=>"#182c36"}){
  const shorten=(value,font,max,removeFirst)=>{
   let words=safe(value).split(/\s+/).filter(Boolean);
   while(words.length>1&&width(words.join(" "),font)>max){if(removeFirst)words.shift();else words.pop();}
-  let t=words.join(" ");
-  while(Array.from(t).length>1&&width(t,font)>max){
-   const chars=Array.from(t);if(removeFirst)chars.shift();else chars.pop();t=chars.join("");
-  }
+  const t=words.join(" ");
+  // Never cut within a word. A single overlong word must be reported as
+  // overflow rather than silently corrupted in the printed cue.
+  if(width(t,font)>max)throw Error("Cue contains a word too wide for the approved field");
   return t;
  };
  return cues.map((cue,i)=>{
