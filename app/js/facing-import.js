@@ -1684,7 +1684,7 @@ function drawHighlights(){
   }
   const record=pageMetadata[i];
   const activeId=selectedCueBySide[i]||record?.leadership?.cues?.[0]?.cueId||"";
-  const selected=(record?.leadership?.highlights||[]).filter(h=>visibleCueId==="__all__"||h.cueId===(visibleCueId||activeId));
+  const selected=(record?.leadership?.highlights||[]).filter(h=>eligibleSiddurHighlight(i,h)&&(visibleCueId==="__all__"||h.cueId===(visibleCueId||activeId)));
   // Merge all rectangles of the same role into a single opaque mask,
   // then tint that union once. Overlapping cues and repeated OCR boxes
   // must never darken the page by painting the same ink twice.
@@ -3157,7 +3157,7 @@ async function renderCanonicalSiddurPage({out,master,source,sourceIndex,record,s
   page.drawImage(image,{x:pageX,y:pageY,width,height});
   // Highlight geometry is measured against the full Facing Editor page,
   // not the original source page. Keep that coordinate system in export.
-  for(const [key,rects] of uniquePhysicalHighlights((record.leadership?.highlights||[]).filter(h=>eligibleSiddurHighlight(side,h)))){
+  for(const [key,rects] of uniquePhysicalHighlights((record.leadership?.highlights||[]).filter(h=>isSiddurSourceRecord(record)&&insideSiddurPrayerRegion(side,h)&&!h.rejectedAsTitle))){
    const [hex,opacity]=key.split("|"),n=parseInt(hex.slice(1),16);
    if(!Number.isFinite(n))continue;
    for(const mark of rects)page.drawRectangle({
