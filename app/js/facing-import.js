@@ -566,6 +566,8 @@ function pageApprovalCurrent(record){
 }
 function renderFacingInstructions(){
  const root=$("facing-instruction-pages");if(!root)return;root.replaceChildren();
+ const instructionStatus=$("facing-instruction-status");
+ if(instructionStatus)instructionStatus.textContent=pageMetadata.length?"Instruction IDs loaded for "+pageMetadata.length+" page(s); saves use the local project checkpoint.":"Waiting for pages to load.";
  for(let side=0;side<pageMetadata.length;side++){
   const record=pageMetadata[side];if(!record)continue;
   const state=record.leadership;state.instructionIds??=[];state.instructionOverrides??={};
@@ -598,7 +600,7 @@ function renderFacingInstructions(){
   const saveInstructions=async(next)=>{
    const previous=[...state.instructionIds],previousApproval=state.highlightConfirmed;
    state.instructionIds=next.map(e=>String(e.id));state.highlightConfirmed=false;
-   try{await saveCheckpointNow();scheduleCanonicalPreview();renderFacingInstructions();}
+   try{await saveCheckpointNow();scheduleCanonicalPreview();renderFacingInstructions();status("Saved "+state.instructionIds.length+" instruction ID(s) in page checkpoint.");}
    catch(error){state.instructionIds=previous;state.highlightConfirmed=previousApproval;renderFacingInstructions();status("Instruction save failed: "+error.message);}
   };
   const select=document.createElement("select");select.setAttribute("aria-label","Instruction database for "+(side===0?"left":"right")+" page");
@@ -3003,6 +3005,8 @@ async function loadSelectedSpread(){
   selectedCueBySide=[...(saved.selectedCues||["",""])];
  }else selectedCueBySide=["",""];
  applyCueRoleEdits();
+ // Restore editor before asynchronous PDF/OCR work, so an OCR failure cannot hide it.
+ renderFacingInstructions();
  canonicalPreviewEnabled=true;
  await renderCanonicalSpread(++canonicalPreviewEpoch);
  // OCR operates on the canonical approved-master PDF canvases only.
