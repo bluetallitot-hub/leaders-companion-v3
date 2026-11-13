@@ -2631,7 +2631,7 @@ function scheduleCanonicalPreview(){
  }),350);
 }
 // Editor-only approved placement guides. Never embedded in the generated PDF.
-let showPlacementGuides=true;
+let showPlacementGuides=false;
 // The guide overlay reads the same canonical regions as the PDF compositor.
 // It never substitutes a second template and is never included in export.
 function canonicalPageBoxes(side){
@@ -2671,7 +2671,9 @@ function drawPlacementGuides(){
   ctx.restore();
  }
 }
-$("toggle-placement-guides")?.addEventListener("change",e=>{showPlacementGuides=e.target.checked;drawPlacementGuides();});
+const placementGuideToggle=$("toggle-placement-guides");
+if(placementGuideToggle)placementGuideToggle.checked=showPlacementGuides;
+placementGuideToggle?.addEventListener("change",e=>{showPlacementGuides=e.target.checked;drawPlacementGuides();});
 window.addEventListener("resize",()=>{if(canonicalPreviewEnabled)drawPlacementGuides();});
 async function renderCanonicalSpread(epoch){
  if(epoch!==canonicalPreviewEpoch||!canonicalPreviewEnabled)return;
