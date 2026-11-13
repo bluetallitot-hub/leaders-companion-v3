@@ -3615,17 +3615,17 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   // The title begins at x=171.36 on the left page and x=59.76 on
   // the right page. The opposite role fields are both 146.88pt wide.
   // Do not change the approved field geometry.
-  // The role-field row sits 4pt above the prayer-title image origin.
-  // Center the 29pt badge inside that existing row; keep the 1.5pt
-  // horizontal/vertical inset uniform on both facing pages.
+  // Keep the approved field fixed. Render a square-cornered highlight
+  // with the SAME 3pt inset at top, bottom, left and right.
   const badgeX=side===0?20.16:444.96,badgeY=711,badgeW=146.88,badgeH=29;
   const scale=3,canvas=document.createElement("canvas");
   canvas.width=Math.round(badgeW*scale);canvas.height=Math.round(badgeH*scale);
   const ctx=canvas.getContext("2d");
-  const inset=1.5*scale,corner=5*scale;
+  const inset=3*scale;
   const x=inset,y=inset,w=canvas.width-2*inset,h=canvas.height-2*inset;
-  // Clip all role-color panels to the same rounded badge outline.
-  ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,corner);ctx.clip();
+  // Square-corner clipping prevents colored panels from crossing the
+  // same uniform 3pt margin on all four sides.
+  ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
   const shownRoles=pageRoles.slice(0,4);
   const panels=pageRoles.length===1?1:pageRoles.length===2?2:Math.min(4,pageRoles.length);
   for(let i=0;i<panels;i++){
