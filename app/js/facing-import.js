@@ -445,10 +445,19 @@ function facingPageWarnings(record){
  return warnings;
 }
 function instructionTextForPage(state){
+ if(Array.isArray(state.instructionEntries))return state.instructionEntries.map(e=>String(e.text||"").trim()).filter(Boolean);
  return (state.instructionIds||[]).map(id=>{
   const entry=(facingInstructionLibrary?.prayers||[]).flatMap(p=>p.instructions||[]).find(x=>Number(x.instruction_id)===Number(id));
-  return entry?String(entry.text).replace(/\{PrayerName\}/g,state.instructionPrayer||"prayer").replace(/\{PageNumber\}/g,state.instructionPageNumber||"").replace(/\{[^}]+\}/g,""):null;
+  return entry?String(entry.text).replace(/\\{PrayerName\\}/g,state.instructionPrayer||"prayer").replace(/\\{PageNumber\\}/g,state.instructionPageNumber||"").replace(/\\{[^}]+\\}/g,""):null;
  }).filter(Boolean);
+}
+function ensurePageInstructionEntries(state){
+ if(Array.isArray(state.instructionEntries))return state.instructionEntries;
+ state.instructionEntries=(state.instructionIds||[]).map(id=>{
+  const entry=(facingInstructionLibrary?.prayers||[]).flatMap(p=>p.instructions||[]).find(x=>Number(x.instruction_id)===Number(id));
+  return {id:"library-"+id,templateId:id,text:entry?String(entry.text).replace(/\\{PrayerName\\}/g,state.instructionPrayer||"prayer").replace(/\\{PageNumber\\}/g,state.instructionPageNumber||"").replace(/\\{[^}]+\\}/g,""):"",missingTemplate:!entry};
+ });
+ return state.instructionEntries;
 }
 // Shared geometry for the editable cue overlay and final PDF export.
 // Coordinates are in 612 x 792 PDF points; cue rows are divided equally.
@@ -470,7 +479,7 @@ function renderInstructionPreviews(){
 }
 function pageApprovalFingerprint(record){
  const state=record.leadership||{};
- return JSON.stringify({highlights:state.highlights||[],cues:state.cues||[],instructionIds:state.instructionIds||[],instructionPrayer:state.instructionPrayer||"",instructionPosition:state.instructionPosition||"top",instructionOverrides:state.instructionOverrides||{},approvedCrop:record.production?.approvedCrop||null});
+ return JSON.stringify({highlights:state.highlights||[],cues:state.cues||[],instructionIds:state.instructionIds||[],instructionEntries:state.instructionEntries||null,instructionPrayer:state.instructionPrayer||"",instructionPosition:state.instructionPosition||"top",instructionOverrides:state.instructionOverrides||{},approvedCrop:record.production?.approvedCrop||null});
 }
 function pageApprovalCurrent(record){
  const state=record?.leadership;
@@ -505,18 +514,41 @@ function renderFacingInstructions(){
    finally{save.disabled=false;}
   };
   prayerRow.append(save,revert,feedback);panel.append(prayerRow);
-  const select=document.createElement("select");select.setAttribute("aria-label","Instruction for "+(side===0?"left":"right")+" page");
-  select.add(new Option("Select instruction",""));
-  for(const p of facingInstructionLibrary?.prayers||[])for(const ins of p.instructions||[])select.add(new Option("#"+ins.instruction_id+" — "+p.canonical_title+" — "+ins.text+" ("+(ins.approval_status||"unreviewed")+")",String(ins.instruction_id)));
+  state.instructionPageNumber=String(record.source?.originalPageNumber||record.source?.sourcePdfPage||"");
+  const entries=ensurePageInstructionEntries(state);
+  const saveInstructions=async(next)=>{
+   const previous=structuredClone(entries),oldIds=[...state.instructionIds];
+   state.instructionEntries=next;state.instructionIds=next.map(e=>e.templateId).filter(Number.isFinite);
+   state.highlightConfirmed=false;
+   try{await saveCheckpointNow();scheduleCanonicalPreview();renderFacingInstructions();}
+   catch(error){state.instructionEntries=previous;state.instructionIds=oldIds;renderFacingInstructions();status("Instruction save failed: "+error.message);}
+  };
+  const select=document.createElement("select");select.setAttribute("aria-label","Instruction template for "+(side===0?"left":"right")+" page");
+  select.add(new Option("Custom instruction",""));
+  for(const p of facingInstructionLibrary?.prayers||[])for(const ins of p.instructions||[])
+   select.add(new Option("#"+ins.instruction_id+" — "+p.canonical_title+" — "+ins.text,String(ins.instruction_id)));
   panel.append(select);
-  const add=document.createElement("button");add.type="button";add.textContent="Add instruction";add.onclick=()=>{if(!select.value)return;const id=Number(select.value);if(!state.instructionIds.includes(id))state.instructionIds.push(id);state.highlightConfirmed=false;renderFacingInstructions();saveCheckpointNow().catch(e=>status("Instruction save failed: "+e.message))};panel.append(add);
-
-  const selected=document.createElement("div");
-  for(const id of state.instructionIds){
-   const line=document.createElement("div");line.className="instruction-selected";const entry=(facingInstructionLibrary?.prayers||[]).flatMap(p=>p.instructions||[]).find(ins=>Number(ins.instruction_id)===id);line.textContent=entry?.text||"Selected instruction";
-   const remove=document.createElement("button");remove.type="button";remove.textContent="Remove";remove.onclick=()=>{state.instructionIds=state.instructionIds.filter(x=>x!==id);state.highlightConfirmed=false;renderFacingInstructions();saveCheckpointNow().catch(e=>status("Instruction removal save failed: "+e.message))};line.append(remove);selected.append(line);
+  const add=document.createElement("button");add.type="button";add.textContent="Add instruction";
+  add.onclick=async()=>{
+   const id=Number(select.value)||null;
+   const template=(facingInstructionLibrary?.prayers||[]).flatMap(p=>p.instructions||[]).find(ins=>Number(ins.instruction_id)===id);
+   const text=template?String(template.text).replace(/\\{PrayerName\\}/g,state.instructionPrayer||"prayer").replace(/\\{PageNumber\\}/g,state.instructionPageNumber||"").replace(/\\{[^}]+\\}/g,""):"";
+   await saveInstructions([...entries,{id:"page-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),templateId:id,text}]);
+  };panel.append(add);
+  for(const entry of entries){
+   const line=document.createElement("div");line.className="instruction-selected";
+   const textarea=document.createElement("textarea");textarea.value=entry.text||"";textarea.rows=2;
+   textarea.setAttribute("aria-label","Instruction text");line.append(textarea);
+   const message=document.createElement("span");message.setAttribute("role","status");
+   const save=document.createElement("button");save.type="button";save.textContent="Save instruction";
+   save.onclick=async()=>{const value=textarea.value.trim();if(!value){message.textContent="Enter instruction text.";return;}
+    save.disabled=true;await saveInstructions(entries.map(e=>e.id===entry.id?{...e,text:value,missingTemplate:false}:e));};
+   const revert=document.createElement("button");revert.type="button";revert.textContent="Revert";
+   revert.onclick=()=>{textarea.value=entry.text||"";message.textContent="Unsaved changes reverted.";};
+   const remove=document.createElement("button");remove.type="button";remove.textContent="Remove";
+   remove.onclick=()=>saveInstructions(entries.filter(e=>e.id!==entry.id));
+   line.append(save,revert,remove,message);panel.append(line);
   }
-  panel.append(selected);
   state.instructionPageNumber=String(record.source.originalPageNumber||record.source.sourcePdfPage||"");
   const warnings=facingPageWarnings(record);
   if(warnings.length){const notice=document.createElement("p");notice.textContent="Needs review: "+warnings.join("; ");panel.append(notice);}
