@@ -1297,9 +1297,18 @@ function recordCueMatch(record,cue,method,boundary,boxes){
  cue.matchStatus=method+"-candidate-review-required";
  return true;
 }
+// OCR and cue selection belong exclusively to source Siddur pages. Generated
+// cover, section title, TOC, and blank pages never qualify, even if a saved
+// record is accidentally passed into the editor.
+function isSiddurSourceRecord(record){
+ const kind=String(record?.pageType||record?.type||record?.production?.pageType||record?.source?.pageType||"").toUpperCase().replace(/[ -]/g,"_");
+ if(["FRONT_COVER","COVER","SECTION_TITLE","SECTION_TOC","MAIN_TOC","CONTENTS","BLANK","GENERATED"].includes(kind))return false;
+ return Number.isInteger(Number(record?.source?.sourcePdfPage))&&Number(record.source.sourcePdfPage)>0&&
+  !!String(record?.source?.sourceFilename||"").trim();
+}
 function assignCueHighlights(side){
  const record=pageMetadata[side],ocr=sourceTextLines[side]||[],geometry=detectedLines[side]||[];
- if(!record)return 0;
+ if(!isSiddurSourceRecord(record))return 0;
  let matches=0;
  for(const cue of record.leadership.cues){
   if(record.leadership.highlights.some(h=>h.cueId===cue.cueId&&h.manualApproved)){cue.matchStatus="manual-selection-preserved";matches++;continue;}
@@ -1629,6 +1638,7 @@ function drawHighlights(){
   ctx.clearRect(0,0,overlay.width,overlay.height);
   if(canonicalPreviewEnabled&&highlightView!=="detection"){if(i===1&&!canonicalPreviewRendering)scheduleCanonicalPreview();continue;}
   if(highlightView==="detection"){
+   if(!isSiddurSourceRecord(pageMetadata[i]))continue;
    // Detection is a geometry diagnostic ONLY: never color text or cues.
    // In particular, titles and page numbers may be detected but are not prayers.
    ctx.save();ctx.strokeStyle="rgba(138,50,191,.8)";ctx.lineWidth=1;
@@ -1702,6 +1712,7 @@ function installHighlightSelection(){
   const layer=$("highlight-"+i);let start=null;
   const point=e=>{const b=layer.getBoundingClientRect();return {x:(e.clientX-b.left)/b.width,y:(e.clientY-b.top)/b.height}};
   const nearest=p=>{
+   if(!isSiddurSourceRecord(pageMetadata[i]))return null;
    const lines=detectedLines[i]||[];
    const inside=lines.filter(l=>p.x>=l.x-.01&&p.x<=l.x+l.width+.01&&p.y>=l.y-.007&&p.y<=l.y+l.height+.007);
    if(inside.length)return inside.sort((a,b)=>Math.abs(p.y-a.y-a.height/2)-Math.abs(p.y-b.y-b.height/2))[0];
@@ -1710,14 +1721,15 @@ function installHighlightSelection(){
     .sort((a,b)=>Math.abs(p.y-a.y-a.height/2)-Math.abs(p.y-b.y-b.height/2))[0]||null;
   };
   const target=p=>{
+   if(!isSiddurSourceRecord(pageMetadata[i]))return null;
    if(selectionMode==="line")return nearest(p);
    const words=getWordGeometry(i);
    const matches=words.filter(w=>p.x>=w.x-.003&&p.x<=w.x+w.width+.003&&p.y>=w.y-.008&&p.y<=w.y+w.height+.008);
    return matches.sort((a,b)=>Math.abs(p.x-a.x-a.width/2)-Math.abs(p.x-b.x-b.width/2))[0]||null;
   };
-  layer.addEventListener("pointerdown",e=>{if(!pageMetadata[i])return;start=target(point(e));if(start)layer.setPointerCapture(e.pointerId)});
+  layer.addEventListener("pointerdown",e=>{if(!isSiddurSourceRecord(pageMetadata[i]))return;start=target(point(e));if(start)layer.setPointerCapture(e.pointerId)});
   layer.addEventListener("pointerup",e=>{
-   if(!start||!pageMetadata[i])return;
+   if(!start||!isSiddurSourceRecord(pageMetadata[i]))return;
    const end=target(point(e))||start,items=selectionMode==="word"?getWordGeometry(i):detectedLines[i];
    const a=items.findIndex(x=>x.id===start.id),b=items.findIndex(x=>x.id===end.id);
    if(a<0||b<0){start=null;return}
@@ -2254,7 +2266,7 @@ function matchCrossPageEnglishCues(){
  return matched;
 }
 async function autoMatchCuesForSide(side){
- const record=pageMetadata[side];if(!record)return;
+ const record=pageMetadata[side];if(!isSiddurSourceRecord(record))return;
  record.leadership.highlights=record.leadership.highlights.filter(h=>!h.cueId||h.manualApproved);
  status("Matching "+(side===0?"left":"right")+" page cues…");
  try{
