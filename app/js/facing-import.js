@@ -3745,7 +3745,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  // This is a tall rectangular panel, not a forced 1:1 square; its content
  // must fit between the fixed grid and the bottom-anchored QR module.
  const summaryPanelTop=gridBottom-inset;
- const summaryPanelBottom=52+26+(railW-2*inset)+inset;
+ const summaryPanelBottom=44+26+(railW-2*inset)+inset;
  page.drawRectangle({x:railX+inset,y:summaryPanelBottom,
   width:railW-2*inset,height:summaryPanelTop-summaryPanelBottom,
   borderWidth:.65,borderColor:railMuted});
@@ -3759,7 +3759,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  // the square, wholly inside the sidebar and above the cue/status strip.
  // A placeholder URL MUST NOT become a scannable QR.
  const qrSize=railW-2*inset,qrX=railX+inset;
- const melodyNameY=52,qrY=melodyNameY+26;
+ const melodyNameY=44,qrY=melodyNameY+26;
  page.drawRectangle({x:qrX,y:qrY,width:qrSize,height:qrSize,
   borderWidth:.65,borderColor:PDFLib.rgb(.67,.72,.75)});
  const qrPending="QR PENDING";
