@@ -532,6 +532,12 @@ function renderPageCueEditor(){
     const role=cueRoleOptions().keys().next().value||"R";
     const cue={cueId:id,role,style:"SOLO",prayer:pageTitleInput.value.trim()||"New cue",startCue:"",endCue:"",highlights:[],matchStatus:"unmatched-review-required",manualCreated:true};
     record.leadership.cues??=[];record.leadership.cues.push(cue);record.leadership.highlightConfirmed=false;
+    const reference=String(record.source?.originalPageNumber||record.source?.sourcePdfPage||"");
+    const exemplar=cueCsvRows.find(row=>String(row.page_reference||row.page_ref||row.printed_page||"")===reference)||{};
+    const csvRow={...exemplar,cue_id:id,test_id:id,prayer_name:cue.prayer,leader_role:role,role,style:cue.style,
+      page_reference:reference,begin_cue:"",end_cue:"",language:record.source?.languageCode||exemplar.language||""};
+    cueCsvRows.push(csvRow);importedCues.push({...csvRow});
+    for(const field of Object.keys(csvRow))if(!cueCsvHeaders.includes(field))cueCsvHeaders.push(field);
     selectedCueBySide[side]=id;visibleCueId=id;
     saveCurrentSpreadEdits();renderPageCueEditor();refreshCueVisibilityPicker();drawHighlights();
     $("page-cue-editor-status").textContent="New cue created on "+(side===0?"left":"right")+" page. Enter beginning/end text, then Save cue and rematch.";
