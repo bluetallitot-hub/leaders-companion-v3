@@ -2874,22 +2874,39 @@ function v314Text(page,value,{x,y,size,font,align="left",maxWidth=Infinity}){
  page.drawText(text,{x:align==="center"?x-width/2:align==="right"?x-width:x,y,size,font,color:PDFLib.rgb(0,0,0)});
 }
 function v314Blank(out){const p=out.addPage([612,792]);v314Border(p);return p;}
+// The approved PDFs are the physical page backgrounds. Placeholder text in the
+// masters is masked only within its designated dynamic field, never redrawn as
+// a new imitation border or master layout.
+async function pageFromApprovedMaster(out,key){
+ if(!window.LCV3Templates)throw Error("Approved PDF master configuration unavailable.");
+ const bytes=await window.LCV3Templates.load(key);
+ const embedded=await out.embedPdf(bytes,[0]);
+ if(embedded.length!==1)throw Error("Approved "+key+" master has no first page.");
+ const master=embedded[0];
+ if(Math.abs(master.width-612)>0.5||Math.abs(master.height-792)>0.5)
+  throw Error("Approved "+key+" master must be US Letter (612 × 792).");
+ const page=out.addPage([612,792]);
+ page.drawPage(master,{x:0,y:0,width:612,height:792});
+ return page;
+}
+function clearMasterPlaceholder(page,x,y,width,height){
+ page.drawRectangle({x,y,width,height,color:PDFLib.rgb(1,1,1)});
+}
 async function createMasterFrontMatter(out,{includeSections=true,totalPages=null}={}){
- if(!window.LCV3Templates)throw Error("Approved master PDF configuration unavailable.");
- // Verify the approved cover PDF exists, while rendering clean geometry rather
- // than copying its example text, labels, or construction guides.
- await window.LCV3Templates.load("cover");
- const cover=effectiveCover(),page=v314Blank(out);
- const times=await out.embedFont(PDFLib.StandardFonts.TimesRoman);
+ const cover=effectiveCover();
+ const page=await pageFromApprovedMaster(out,"cover");
  const bold=await out.embedFont(PDFLib.StandardFonts.TimesRomanBold);
  const helv=await out.embedFont(PDFLib.StandardFonts.Helvetica);
- v314Text(page,"LEADER’S COMPANION",{x:306,y:578,size:17,font:times,align:"center",maxWidth:510});
+ // The master already supplies the book identification, hairline border and
+ // divider. Replace ONLY the sample service name and production placeholders.
+ clearMasterPlaceholder(page,45,401,522,54);
  v314Text(page,cover.serviceName,{x:306,y:423,size:32,font:bold,align:"center",maxWidth:510});
- page.drawLine({start:{x:100,y:396},end:{x:512,y:396},thickness:.65,color:PDFLib.rgb(0,0,0)});
+ clearMasterPlaceholder(page,38,34,525,57);
  const date=new Date().toISOString().slice(0,10);
  const count=totalPages??out.getPageCount();
- const fields=["Produced: "+date,"Software Version: V3.323","Total Pages: "+count];
- fields.forEach((t,i)=>v314Text(page,t,{x:45,y:80-i*14,size:9,font:helv,maxWidth:520}));
+ const version=document.querySelector('[aria-label="Page version"]')?.textContent?.trim()||"V3";
+ ["Produced: "+date,"Software Version: "+version,"Total Pages: "+count]
+  .forEach((value,i)=>v314Text(page,value,{x:45,y:80-i*14,size:9,font:helv,maxWidth:520}));
  if(includeSections){
   const first=editableSectionRecords()[0];
   if(first)await addSectionMasterPages(out,first,[]);
@@ -2907,40 +2924,35 @@ function v314SectionEntries(approved,section,limit){
  }
  return [...rows.values()];
 }
-async function addMainContentsPages(out,entries){
+async function drawApprovedContentsPage(out,entries){
+ const page=await pageFromApprovedMaster(out,"sectionContents");
  const font=await out.embedFont(PDFLib.StandardFonts.TimesRoman);
- const bold=await out.embedFont(PDFLib.StandardFonts.TimesRomanBold);
+ // Keep the master border, Contents heading, and underline; remove its sample
+ // prayer rows before drawing actual Intake-derived entries.
+ clearMasterPlaceholder(page,62,37,488,626);
+ entries.forEach((entry,i)=>{
+  const y=V314.section.firstEntryY-i*V314.section.entryStep;
+  v314Text(page,entry.title,{x:70,y,size:13,font,maxWidth:385});
+  v314Text(page,String(entry.page),{x:542,y,size:13,font,align:"right",maxWidth:68});
+ });
+ return page;
+}
+async function addMainContentsPages(out,entries){
  const pageSize=23;
- for(let start=0;start<Math.max(1,entries.length);start+=pageSize){
-  const page=v314Blank(out);
-  v314Text(page,"Contents",{x:306,y:V314.section.tocHeadingY,size:22,font:bold,align:"center"});
-  page.drawLine({start:{x:65,y:681},end:{x:547,y:681},thickness:.5,color:PDFLib.rgb(0,0,0)});
-  entries.slice(start,start+pageSize).forEach((entry,i)=>{
-   const y=V314.section.firstEntryY-i*V314.section.entryStep;
-   v314Text(page,entry.title,{x:70,y,size:13,font,maxWidth:385});
-   v314Text(page,String(entry.page),{x:542,y,size:13,font,align:"right",maxWidth:68});
-  });
- }
+ for(let start=0;start<Math.max(1,entries.length);start+=pageSize)
+  await drawApprovedContentsPage(out,entries.slice(start,start+pageSize));
 }
 async function addSectionMasterPages(out,section,entries){
- await Promise.all([window.LCV3Templates.load("sectionTitle"),window.LCV3Templates.load("sectionContents")]);
- const times=await out.embedFont(PDFLib.StandardFonts.TimesRoman);
  const bold=await out.embedFont(PDFLib.StandardFonts.TimesRomanBold);
+ const titlePage=await pageFromApprovedMaster(out,"sectionTitle");
+ // The PDF's [SECTION NAME] is a sample placeholder, not final publication text.
+ clearMasterPlaceholder(titlePage,62,364,488,65);
  const name=String(section.title||"").trim();
- const titlePage=v314Blank(out);
+ if(!name)throw Error("Section title is missing.");
  v314Text(titlePage,name,{x:306,y:V314.section.titleY,size:32,font:bold,align:"center",maxWidth:470});
- const pageSize=23; // 646 through 74 at 26 pt intervals
- const chunks=Math.max(1,Math.ceil(entries.length/pageSize));
- for(let chunk=0;chunk<chunks;chunk++){
-  const page=v314Blank(out);
-  v314Text(page,"Contents",{x:306,y:V314.section.tocHeadingY,size:22,font:bold,align:"center"});
-  page.drawLine({start:{x:65,y:681},end:{x:547,y:681},thickness:.5,color:PDFLib.rgb(0,0,0)});
-  entries.slice(chunk*pageSize,(chunk+1)*pageSize).forEach((entry,i)=>{
-   const y=V314.section.firstEntryY-i*V314.section.entryStep;
-   v314Text(page,entry.title,{x:70,y,size:13,font:times,maxWidth:385});
-   v314Text(page,String(entry.page),{x:542,y,size:13,font:times,align:"right",maxWidth:68});
-  });
- }
+ const pageSize=23;
+ for(let start=0;start<Math.max(1,entries.length);start+=pageSize)
+  await drawApprovedContentsPage(out,entries.slice(start,start+pageSize));
 }
 function showCoverEditor(){
  const prior=document.getElementById("cover-editor-dialog");if(prior)prior.remove();
