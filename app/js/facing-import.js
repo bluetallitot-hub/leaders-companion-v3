@@ -574,7 +574,11 @@ function v3CuePlan(record,side){
  if(!window.LCV3CueLayout)throw Error("Cue layout engine unavailable; cannot render or export.");
  const state=record?.leadership||{},cues=(state.cues||[]).slice(0,3);
  const ctx=document.createElement("canvas").getContext("2d");
- const measure=(text,font)=>{ctx.font=font+"px Arial, sans-serif";return ctx.measureText(text).width;};
+ const measure=(text,font)=>{
+  const hebrew=/[\u0590-\u05ff]/u.test(text);
+  ctx.font=font+"px "+(hebrew?'"Noto Serif Hebrew", "David", "Times New Roman", serif':'Georgia, "Times New Roman", serif');
+  return ctx.measureText(text).width;
+ };
  return window.LCV3CueLayout.layout({cues,side,measure,roleColor:role=>roleColor(role||state.role)});
 }
 function renderInstructionPreviews(){
@@ -3607,17 +3611,18 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   const drawCue=async(text,x,w)=>{
    if(!text)return;
    const factor=3,canvas=document.createElement("canvas");
-   canvas.width=Math.max(1,Math.ceil((w+2)*factor));canvas.height=Math.ceil((row.font*1.3)*factor);
-   const ctx=canvas.getContext("2d");ctx.font=(row.font*factor)+"px Arial, sans-serif";
-   ctx.fillStyle=row.color;ctx.textBaseline="top";ctx.direction=row.hebrew?"rtl":"ltr";
+   canvas.width=Math.max(1,Math.ceil((w+2)*factor));canvas.height=Math.ceil(row.lineH*factor);
+   const ctx=canvas.getContext("2d");
+   ctx.font=(row.font*factor)+"px "+(row.hebrew?'"Noto Serif Hebrew", "David", "Times New Roman", serif':'Georgia, "Times New Roman", serif');
+   ctx.fillStyle=row.color;ctx.textBaseline="middle";ctx.direction=row.hebrew?"rtl":"ltr";
    ctx.textAlign=row.hebrew?"right":"left";
-   ctx.fillText(text,row.hebrew?canvas.width-1:1,0);
+   ctx.fillText(text,row.hebrew?canvas.width-1:1,canvas.height/2);
    const image=await out.embedPng(canvas.toDataURL("image/png"));
    page.drawImage(image,{x,y:row.y,width:canvas.width/factor,height:canvas.height/factor});
   };
   await drawCue(row.begin,row.beginX,row.beginW);
   await drawCue(row.end,row.endX,row.endW);
-  const y=row.y+row.font*.48,mid=row.arrowX;
+  const y=row.centerY,mid=row.arrowX;
   page.drawLine({start:{x:mid-7,y},end:{x:mid+7,y},thickness:1.3,color:ink});
   const tip=row.hebrew?mid-7:mid+7,back=row.hebrew?tip+4:tip-4;
   page.drawLine({start:{x:tip,y},end:{x:back,y:y+3},thickness:1.3,color:ink});
