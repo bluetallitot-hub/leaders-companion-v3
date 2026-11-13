@@ -2963,7 +2963,7 @@ function drawLeaderPageFooter(page,record,font,bold){
  if(lines.length>5)page.drawText("Additional instructions in project metadata.",{x:right,y:22,size:7,font,color:ink});
 }
 // Cover printed template guide words, retaining the approved box geometry.
-async async function drawApprovedPageFields(page,record,side,out,font,bold){
+async function drawApprovedPageFields(page,record,side,out,font,bold){
  const textX=side===0?171.36:59.76;
  const white=PDFLib.rgb(1,1,1),ink=PDFLib.rgb(.1,.17,.2);
  const wipe=(x,y,w,h)=>page.drawRectangle({x,y,width:w,height:h,color:white});
