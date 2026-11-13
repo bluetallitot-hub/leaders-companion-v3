@@ -3200,14 +3200,25 @@ async function renderCanonicalSiddurPage({out,master,source,sourceIndex,record,s
 async function exportVerifiedWorkingCopy(){
  if(!sourcePdfBytes)throw Error("Load the source siddur first.");
  // Export only pages in the last successfully persisted checkpoint.\n // Merely opening or processing a page must never add it to the proof.
- const approved=verifiedWorkingPages();
- // Validate all approved records before constructing the PDF, so the user gets
- // the exact missing field instead of a late, generic export failure.
+ let approved=verifiedWorkingPages();
+ // An approved-but-incomplete checkpoint must not silently block all other
+ // explicitly saved, approved pages. Ask before excluding it from this proof.
  const incomplete=approved.map(([index,record])=>({index,missing:[
   ...(!String(record.identification?.serviceName||serviceManifest?.serviceName||"").trim()?["service name"]:[]),
   ...(!String(approvedPrayerName(record)||"").trim()?["prayer title"]:[])
  ]})).filter(item=>item.missing.length);
- if(incomplete.length)throw Error("Approved source page"+(incomplete.length===1?" ":"s ")+incomplete.map(item=>item.index+" ("+item.missing.join(" and ")+")").join(", ")+" require metadata. Open the indicated source page in the Facing Editor, enter the missing identification fields, save and reapprove it, then export again.");
+ if(incomplete.length){
+  const details=incomplete.map(item=>"Source page "+item.index+": "+item.missing.join(" and ")).join("\\n");
+  const validCount=approved.length-incomplete.length;
+  if(!validCount)throw Error("No selected, approved Siddur pages have complete metadata. "+details.replace(/\\n/g,"; ")+". Use the separate Cover + Title + Contents button for a front-matter-only PDF.");
+  const omit=window.confirm("These saved, approved pages are missing metadata:\\n"+details+
+   "\\n\\nChoose OK to EXCLUDE ONLY these pages from this PDF proof and continue with the other "+
+   validCount+" selected approved page(s). Choose Cancel to keep the selection unchanged and correct the metadata first.");
+  if(!omit)throw Error("PDF proof cancelled; no pages were excluded. Complete the missing metadata or explicitly exclude the pages in 'Show pages actually saved'.");
+  for(const item of incomplete)excludedFromProof.add(item.index);
+  approved=verifiedWorkingPages();
+  status("Excluded incomplete source page(s) "+incomplete.map(item=>item.index).join(", ")+" from this proof only. They remain saved and can be reselected after correction.");
+ }
  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
  const out=await PDFLib.PDFDocument.create();
  const sections=editableSectionRecords();
