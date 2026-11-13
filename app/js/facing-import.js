@@ -442,39 +442,12 @@ function instructionTextForPage(state){
 // Shared geometry for the editable cue overlay and final PDF export.
 // Coordinates are in 612 x 792 PDF points; cue rows are divided equally.
 function v3CuePlan(record,side){
+ if(!window.LCV3CueLayout)throw Error("Cue layout engine unavailable; cannot render or export.");
  const state=record?.leadership||{},cues=(state.cues||[]).slice(0,3);
- const textX=side===0?171.36:59.76, xLeft=textX+8,xRight=textX+373;
+ const ctx=document.createElement("canvas").getContext("2d");
+ const measure=(text,font)=>{ctx.font=font+"px Arial, sans-serif";return ctx.measureText(text).width;};
  const lang=String(record?.source?.languageCode||record?.source?.language||"").toLowerCase();
- const hebrew=lang==="h"||lang==="hebrew"||lang==="he"||
-  (lang!=="en"&&lang!=="english"&&side===0&&cues.some(c=>/[\u0590-\u05ff]/.test(String(c.startCueHebrew||c.endCueHebrew||""))));
- const measure=document.createElement("canvas").getContext("2d");
- const safe=t=>String(t||"").replace(/י[\u0591-\u05c7]*ה[\u0591-\u05c7]*ו[\u0591-\u05c7]*ה[\u0591-\u05c7]*/g,"ה׳").trim();
- const width=(t,font)=>{measure.font=font+"px Arial, sans-serif";return measure.measureText(safe(t)).width;};
- const rowH=50/Math.max(1,cues.length);
- return cues.map((cue,i)=>{
-  let begin=safe(hebrew?(cue.startCueHebrew||cue.startCue||cue.beginCue):(cue.startCue||cue.beginCue||cue.startCueHebrew));
-  let end=safe(hebrew?(cue.endCueHebrew||cue.endCue||cue.endCueText):(cue.endCue||cue.endCueText||cue.endCueHebrew));
-  const font=Math.min(12,Math.max(8,rowH*.48));
-  const maxPhrase=155,minimumGap=26;
-  // Shorten only at the inside edge, preserving the exterior anchor and cue identity.
-  const shorten=(t,removeFirst)=>{
-   let words=t.split(/\s+/).filter(Boolean);
-   while(words.length>1&&width(words.join(" "),font)>maxPhrase){if(removeFirst)words.shift();else words.pop();}
-   let result=words.join(" ");
-   while(result.length>1&&width(result,font)>maxPhrase)result=removeFirst?result.slice(1):result.slice(0,-1);
-   return result;
-  };
-  begin=shorten(begin,hebrew);end=shorten(end,!hebrew);
-  const beginW=width(begin,font),endW=width(end,font);
-  const beginX=hebrew?xRight-beginW:xLeft;
-  const endX=hebrew?xLeft:xRight-endW;
-  const gapStart=hebrew?endX+endW:beginX+beginW;
-  const gapEnd=hebrew?beginX:endX;
-  if(gapEnd-gapStart<minimumGap)throw Error("Cue phrases do not leave room for an arrow on source page "+(record?.source?.sourcePdfPage||"?"));
-  return {begin,end,beginX,endX,beginW,endW,arrowX:(gapStart+gapEnd)/2,
-   y:48+(cues.length-i-1)*rowH+(rowH-font*1.3)/2,font,rowH,hebrew,
-   color:roleColor(cue.role||cue.roleId||state.role)};
- });
+ return window.LCV3CueLayout.layout({cues,side,language:lang,measure,roleColor:role=>roleColor(role||state.role)});
 }
 function renderInstructionPreviews(){
  for(let side=0;side<2;side++){
