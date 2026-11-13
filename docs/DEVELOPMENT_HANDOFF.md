@@ -26,8 +26,8 @@ Inventory and **read in full** all applicable governing documents, V3 web requir
 
 | ID | Task | Status | Evidence / immediate next step |
 |---|---|---|---|
-| P01 | Complete authoritative document inventory | PARTIAL | Located V3 Font Size Spec, current Drive Rulebook and Roadmap; current Rulebook internal v2.77 conflicts with filename v2.76 |
-| P02 | Read every applicable document in full | PARTIAL | Read seven V3 specification Docs; current 225k-character Rulebook retrieved but not fully reconciled; native Sheets pending |
+| P01 | Complete authoritative document inventory | PARTIAL | Located V3 specs, Rulebook, SH-FE native Sheet and Roadmap; rulebook title/header version conflict remains |
+| P02 | Read every applicable document in full | PARTIAL | Seven V3 specs and both native Sheets read; 938-paragraph current Rulebook retrieved and selectively inspected, full reconciliation pending |
 | P03 | Requirement-to-code traceability matrix | OPEN | Extract section-specific acceptance criteria from V3 specs |
 | P04 | Audit actual main branch vs requirements | PARTIAL | Found CI did not execute canonical-editor-pipeline.test.cjs; fixed in commit f9a67169097fbfb166794438ae52d4494c21cd3b |
 | P05 | Verify actual approved master PDFs | PARTIAL | Config selects Outer Lines Only; visual/geometry verification of all masters outstanding |
@@ -82,6 +82,35 @@ The following are **approved design requirements**, not proof that the app imple
 - The section specification explicitly requires TOC overflow pages; never truncate to the fixed template's initial lines.
 - The approved cover and section masters are separate from the recently selected Siddur Outer Lines Only master.
 - The current V3 web production/duplex/font specification mentioned in Intake §8 still needs to be located and read; no claim of completed P01/P02 yet.
+
+## Current Rulebook and native SH-FE data audit — 2026-11-13
+
+### Governance
+
+- Located [Google Drive Rulebook titled v2.76](https://docs.google.com/document/d/1AZJtYXT8zP9PJ-l_yA5sW1ic7LYusydWHYXan-di1Gw/edit), whose internal heading says **Version 2.77 (2026-09-13)**. Retrieved all 938 text paragraphs (~224,801 characters); searched and inspected 194 paragraphs matching V3/PDF/Siddur/metadata/duplex/template and related terms. This is **not** a completed comprehensive rule-by-rule reconciliation. Treat this later rulebook as higher-priority than the attached v1.5 unless the authority chain shows otherwise. Resolve filename/header discrepancy through version register before editing the Rulebook.
+- CR-006 explicitly requires consulting the current Rulebook and applicable subordinate spec before structural, architectural, layout, naming, asset-generation, or generator-behavior decisions. V2-specific production rules may not be blindly transferred to the newer V3 web app; identify scope and explicit supersession.
+- The [V3 Roadmap](https://docs.google.com/spreadsheets/d/1iMm2HDZMHCpGylb3x-Tg37gl2GcVpzROQfzqZvmqY90/edit) was read as a native Sheet: 23 populated candidate rows (V3-001 through V3-023), each with status **CANDIDATE**. These are proposals, **not approved implementation requirements**. In particular V3-002 says a context-aware instruction system is a candidate and does **not** preapprove a many-to-many Instruction ID junction architecture. The separately approved Oct 31 Prayer/Summary/Instruction workflow specification describes many-to-many relationships; record scope/approval precedence before implementing either design.
+
+### SH-FE native intake sheet — inspected actual rows
+
+Source: [SH-FE Siddur Intake v1.0](https://docs.google.com/spreadsheets/d/1GXj5jJvJ1lLAbqsnIKSnQGU4N1xyFXmN717bdSyKCcY/edit).
+
+- Tabs: **Cue Intake**, **Page Records**, **Read Me**. Read the entire populated A:U cue area (64 rows incl. header), A:L page area (51 rows incl. header), and Read Me. **63 actual cue records and 50 actual page records**; counts in approved Intake §9 confirmed.
+- Cue header: Cue ID, Page ID, Sequence, Source ID, Source Page, Page Label, Language, Prayer Name, Service Name, Section ID, Paper Color, Condition, Begin Cue, End Cue, Leader Role, Performance Style, Instruction ID, Summary ID, Leader Notes, Source Unit ID, Review Status.
+- Page header: Page ID, Source ID, Source Page, Page Label, Language, Prayer Name (initial), Service Name, Section ID, Paper Color, Condition, Page Type, Review Status.
+- Basic referential checks on actual rows: **zero duplicate Cue IDs**, **zero duplicate Page IDs**, **zero cue→missing-page references**, **zero page records without cue** in this seed dataset (the architecture must nonetheless support cue-less pages). Eight page IDs have multiple cue records, with five on `DSP-SH|157H|H`; implementation cannot assume one cue per page.
+- All 63 cues and 50 page records are **Imported — review**; no approval inferred. Page colors: 49 W, 1 N. Page languages: 22 E, 26 H, 1 H/L, 1 L. Exactly one conditional cue, `SH-FE-C057`, on neon page `DSP-SH|170E|E`, Condition Rosh Chodesh. Ordinary `SH-FE-C038` remains on white page `DSP-SH|170-171E|E`. **The matching Hebrew neon insert page is not established by this sheet**; physical pairing remains blocked as Intake §10 says.
+- This validates seed integrity only, **not** page-title reconciliation, canonical source-image existence, physical duplex assembly, runtime import integration, PDF metadata embedding or actual PDF export.
+
+### Additional acceptance gates
+
+| ID | Acceptance | Evidence / status |
+|---|---|---|
+| V3-DATA-01 | Import all 63 cue IDs and 50 page IDs without collisions or missing links | Seed sheet PASS on basic IDs; app import UNVERIFIED |
+| V3-DATA-02 | Preserve multiple cues on a page, e.g. five on 157H, in order and in PDF metadata | UNVERIFIED |
+| V3-DATA-03 | Preserve 170E neon conditional cue and 170–171E ordinary white record separately | Seed sheet PASS; output UNVERIFIED; Hebrew neon pairing OPEN |
+| V3-DATA-04 | Do not treat Roadmap CANDIDATE ideas as approved schema changes | Documentation requirement RECORDED; future code audit OPEN |
+| V3-GOV-01 | Resolve Rulebook filename/header discrepancy and audit all applicable current locked rules | PARTIAL; current Rulebook read selectively, not comprehensively reconciled |
 
 ## Rules for continuation
 
