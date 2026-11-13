@@ -26,8 +26,8 @@ Inventory and **read in full** all applicable governing documents, V3 web requir
 
 | ID | Task | Status | Evidence / immediate next step |
 |---|---|---|---|
-| P01 | Complete authoritative document inventory | PARTIAL | Located six V3 specifications, including approved intake, cover and section; production/duplex/font specification still to locate |
-| P02 | Read every applicable document in full | PARTIAL | Read six V3 specification Docs plus three governance DOCX and handoff; native SH-FE sheet and production specification outstanding |
+| P01 | Complete authoritative document inventory | PARTIAL | Located V3 Font Size Spec, current Drive Rulebook and Roadmap; current Rulebook internal v2.77 conflicts with filename v2.76 |
+| P02 | Read every applicable document in full | PARTIAL | Read seven V3 specification Docs; current 225k-character Rulebook retrieved but not fully reconciled; native Sheets pending |
 | P03 | Requirement-to-code traceability matrix | OPEN | Extract section-specific acceptance criteria from V3 specs |
 | P04 | Audit actual main branch vs requirements | PARTIAL | Found CI did not execute canonical-editor-pipeline.test.cjs; fixed in commit f9a67169097fbfb166794438ae52d4494c21cd3b |
 | P05 | Verify actual approved master PDFs | PARTIAL | Config selects Outer Lines Only; visual/geometry verification of all masters outstanding |
@@ -68,6 +68,12 @@ The following are **approved design requirements**, not proof that the app imple
 | V3-TAG-01 | Tags tied to cueId, independently movable and page-persistent; global toggle; status tag display | Cue Tags confirmed requirements | cue/tag metadata, UI, reload tests | FUTURE |
 | V3-DB-01 | Page stores permanent IDs; central prayer/summary/instruction records and explicit association/default confirmation | Database Workflows A–F | database connectors, page metadata, modal tests | FUTURE |
 | V3-HL-01 | Preserve known-good V3.38 manual Hebrew/English line/word selection | Cue Tags §8; Database Workflow F4 | manual selection regression | UNVERIFIED |
+
+### Newly located governing sources / precedence issue
+
+- [V3 Font Size Specification v1.0](https://docs.google.com/document/d/169SfH6evLQ8BFvM4XYi9j7tO1K_3DRYqjs4Dl1R8keE/edit) — READ IN FULL. Approved page number 18pt red, service 18pt, title 20pt, instructions 12pt max 3 lines; specific measured field rectangles; unlimited cue records, unresolved 1/2/3 cue typography; six stock codes; separate PDF index, duplex side, bound position and page type; intentional blanks on color transitions. Some early opening-page language is superseded by later cover/section specifications; reconcile by date and explicit approval, not guessing.
+- [Current Drive Rulebook titled v2.76](https://docs.google.com/document/d/1AZJtYXT8zP9PJ-l_yA5sW1ic7LYusydWHYXan-di1Gw/edit) — **IMPORTANT**: internal heading reads **Version 2.77 • 2026-09-13**. This is substantially newer than the attached Project Rulebook v1.5. The earlier audit incorrectly treated v1.5 as the current rulebook. Current Drive Rulebook contains 938 paragraphs (~225k characters), retrieved but NOT YET FULLY RECONCILED. CR-006 requires consultation before structural decisions; full rule inventory and source version discrepancy are an OPEN governance gate.
+- [V3 Roadmap](https://docs.google.com/spreadsheets/d/1iMm2HDZMHCpGylb3x-Tg37gl2GcVpzROQfzqZvmqY90/edit) — located; spreadsheet contents pending audit.
 
 ### Source-of-truth cautions
 
