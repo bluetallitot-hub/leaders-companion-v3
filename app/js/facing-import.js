@@ -45,15 +45,6 @@ let filename="siddur",pageMetadata=[],roleConfig=null,highlightDraft=null,import
 function status(s){if($("status"))$("status").textContent=s;if($("editor-status")&&(!sourcePdfPages||/failed|error|cannot/i.test(s)))$("editor-status").textContent=s}
 function updateSpanStatus(){const el=$("editor-status");if(!el)return;const total=Math.ceil(sourcePdfPages/2);el.hidden=!total;if(total)el.textContent="Displaying span "+Math.ceil(selectedSpreadFirst/2)+" of "+total;}
 const workerURL="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
-function drawTemplate(page,side){
- if(siddurStyleSheet.framework==="none")return;
- const text=side===0?171.36:59.76,content=side===0?20.16:444.96;
- const min=Math.min(text,content),max=Math.max(text+380.88,content+146.88);
- const boxes=[[text,710,380.88,30],[text,642,380.88,64],[text,98,380.88,540],[text,46,380.88,48],[content,46,146.88,694],[min,24,max-min,18]];
- const numberX=side===0?min:max-48,colorX=side===0?numberX+48:numberX-18;
- boxes.push([numberX,746,48,24],[colorX,746,18,24],[side===0?colorX+18:min,746,max-min-66,24]);
- for(const [x,y,w,h] of boxes)page.drawRectangle({x,y,width:w,height:h,borderColor:PDFLib.rgb(.26,.44,.54),borderWidth:.75});
-}
 function drawKnownFrameworkFields(page,record,side,font,boldFont=font,embedded=null){
  const source=record?.source||{},ident=record?.identification||{};
  const cues=embedded?.cues||record?.leadership?.cues||[];
