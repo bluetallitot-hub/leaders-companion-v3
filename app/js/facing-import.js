@@ -3615,7 +3615,10 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   // The title begins at x=171.36 on the left page and x=59.76 on
   // the right page. The opposite role fields are both 146.88pt wide.
   // Do not change the approved field geometry.
-  const badgeX=side===0?20.16:444.96,badgeY=707,badgeW=146.88,badgeH=29;
+  // The role-field row sits 4pt above the prayer-title image origin.
+  // Center the 29pt badge inside that existing row; keep the 1.5pt
+  // horizontal/vertical inset uniform on both facing pages.
+  const badgeX=side===0?20.16:444.96,badgeY=711,badgeW=146.88,badgeH=29;
   const scale=3,canvas=document.createElement("canvas");
   canvas.width=Math.round(badgeW*scale);canvas.height=Math.round(badgeH*scale);
   const ctx=canvas.getContext("2d");
