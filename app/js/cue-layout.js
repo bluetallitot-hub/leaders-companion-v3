@@ -21,6 +21,7 @@ function layout({cues=[],side=0,language="",measure,roleColor=()=>"#182c36"}){
  const textX=side===0?171.36:59.76,boxX=textX+2,boxW=376,boxY=48,boxH=50;
  const left=boxX+8,right=boxX+boxW-8,mid=(left+right)/2;
  const rowH=boxH/Math.max(cues.length,1);
+ const rowCenters=cues.map((_,i)=>boxY+boxH-(i+.5)*rowH);
  const safe=t=>String(t||"").replace(/י[\u0591-\u05c7]*ה[\u0591-\u05c7]*ו[\u0591-\u05c7]*ה[\u0591-\u05c7]*/g,"ה׳").trim();
  const width=(t,f)=>measure(safe(t),f);
  const shorten=(value,font,max,removeFirst)=>{
@@ -47,13 +48,16 @@ function layout({cues=[],side=0,language="",measure,roleColor=()=>"#182c36"}){
   const gapLeft=hebrew?endX+endW:beginX+beginW;
   const gapRight=hebrew?beginX:endX;
   if(gapRight-gapLeft<26)throw Error("Cue text cannot fit with arrow clearance");
-  const y=boxY+(cues.length-i-1)*rowH+(rowH-font*1.3)/2;
+  // Row centers are evenly spaced in the immutable strip. Text and arrow
+  // share a vertical center, independent of the cue count.
+  const lineH=font*1.18;
+  const y=rowCenters[i]-lineH/2;
   const row={begin,end,beginX,endX,beginW,endW,arrowX:(gapLeft+gapRight)/2,
-   y,font,rowH,hebrew,cueLanguage:cueScript,color:roleColor(cue.role||cue.roleId)};
+   y,font,rowH,lineH,centerY:rowCenters[i],hebrew,cueLanguage:cueScript,color:roleColor(cue.role||cue.roleId)};
   for(const [x,w] of [[beginX,beginW],[endX,endW]]){
    if(x<left-.001||x+w>right+.001)throw Error("Cue text exceeds approved bounds");
   }
-  if(y<boxY-.001||y+font*1.3>boxY+boxH+.001)throw Error("Cue text exceeds row height");
+  if(y<boxY-.001||y+lineH>boxY+boxH+.001)throw Error("Cue text exceeds row height");
   return row;
  });
 }
