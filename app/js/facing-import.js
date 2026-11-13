@@ -790,6 +790,28 @@ function renderPageCueEditor(){
    next.style.cssText="width:100%;min-width:0;padding:6px;box-sizing:border-box";
    next.onchange=()=>{record.production.nextPrayer=next.value.trim();saveCurrentSpreadEdits();};
    field("Next",next);
+   const statusPosition=document.createElement("input");
+   statusPosition.type="number";statusPosition.min="1";statusPosition.step="1";
+   statusPosition.placeholder="Auto";
+   statusPosition.value=record.production.statusPageOrdinal??"";
+   statusPosition.style.cssText="width:100%;min-width:0;padding:6px;box-sizing:border-box";
+   statusPosition.onchange=()=>{
+    const n=Number(statusPosition.value);
+    record.production.statusPageOrdinal=statusPosition.value!==""&&Number.isInteger(n)&&n>0?n:null;
+    saveCurrentSpreadEdits();
+   };
+   field("Status position (page)",statusPosition);
+   const statusTotal=document.createElement("input");
+   statusTotal.type="number";statusTotal.min="1";statusTotal.step="1";
+   statusTotal.placeholder="Auto";
+   statusTotal.value=record.production.statusServiceLength??"";
+   statusTotal.style.cssText="width:100%;min-width:0;padding:6px;box-sizing:border-box";
+   statusTotal.onchange=()=>{
+    const n=Number(statusTotal.value);
+    record.production.statusServiceLength=statusTotal.value!==""&&Number.isInteger(n)&&n>0?n:null;
+    saveCurrentSpreadEdits();
+   };
+   field("Status service length",statusTotal);
    panel.append(sidebar);
    const addCue=document.createElement("button");addCue.type="button";addCue.textContent="Add cue to this page";
    addCue.onclick=()=>{
@@ -3905,8 +3927,15 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  const printedMatch=/^(\d+)(?:[A-Za-z])?$/.exec(printedRef);
  const printed=printedMatch?Number(printedMatch[1]):NaN;
  const fridayEvening=/Friday Evening/i.test(serviceLabel);
- const progress=fridayEvening&&printed>=151&&printed<=181
-  ? (printed-151+1)/31 : null;
+ // Persisted per-page metadata overrides inferred position when valid.
+ // The fallback remains the explicitly confirmed Friday Evening range.
+ const defaultOrdinal=fridayEvening&&printed>=151&&printed<=181?printed-150:null;
+ const manualOrdinal=Number(record?.production?.statusPageOrdinal);
+ const manualLength=Number(record?.production?.statusServiceLength);
+ const ordinal=Number.isInteger(manualOrdinal)&&manualOrdinal>0?manualOrdinal:defaultOrdinal;
+ const length=Number.isInteger(manualLength)&&manualLength>0?manualLength:
+  fridayEvening?31:null;
+ const progress=ordinal!==null&&length!==null&&ordinal<=length?ordinal/length:null;
  if(true){
   // V3 Outer Lines Only master: the status FIELD is mirrored between
   // facing pages. The x=59.76,y=21.24 measurements used in V3.369
