@@ -1276,6 +1276,37 @@ function isPageNumberLine(line,ocr,record){
   return /^\d{1,4}$/.test(value)&&(value===printed||value.length<=4);
  });
 }
+// One acceptance boundary for automatic matches, manual selections and PDF output.
+// Geometry is measured in normalized top-left coordinates of the canonical
+// approved-master page, never in the original source-PDF coordinates.
+function insideSiddurPrayerRegion(side,box){
+ const region=REGIONS[side];
+ if(!region||![box?.x,box?.y,box?.width,box?.height].every(Number.isFinite))return false;
+ const x0=region.x/W,y0=(H-region.y-region.h)/H;
+ const x1=(region.x+region.w)/W,y1=(H-region.y)/H;
+ const epsilon=.002;
+ return box.width>0&&box.height>0&&box.x>=x0-epsilon&&box.y>=y0-epsilon&&
+  box.x+box.width<=x1+epsilon&&box.y+box.height<=y1+epsilon;
+}
+function isPrintedPrayerTitle(side,box){
+ const record=pageMetadata[side];
+ const title=String(record?.prayerTitle||record?.identification?.prayerName||"").trim();
+ if(!title)return false;
+ const normalize=t=>String(t||"").toLocaleLowerCase().normalize("NFKD").replace(/[\\u0591-\\u05c7]/g,"").replace(/[^\\p{L}\\p{N}]+/gu," ").trim();
+ const needle=normalize(title);if(needle.length<3)return false;
+ const matching=(sourceTextLines[side]||[]).filter(l=>{
+  const observed=normalize(l.text);
+  return observed.length>=3&&(observed===needle||observed.includes(needle)||needle.includes(observed)&&observed.length>=Math.max(4,needle.length*.65));
+ });
+ return matching.some(l=>{
+  const overlapX=Math.max(0,Math.min(l.x+l.width,box.x+box.width)-Math.max(l.x,box.x));
+  const overlapY=Math.max(0,Math.min(l.y+l.height,box.y+box.height)-Math.max(l.y,box.y));
+  return overlapX>0&&overlapY>0;
+ });
+}
+function eligibleSiddurHighlight(side,box){
+ return isSiddurSourceRecord(pageMetadata[side])&&insideSiddurPrayerRegion(side,box)&&!isPrintedPrayerTitle(side,box);
+}
 // Shared cue lifecycle for both scripts: one span classifier, one acceptance
 // gate, one metadata format. Script-specific OCR and reading order remain separate.
 function cueSpanPosition(record,cue){
@@ -1287,7 +1318,8 @@ function cueSpanPosition(record,cue){
  return page===Number(range[1])?"start":page===Number(range[2])?"end":"middle";
 }
 function recordCueMatch(record,cue,method,boundary,boxes){
- const valid=boxes.length>0&&boxes.every(h=>[h.x,h.y,h.width,h.height].every(Number.isFinite)&&
+ const side=pageMetadata.indexOf(record);
+ const valid=side>=0&&boxes.length>0&&boxes.every(h=>eligibleSiddurHighlight(side,h)&&[h.x,h.y,h.width,h.height].every(Number.isFinite)&&
   h.width>0&&h.height>0&&h.x>=0&&h.y>=0&&h.x+h.width<=1.01&&h.y+h.height<=1.01);
  cue.highlightMethod=valid?method:"unmatched";
  cue.highlightVerification={geometryValid:valid,geometry:"printed-ink",boundary,
@@ -1324,7 +1356,7 @@ function assignCueHighlights(side){
    const highlights=spanBoundary==="middle"?null:isolatedHebrewCueMatch(side,cue,ocr,spanBoundary);
    if(highlights?.length){
     const suppressed=record.leadership.suppressedAutoHighlights||[];
-    const allowed=highlights.filter(h=>!suppressed.some(v=>v.cueId===h.cueId&&
+    const allowed=highlights.filter(h=>eligibleSiddurHighlight(side,h)&&!suppressed.some(v=>v.cueId===h.cueId&&
      Math.abs((v.y+v.height/2)-(h.y+h.height/2))<.012&&
      Math.max(0,Math.min(v.x+v.width,h.x+h.width)-Math.max(v.x,h.x))>Math.min(v.width,h.width)*.25));
     record.leadership.highlights.push(...allowed);
@@ -1713,7 +1745,7 @@ function installHighlightSelection(){
   const point=e=>{const b=layer.getBoundingClientRect();return {x:(e.clientX-b.left)/b.width,y:(e.clientY-b.top)/b.height}};
   const nearest=p=>{
    if(!isSiddurSourceRecord(pageMetadata[i]))return null;
-   const lines=detectedLines[i]||[];
+   const lines=(detectedLines[i]||[]).filter(l=>eligibleSiddurHighlight(i,l));
    const inside=lines.filter(l=>p.x>=l.x-.01&&p.x<=l.x+l.width+.01&&p.y>=l.y-.007&&p.y<=l.y+l.height+.007);
    if(inside.length)return inside.sort((a,b)=>Math.abs(p.y-a.y-a.height/2)-Math.abs(p.y-b.y-b.height/2))[0];
    const recovered=rivokWordsBySide[i]?null:recoverClickedLine(i,p);if(recovered)return recovered;
@@ -1724,7 +1756,7 @@ function installHighlightSelection(){
    if(!isSiddurSourceRecord(pageMetadata[i]))return null;
    if(selectionMode==="line")return nearest(p);
    const words=getWordGeometry(i);
-   const matches=words.filter(w=>p.x>=w.x-.003&&p.x<=w.x+w.width+.003&&p.y>=w.y-.008&&p.y<=w.y+w.height+.008);
+   const matches=words.filter(w=>eligibleSiddurHighlight(i,w)&&p.x>=w.x-.003&&p.x<=w.x+w.width+.003&&p.y>=w.y-.008&&p.y<=w.y+w.height+.008);
    return matches.sort((a,b)=>Math.abs(p.x-a.x-a.width/2)-Math.abs(p.x-b.x-b.width/2))[0]||null;
   };
   layer.addEventListener("pointerdown",e=>{if(!isSiddurSourceRecord(pageMetadata[i]))return;start=target(point(e));if(start)layer.setPointerCapture(e.pointerId)});
@@ -1735,7 +1767,7 @@ function installHighlightSelection(){
    if(a<0||b<0){start=null;return}
    const ordered=items.slice().sort((u,v)=>u.column-v.column||u.y-v.y||u.x-v.x);
    const from=ordered.findIndex(x=>x.id===start.id),to=ordered.findIndex(x=>x.id===end.id);
-   const chosen=from===to?[start]:ordered.slice(Math.min(from,to),Math.max(from,to)+1).filter(l=>l.column===start.column);
+   const chosen=(from===to?[start]:ordered.slice(Math.min(from,to),Math.max(from,to)+1).filter(l=>l.column===start.column)).filter(l=>eligibleSiddurHighlight(i,l));
    const highlights=pageMetadata[i].leadership.highlights;
    const activeCueId=selectedCueBySide[i]||((visibleCueId!=="__all__")?visibleCueId:"")||pageMetadata[i].leadership.cues[0]?.cueId||null;
    // Automatic cue highlights have generated ink-row IDs, not detection-line IDs.
@@ -3125,7 +3157,7 @@ async function renderCanonicalSiddurPage({out,master,source,sourceIndex,record,s
   page.drawImage(image,{x:pageX,y:pageY,width,height});
   // Highlight geometry is measured against the full Facing Editor page,
   // not the original source page. Keep that coordinate system in export.
-  for(const [key,rects] of uniquePhysicalHighlights(record.leadership?.highlights||[])){
+  for(const [key,rects] of uniquePhysicalHighlights((record.leadership?.highlights||[]).filter(h=>eligibleSiddurHighlight(side,h)))){
    const [hex,opacity]=key.split("|"),n=parseInt(hex.slice(1),16);
    if(!Number.isFinite(n))continue;
    for(const mark of rects)page.drawRectangle({
