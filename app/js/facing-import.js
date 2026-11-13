@@ -3607,24 +3607,37 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  }
  // Role badge occupies the existing blank side field alongside the prayer
  // title, never the title itself. All approved master rectangles stay locked.
- const pageRoleCode=String((state.cues||[]).find(c=>String(c.role||"").trim())?.role||state.role||"").trim();
- if(pageRoleCode){
-  const roleName=cueRoleOptions().get(pageRoleCode)||pageRoleCode;
+ const pageRoles=[...new Set((state.cues||[]).map(c=>String(c.role||"").trim()).filter(Boolean))];
+ if(!pageRoles.length&&String(state.role||"").trim())pageRoles.push(String(state.role).trim());
+ if(pageRoles.length){
+  const roleNames=cueRoleOptions();
   const badgeX=side===0?59.76:445.0,badgeY=707,badgeW=side===0?96:146.84,badgeH=29;
   const scale=3,canvas=document.createElement("canvas");
   canvas.width=Math.round(badgeW*scale);canvas.height=Math.round(badgeH*scale);
   const ctx=canvas.getContext("2d");
   const inset=3*scale,corner=5*scale;
-  ctx.fillStyle="#ffed6b";
-  ctx.beginPath();
-  ctx.roundRect(inset,inset,canvas.width-2*inset,canvas.height-2*inset,corner);
-  ctx.fill();
-  const label=String(roleName).toUpperCase();
-  let fontPx=15*scale;
-  ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle="#151515";
-  do{ctx.font="bold "+fontPx+"px Arial, sans-serif";if(ctx.measureText(label).width<=canvas.width-4*inset)break;fontPx-=scale;}while(fontPx>=8*scale);
-  if(ctx.measureText(label).width>canvas.width-4*inset)throw Error("Role label exceeds fixed role field: "+label);
-  ctx.fillText(label,canvas.width/2,canvas.height/2);
+  const x=inset,y=inset,w=canvas.width-2*inset,h=canvas.height-2*inset;
+  // Clip all role-color panels to the same rounded badge outline.
+  ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,corner);ctx.clip();
+  const shownRoles=pageRoles.slice(0,4);
+  const panels=pageRoles.length===1?1:pageRoles.length===2?2:Math.min(4,pageRoles.length);
+  for(let i=0;i<panels;i++){
+   ctx.fillStyle=roleColor(shownRoles[i]);
+   ctx.fillRect(x+w*i/panels,y,w/panels+.5,h);
+  }
+  ctx.restore();
+  const labels=pageRoles.length>2?["MULTIPLE"]:pageRoles.slice(0,2).map(code=>String(roleNames.get(code)||code).toUpperCase());
+  const fitLabel=(label,cx,available)=>{
+   let fontPx=15*scale;
+   ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillStyle="#151515";
+   do{ctx.font="bold "+fontPx+"px Arial, sans-serif";if(ctx.measureText(label).width<=available-3*scale)break;fontPx-=scale;}while(fontPx>=8*scale);
+   if(ctx.measureText(label).width>available-3*scale)throw Error("Role label exceeds fixed role field: "+label);
+   ctx.fillText(label,cx,y+h/2);
+  };
+  if(labels.length===2){
+   fitLabel(labels[0],x+w/4,w/2);
+   fitLabel(labels[1],x+3*w/4,w/2);
+  }else fitLabel(labels[0],x+w/2,w);
   const png=await out.embedPng(canvas.toDataURL("image/png"));
   page.drawImage(png,{x:badgeX,y:badgeY,width:badgeW,height:badgeH});
  }
