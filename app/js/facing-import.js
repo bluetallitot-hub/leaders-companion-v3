@@ -3663,6 +3663,49 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   const png=await out.embedPng(canvas.toDataURL("image/png"));
   page.drawImage(png,{x:badgeX,y:badgeY,width:badgeW,height:badgeH});
  }
+ // V3.380 sidebar geometry proof. This is a temporary data fixture,
+ // not the future reactive Prayer/Summary/Melody backend. All coordinates
+ // are inside the existing mirrored 146.88pt commentary rail. Preserve
+ // the approved master's outer borders and the role field above.
+ const railX=side===0?20.16:444.96,railW=146.88;
+ const railInk=PDFLib.rgb(.12,.23,.27),railMuted=PDFLib.rgb(.39,.44,.47);
+ const center=(value,size,f=font)=>railX+(railW-f.widthOfTextAtSize(value,size))/2;
+ const cell=(label,value,x,y,w)=>{
+  page.drawText(label,{x:x+5,y:y+31,size:8,font:bold,color:railMuted});
+  let text=String(value||"—");
+  while(text&&bold.widthOfTextAtSize(text,10)>w-10)text=text.slice(0,-1);
+  if(text)page.drawText(text,{x:x+5,y:y+13,size:10,font:bold,color:railInk});
+ };
+ // 2×2 Format/Mode/Pitch/Next grid, exact full rail width.
+ const gridY=630,gridH=70,half=railW/2;
+ const gridValues=[
+  ["FORMAT",String(record?.source?.language||"").toUpperCase()||"—"],
+  ["MODE","—"],
+  ["PITCH",layoutMelody.pitch||"—"],
+  ["NEXT","—"]
+ ];
+ gridValues.forEach(([label,value],i)=>{
+  const col=i%2,row=Math.floor(i/2);
+  cell(label,value,railX+col*half,gridY+(1-row)*gridH/2,half);
+ });
+ // Reserved Quick Summary module; do not fabricate prayer-linked content.
+ const heading="QUICK SUMMARY";
+ page.drawText(heading,{x:center(heading,10,bold),y:611,size:10,font:bold,color:railInk});
+ const summary="Summary pending";
+ page.drawText(summary,{x:center(summary,9),y:589,size:9,font,color:railMuted});
+ // QR is a true square equal to the commentary rail width. A non-playable
+ // stub URL must never produce a misleading scannable QR code.
+ const qrY=240;
+ page.drawRectangle({x:railX,y:qrY,width:railW,height:railW,
+  borderWidth:.65,borderColor:PDFLib.rgb(.67,.72,.75)});
+ const qrPending="QR PENDING";
+ page.drawText(qrPending,{x:center(qrPending,11,bold),y:qrY+railW/2,size:11,font:bold,color:railMuted});
+ const melodyLabel="STUB MELODY";
+ page.drawText(melodyLabel,{x:center(melodyLabel,10,bold),y:218,size:10,font:bold,color:railInk});
+ const melodyId=layoutMelody.melodyId||"";
+ if(melodyId)page.drawText(melodyId,{x:center(melodyId,8),y:203,size:8,font,color:railMuted});
+ const linkLabel="LINK: STUB / NOT PLAYABLE";
+ page.drawText(linkLabel,{x:center(linkLabel,7),y:188,size:7,font,color:railMuted});
  const plan=v3CuePlan(record,side);
  for(const row of plan){
   // Use the same measured text, font, anchors and arrow midpoint as the editor.
