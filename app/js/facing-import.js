@@ -4036,12 +4036,27 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
    const w=img.width*scale,h=img.height*scale;
    page.drawImage(img,{x:x+(cellSize-w)/2,y:y+5+(boxH-h)/2,width:w,height:h});
   }else{
-   const fitted=fitCellText(cells[i].value,cellSize-8);
-   fitted.lines.forEach((line,j)=>{
-    const baseline=y+cellSize*.37+(fitted.lines.length-1-j)*fitted.size*1.15;
-    page.drawText(line,{x:x+(cellSize-bold.widthOfTextAtSize(line,fitted.size))/2,
-     y:baseline,size:fitted.size,font:bold,color:railInk});
-   });
+   const value=String(cells[i].value||"—");
+   if(/[\u0590-\u05ff]/.test(value)){
+    // Standard PDF fonts cannot encode Hebrew. Embed the NEXT label as an RTL PNG.
+    const scale=3,boxW=cellSize-8,boxH=cellSize-28;
+    const canvas=document.createElement("canvas");canvas.width=Math.ceil(boxW*scale);canvas.height=Math.ceil(boxH*scale);
+    const ctx=canvas.getContext("2d");ctx.textAlign="center";ctx.textBaseline="middle";ctx.direction="rtl";ctx.fillStyle="#243b45";
+    let fontSize=13;
+    while(fontSize>=7){ctx.font="bold "+fontSize*scale+"px Arial, sans-serif";if(ctx.measureText(value).width<=canvas.width-8)break;fontSize-=.5;}
+    if(ctx.measureText(value).width<=canvas.width-8){
+     ctx.fillText(value,canvas.width/2,canvas.height/2);
+     const image=await out.embedPng(canvas.toDataURL("image/png"));
+     page.drawImage(image,{x:x+4,y:y+4,width:boxW,height:boxH});
+    }
+   }else{
+    const fitted=fitCellText(value,cellSize-8);
+    fitted.lines.forEach((line,j)=>{
+     const baseline=y+cellSize*.37+(fitted.lines.length-1-j)*fitted.size*1.15;
+     page.drawText(line,{x:x+(cellSize-bold.widthOfTextAtSize(line,fitted.size))/2,
+      y:baseline,size:fitted.size,font:bold,color:railInk});
+    });
+   }
   }
  }
  // Square-corner Quick Summary panel: same 3pt inset from rail edges,
