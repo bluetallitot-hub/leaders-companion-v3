@@ -22,4 +22,9 @@ const exporter=source.slice(source.indexOf("async function exportVerifiedWorking
 assert.match(exporter,/await renderCanonicalSiddurPage\(/);
 assert.match(source,/let showPlacementGuides=true;/);
 assert.match(source,/function eligibleSiddurHighlight\(/);
+const fields=section("async function drawApprovedPageFields(","async function renderCanonicalSiddurPage(");
+assert.doesNotMatch(fields,/wipe\(side===0\?21:446/,"Approved side-panel/footer may not be wiped");
+assert.match(source,/function canonicalPageBoxes\(/,"Guides must share the compositor region");
+assert.match(source,/const region=REGIONS\[side\],pad=6;/);
+assert.match(source,/masterPage\.getSize\(\)/,"Master geometry must be checked before compositing");
 console.log("PASS: canonical master is sole visible Siddur page renderer, with saved-state-first loading and editor-only guides.");
