@@ -496,7 +496,8 @@ function paperUsageInstruction(record){
  const id=PAPER_USAGE_INSTRUCTION_IDS[color];
  if(!id)return null;
  const entry=catalogInstruction(id);
- return entry?{id,text:entry.text,color}:null;
+ const fallback={N:"Only done on Rosh Chodesh.",B:"Only on Shabbat.",R:"Not on Shabbat.",O:"First day only.",G:"Second day only."};
+ return {id,text:entry?.text||fallback[color],color};
 }
 function effectiveInstructionTexts(record){
  const state=record?.leadership||record||{};
