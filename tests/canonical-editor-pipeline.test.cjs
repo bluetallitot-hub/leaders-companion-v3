@@ -1,0 +1,25 @@
+"use strict";
+const fs=require("node:fs"),assert=require("node:assert/strict");
+const source=fs.readFileSync("app/js/facing-import.js","utf8");
+const section=(start,end)=>{
+ const a=source.indexOf(start),b=source.indexOf(end,a+start.length);
+ assert.ok(a>=0&&b>a,"Missing section: "+start);return source.slice(a,b);
+};
+const intake=section("async function initializeSiddurSpread(","function refreshMetadataDialog(");
+assert.doesNotMatch(intake,/PDFLib\.PDFDocument\.create|out\.addPage|drawTemplate\(|drawImage\(/,"Intake must never build preview artwork");
+assert.match(intake,/pageMetadata=records\.map/,"Intake initializes source records");
+const load=section("async function loadSelectedSpread(","$(\"load-spread\").addEventListener");
+assert.match(load,/await initializeSiddurSpread\(/);
+assert.match(load,/await renderCanonicalSpread\(/);
+assert.match(load,/await analyzeCanonicalPreview\(/);
+assert.ok(load.indexOf("await initializeSiddurSpread(")<load.indexOf("await renderCanonicalSpread("));
+assert.ok(load.indexOf("await renderCanonicalSpread(")<load.indexOf("await analyzeCanonicalPreview("));
+assert.ok(load.indexOf("if(savedComplete){")<load.indexOf("await renderCanonicalSpread("),"Restore saved edits before rendering");
+assert.doesNotMatch(source,/function drawTemplate\(/,"No reconstructed template drawing");
+const canonical=section("async function renderCanonicalSpread(","async function loadSelectedSpread(");
+assert.match(canonical,/await renderCanonicalSiddurPage\(/);
+const exporter=section("async function exportVerifiedWorkingCopy(","function exportProgress(");
+assert.match(exporter,/await renderCanonicalSiddurPage\(/);
+assert.match(source,/let showPlacementGuides=true;/);
+assert.match(source,/function eligibleSiddurHighlight\(/);
+console.log("PASS: canonical master is sole visible Siddur page renderer, with saved-state-first loading and editor-only guides.");
