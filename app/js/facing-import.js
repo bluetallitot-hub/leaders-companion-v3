@@ -93,7 +93,7 @@ async function drawKnownFrameworkFields(page,record,side,font,boldFont=font,embe
  }
  // Instruction text is explicitly sourced; an ID alone is not the instruction text.
  if(instruction){
-  const words=safe(instruction).split(/\\s+/),lines=[];let line="";
+  const words=safe(instruction).split(/\s+/),lines=[];let line="";
   for(const word of words){const test=line?line+" "+word:word;
    if(font.widthOfTextAtSize(test,12)>372.8&&line){lines.push(line);line=word;}else line=test;}
   if(line)lines.push(line);
@@ -407,7 +407,7 @@ function loadPrayerLibrary(){
   .then(data=>{
    const names=new Map(),summaries=new Map(data.summaries.map(x=>[x.summaryId,x]));
    const instructions=new Map(data.instructions.map(x=>[x.id,x]));
-   const normalize=x=>String(x||"").normalize("NFKC").trim().replace(/\\s+/g," ").toLowerCase();
+   const normalize=x=>String(x||"").normalize("NFKC").trim().replace(/\s+/g," ").toLowerCase();
    for(const prayer of data.prayers)for(const name of [prayer.canonicalName,...(prayer.aliases||[])]){
     const key=normalize(name);
     if(!key)continue;
@@ -420,7 +420,7 @@ function loadPrayerLibrary(){
 }
 async function attachV2Summaries(records=pageMetadata){
  const db=await prayerWorkingLibrary();
- const normalize=x=>String(x||"").normalize("NFKC").trim().replace(/\\s+/g," ").toLocaleLowerCase();
+ const normalize=x=>String(x||"").normalize("NFKC").trim().replace(/\s+/g," ").toLocaleLowerCase();
  const summaries=new Map(db.summaries.map(x=>[x.summaryId,x]));
  const instructions=new Map(db.instructions.map(x=>[x.id,x]));
  for(const record of records||[]){
@@ -851,7 +851,7 @@ async function prayerWorkingLibrary(){
  });
  return prayerWorkingPromise;
 }
-function prayerIdentity(value){return String(value||"").normalize("NFKC").trim().replace(/\\s+/g," ").toLocaleLowerCase()}
+function prayerIdentity(value){return String(value||"").normalize("NFKC").trim().replace(/\s+/g," ").toLocaleLowerCase()}
 function prayerForRecord(db,record){
  const names=[record.prayerLibrary?.prayerId,record.leadership?.instructionPrayer,record.prayerTitle,record.identification?.prayerName,...(record.leadership?.cues||[]).map(c=>c.prayer)].filter(Boolean);
  const id=names.find(n=>db.prayers.some(p=>p.prayerId===n));
@@ -3497,7 +3497,7 @@ function cuesForExportPage(index){
   return !!(a&&b&&Number(a[1])<=Number(b[2]||b[1])&&Number(b[1])<=Number(a[2]||a[1]));
  });
 }
-function printable(value){return String(value||"").replace(/[^\\x20-\\x7e]/g,"").trim();}
+function printable(value){return String(value||"").replace(/[^\x20-\x7e]/g,"").trim();}
 function exportProgress(done,total,stage){
  const percent=Math.round(done/Math.max(1,total)*100);
  const bar=$("export-progress"),label=$("export-status");
@@ -3970,7 +3970,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   return name.toLowerCase().endsWith(".jpg")?out.embedJpg(bytes):out.embedPng(bytes);
  };
  const fitCellText=(value,maxW,initial=13)=>{
-  let size=initial,lines=String(value||"—").split(/\\s+/),result=[];
+  let size=initial,lines=String(value||"—").split(/\s+/),result=[];
   while(size>=8){
    result=[];let line="";
    for(const word of lines){const candidate=line?line+" "+word:word;
@@ -3985,7 +3985,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  const cells=[
   {label:"FORMAT",image:chosenFormat,value:chosenFormat?null:"—"},
   {label:"MODE",image:chosenMode,value:chosenMode?null:"—"},
-  {label:"PITCH",value:String(record?.production?.pitch||layoutMelody.pitch||"—")},
+  {label:"PITCH",value:String(record?.production?.pitch||(!layoutMelody.isStub?layoutMelody.pitch:"")||"—")},
   {label:"NEXT",value:String(record?.production?.nextPrayer||record?.identification?.nextPrayer||"—")}
  ];
  for(let i=0;i<4;i++){
@@ -4023,7 +4023,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  const heading="QUICK SUMMARY";
  page.drawText(heading,{x:center(heading,10,bold),y:gridBottom-21,size:10,font:bold,color:railInk});
  const selectedSummary=pageSummaryForLayout(record);
- const summary=String(selectedSummary?.summaryText||"").replace(/\\*\\*/g,"").replace(/\\s+/g," ").trim();
+ const summary=String(selectedSummary?.summaryText||"").replace(/\*\*/g,"").replace(/\s+/g," ").trim();
  if(summary){
   const maxWidth=railW-2*inset-12,lines=[],words=summary.split(" ");
   let line="";
@@ -4038,7 +4038,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
    if(i===available-1&&lines.length>available)content=content.replace(/.{0,3}$/,"..."); 
    // Standard PDF fonts cannot encode arbitrary Hebrew; preserve the original
    // Unicode summary in metadata rather than replacing its source text.
-   const printable=content.replace(/[^\\x20-\\x7e]/g,"");
+   const printable=content.replace(/[^\x20-\x7e]/g,"");
    if(printable)page.drawText(printable,{x:railX+inset+6,y:gridBottom-42-i*10,size:8,font,color:railInk});
   }
  }else{
