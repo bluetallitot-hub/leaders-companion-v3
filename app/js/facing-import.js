@@ -537,11 +537,30 @@ function renderPageCueEditor(){
   }
   if(!active){const note=document.createElement("p");note.textContent="No cues on this page.";panel.append(note);root.append(panel);continue}
   const wrap=document.createElement("div");wrap.className="cue-edit-compact";
-  const name=document.createElement("strong");name.textContent=active.prayer||"Cue "+(cues.indexOf(active)+1);wrap.append(name);
+  const nameLabel=document.createElement("label");nameLabel.textContent="Prayer name ";
+  const name=document.createElement("input");name.type="text";name.value=active.prayer||"";name.setAttribute("aria-label","Prayer name for selected cue");nameLabel.append(name);wrap.append(nameLabel);
   const metadata=document.createElement("div");metadata.className="cue-role-style";metadata.style.cssText="display:flex;flex-wrap:wrap;gap:12px;margin:8px 0;font-size:.95em";
-  const roleLabel=document.createElement("span");roleLabel.textContent="Role: "+(active.role||"Not assigned");
-  const styleLabel=document.createElement("span");styleLabel.textContent="Style: "+(active.style||"Not assigned");
+  const roleLabel=document.createElement("label");roleLabel.textContent="Role code ";
+  const roleInput=document.createElement("input");roleInput.type="text";roleInput.value=active.role||"";roleInput.setAttribute("aria-label","Selected cue role code");roleLabel.append(roleInput);
+  const styleLabel=document.createElement("label");styleLabel.textContent="Style ";
+  const styleInput=document.createElement("input");styleInput.type="text";styleInput.value=active.style||"";styleInput.setAttribute("aria-label","Selected cue style");styleLabel.append(styleInput);
   metadata.append(roleLabel,styleLabel);wrap.append(metadata);
+  const saveMetadata=document.createElement("button");saveMetadata.type="button";saveMetadata.textContent="Save cue metadata";
+  saveMetadata.onclick=()=>{
+   const prayer=name.value.trim(),role=roleInput.value.trim(),style=styleInput.value.trim();
+   if(!prayer||!role||!style){$("page-cue-editor-status").textContent="Prayer name, role code, and style are required.";return;}
+   active.prayer=prayer;active.role=role;active.style=style;
+   for(const page of pageMetadata)if(page?.leadership?.cues?.some(c=>c.cueId===active.cueId)){
+    for(const cue of page.leadership.cues)if(cue.cueId===active.cueId){cue.prayer=prayer;cue.role=role;cue.style=style;}
+    for(const highlight of page.leadership.highlights||[])if(highlight.cueId===active.cueId)highlight.roleId=role;
+    page.leadership.highlightConfirmed=false;
+   }
+   cueRoleEdits.set(active.cueId,role);
+   for(const row of importedCues)if((row.cue_id||row.test_id)===active.cueId){row.prayer_name=prayer;row.role=role;row.style=style;}
+   saveCurrentSpreadEdits();renderPageCueEditor();drawHighlights();displayMetadata();
+   $("page-cue-editor-status").textContent="Cue metadata updated in the current spread. Save Project Checkpoint to persist it.";
+  };
+  wrap.append(saveMetadata);
   const inputs={};
   const hebrewCue=record?.source?.languageCode==="H"||(/[\u0590-\u05ff]/u.test((active.startCue||"")+(active.endCue||"")));
   const directionRow=document.createElement("div");directionRow.className="cue-direction-row";
