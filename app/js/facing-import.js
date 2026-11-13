@@ -378,6 +378,44 @@ function pageModeFromIntake(rows,languageCode){
  if(values.length!==1)return ""; // Do not silently choose between conflicting roles.
  return values[0]+"_"+(String(languageCode||"").toUpperCase()==="H"?"H":"E");
 }
+
+// V2 summary snapshot is the authoritative source; join by stable cue ID,
+// never by ambiguous prayer names. Empty summaries remain unassigned.
+let v2SummaryLibraryPromise=null;
+function loadV2Summaries(){
+ if(!v2SummaryLibraryPromise)v2SummaryLibraryPromise=fetch(new URL("../../data/summary-library-v2-seed.json",document.baseURI))
+  .then(r=>{if(!r.ok)throw Error("V2 summary library HTTP "+r.status);return r.json();})
+  .then(data=>{
+   const summaries=new Map((data.summaries||[]).map(x=>[String(x.summaryId||"").trim(),x]));
+   const byCue=new Map();
+   for(const link of data.cueSummaryMap||[]){
+    const id=String(link.cueId||"").trim(),summary=summaries.get(String(link.summaryId||"").trim());
+    if(id&&summary)byCue.set(id,summary);
+   }
+   return byCue;
+  }).catch(error=>{console.warn("V2 summaries unavailable:",error);return new Map();});
+ return v2SummaryLibraryPromise;
+}
+async function attachV2Summaries(records=pageMetadata){
+ const byCue=await loadV2Summaries();
+ for(const record of records||[]){
+  if(!record)continue;
+  record.leadership??={};
+  for(const cue of record.leadership.cues||[]){
+   const entry=byCue.get(String(cue.cueId||"").trim());
+   if(entry){
+    cue.summaryId=entry.summaryId;
+    cue.summaryStatus=entry.status;
+    cue.summaryText=entry.summary||"";
+   }
+  }
+ }
+}
+function pageSummaryForLayout(record){
+ const cues=record?.leadership?.cues||[];
+ const entries=cues.filter(c=>String(c.summaryText||"").trim());
+ return entries[0]||null;
+}
 function applyImportedCues(){
  if(!pageMetadata.length)return;
  for(const record of pageMetadata){
@@ -422,6 +460,7 @@ function applyImportedCues(){
    record.identification.prayerName=matches[0].prayer_name||matches[0].prayer||null;record.identification.serviceName=matches[0].service_name||null;
    record.identification.cueId=matches[0].cue_id||matches[0].test_id||null;}
  }
+ attachV2Summaries().then(()=>{displayMetadata();renderPageCueEditor();}).catch(console.warn);
  displayMetadata();
  const count=pageMetadata.reduce((n,p)=>n+(p.leadership.cues||[]).length,0);
  status(count+" cues attached to pages; start/end positions require manual review. No automatic text matching has occurred.");
@@ -3678,6 +3717,7 @@ function drawLeaderPageFooter(page,record,font,bold){
 }
 // Cover printed template guide words, retaining the approved box geometry.
 async function drawApprovedPageFields(page,record,side,out,font,bold){
+ await attachV2Summaries([record]);
  const textX=side===0?171.36:59.76;
  const ink=PDFLib.rgb(.1,.17,.2);
  const state=record.leadership||{};
@@ -3843,8 +3883,29 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  // Reserved Quick Summary module: moved down to clear the 2x2 squares.
  const heading="QUICK SUMMARY";
  page.drawText(heading,{x:center(heading,10,bold),y:gridBottom-21,size:10,font:bold,color:railInk});
- const summary="Summary pending";
- page.drawText(summary,{x:center(summary,9),y:gridBottom-42,size:9,font,color:railMuted});
+ const selectedSummary=pageSummaryForLayout(record);
+ const summary=String(selectedSummary?.summaryText||"").replace(/\\*\\*/g,"").replace(/\\s+/g," ").trim();
+ if(summary){
+  const maxWidth=railW-2*inset-12,lines=[],words=summary.split(" ");
+  let line="";
+  for(const word of words){
+   const candidate=line?line+" "+word:word;
+   if(line&&font.widthOfTextAtSize(candidate,8)>maxWidth){lines.push(line);line=word;}else line=candidate;
+  }
+  if(line)lines.push(line);
+  const available=Math.max(0,Math.floor((gridBottom-42-summaryPanelBottom-8)/10));
+  for(let i=0;i<Math.min(lines.length,available);i++){
+   let content=lines[i];
+   if(i===available-1&&lines.length>available)content=content.replace(/.{0,3}$/,"..."); 
+   // Standard PDF fonts cannot encode arbitrary Hebrew; preserve the original
+   // Unicode summary in metadata rather than replacing its source text.
+   const printable=content.replace(/[^\\x20-\\x7e]/g,"");
+   if(printable)page.drawText(printable,{x:railX+inset+6,y:gridBottom-42-i*10,size:8,font,color:railInk});
+  }
+ }else{
+  const pending="Summary pending";
+  page.drawText(pending,{x:center(pending,9),y:gridBottom-42,size:9,font,color:railMuted});
+ }
  // Bottom-anchored QR module: square aligned with the same 3pt inset
  // used for the role badge and 2x2 grid. The name is directly beneath
  // the square, wholly inside the sidebar and above the cue/status strip.
