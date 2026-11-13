@@ -808,6 +808,84 @@ function renderFacingInstructions(){
  root.classList.add("instruction-two-pages");
  renderInstructionPreviews();
 }
+// Proof-of-concept prayer library: local persistence, explicit JSON export.
+const PRAYER_LOCAL_KEY="leaders-companion-v3-prayer-library-working-v1";
+let prayerWorkingPromise=null;
+async function prayerWorkingLibrary(){
+ if(!prayerWorkingPromise)prayerWorkingPromise=fetch(new URL("../../data/prayer-library-v3.json",document.baseURI)).then(r=>{if(!r.ok)throw Error("Prayer library HTTP "+r.status);return r.json()}).then(seed=>{
+  const saved=localStorage.getItem(PRAYER_LOCAL_KEY);
+  if(!saved)return seed;
+  const parsed=JSON.parse(saved);
+  if(!Array.isArray(parsed.prayers)||!Array.isArray(parsed.summaries)||!Array.isArray(parsed.instructions))throw Error("Invalid locally saved prayer library");
+  return parsed;
+ });
+ return prayerWorkingPromise;
+}
+function prayerIdentity(value){return String(value||"").normalize("NFKC").trim().replace(/\\s+/g," ").toLocaleLowerCase()}
+function prayerForRecord(db,record){
+ const names=[record.prayerLibrary?.prayerId,record.leadership?.instructionPrayer,record.prayerTitle,record.identification?.prayerName,...(record.leadership?.cues||[]).map(c=>c.prayer)].filter(Boolean);
+ const id=names.find(n=>db.prayers.some(p=>p.prayerId===n));
+ if(id)return db.prayers.find(p=>p.prayerId===id);
+ for(const name of names){
+  const matches=db.prayers.filter(p=>[p.englishName,p.hebrewName,p.canonicalName,...(p.aliases||[]),...(p.aliasesEnglish||[]),...(p.aliasesHebrew||[])].some(n=>prayerIdentity(n)===prayerIdentity(name)));
+  if(matches.length===1)return matches[0];
+  if(matches.length>1)throw Error("Ambiguous prayer name: "+name);
+ }
+ return null;
+}
+function prayerDraftForRecord(record){
+ record.prayerDraft??={};
+ return record.prayerDraft;
+}
+async function savePrayerWorkingDatabase(){
+ const db=await prayerWorkingLibrary();
+ const copy=JSON.parse(JSON.stringify(db));
+ for(const record of pageMetadata){
+  if(!record||!record.prayerDraft)continue;
+  const draft=record.prayerDraft;
+  const english=String(draft.englishName||"").trim(),hebrew=String(draft.hebrewName||"").trim();
+  if(!english&&!hebrew)continue;
+  let prayer=prayerForRecord(copy,record);
+  if(!prayer){
+   const matches=copy.prayers.filter(p=>[p.englishName,p.hebrewName].some(n=>n&&(prayerIdentity(n)===prayerIdentity(english)||prayerIdentity(n)===prayerIdentity(hebrew))));
+   if(matches.length)throw Error("Existing prayer name needs review before creating a new record");
+   const next=Math.max(0,...copy.prayers.map(p=>Number(String(p.prayerId||"").replace(/^PR-/,""))||0))+1;
+   prayer={prayerId:"PR-"+String(next).padStart(4,"0"),canonicalName:english||hebrew,englishName:english,hebrewName:hebrew,aliases:[],aliasesEnglish:[],aliasesHebrew:[],locations:[],summaryIds:[],instructionIds:[],sourceCueIds:[]};
+   copy.prayers.push(prayer);
+  }
+  prayer.englishName=english;prayer.hebrewName=hebrew;prayer.canonicalName=english||hebrew;
+  const siddur=String(record.source?.sourceId||record.source?.siddurId||"").trim(),page=String(record.source?.originalPageNumber||"").trim();
+  if(siddur&&page&&!prayer.locations.some(x=>x.siddurId===siddur&&x.printedPage===page))prayer.locations.push({siddurId:siddur,printedPage:page});
+  const summaryText=String(draft.summary||"").trim();
+  if(summaryText){
+   const prior=prayer.summaryIds.map(id=>copy.summaries.find(x=>x.summaryId===id)).find(Boolean);
+   if(!prior||prior.summary!==summaryText){
+    const next=Math.max(0,...copy.summaries.map(x=>Number(String(x.summaryId||"").replace(/^SUM-/,""))||0))+1;
+    const summaryId="SUM-"+String(next).padStart(3,"0");
+    copy.summaries.push({summaryId,prayerId:prayer.prayerId,prayerAction:english||hebrew,summary:summaryText,status:"Draft",notes:prior?"Revised from "+prior.summaryId:"Created in V3 intake",revisesSummaryId:prior?.summaryId||null});
+    prayer.summaryIds.push(summaryId);
+   }
+  }
+  const instructionText=String(draft.instruction||"").trim();
+  if(instructionText){
+   const prior=prayer.instructionIds.map(id=>copy.instructions.find(x=>x.id===id)).find(Boolean);
+   if(!prior||prior.text!==instructionText){
+    const next=Math.max(0,...copy.instructions.map(x=>Number(String(x.id||"").replace(/^INS-/,""))||0))+1;
+    const id="INS-"+String(next).padStart(3,"0");
+    copy.instructions.push({id,name:english||hebrew,text:instructionText,category:"Prayer",status:"Draft",notes:prior?"Revised from "+prior.id:"Created in V3 intake",revisesInstructionId:prior?.id||null});
+    prayer.instructionIds.push(id);
+   }
+  }
+  record.prayerLibrary={prayerId:prayer.prayerId,summaryIds:[...prayer.summaryIds],instructionIds:[...prayer.instructionIds],summaries:prayer.summaryIds.map(id=>copy.summaries.find(x=>x.summaryId===id)).filter(Boolean),instructions:prayer.instructionIds.map(id=>copy.instructions.find(x=>x.id===id)).filter(Boolean)};
+ }
+ localStorage.setItem(PRAYER_LOCAL_KEY,JSON.stringify(copy));
+ prayerWorkingPromise=Promise.resolve(copy);
+ const indicator=$("prayer-save-status");if(indicator)indicator.textContent="Prayer Library saved in this browser (not GitHub). Export JSON to preserve a portable copy.";
+}
+async function exportPrayerWorkingDatabase(){
+ const db=await prayerWorkingLibrary(),blob=new Blob([JSON.stringify(db,null,2)+"\\n"],{type:"application/json"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="prayer-library-v3-working.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 function renderPageCueEditor(){
  const root=$("page-cue-editor");if(!root)return;root.replaceChildren();
  root.classList.add("cue-two-pages");
@@ -818,6 +896,19 @@ function renderPageCueEditor(){
   title.textContent=(side===0?"Left":"Right")+" page"+(record?.source?.originalPageNumber?" · "+record.source.originalPageNumber:"");
   panel.append(title);
   if(record){
+   const draft=prayerDraftForRecord(record);
+   const prayerPanel=document.createElement("fieldset");prayerPanel.style.cssText="display:grid;gap:6px;margin:8px 0;padding:10px;border:1px solid #9db6ac";
+   const legend=document.createElement("legend");legend.textContent="Prayer Library — browser working copy";prayerPanel.append(legend);
+   const addField=(label,value,key,multiline=false)=>{
+    const wrapper=document.createElement("label");wrapper.style.cssText="display:grid;gap:3px;font-size:13px";
+    const input=document.createElement(multiline?"textarea":"input");if(!multiline)input.type="text";input.value=value||"";if(multiline)input.rows=3;
+    input.oninput=()=>{draft[key]=input.value;};wrapper.append(document.createTextNode(label),input);prayerPanel.append(wrapper);
+   };
+   addField("English prayer name",draft.englishName??record.prayerLibrary?.englishName??record.leadership?.instructionPrayer??record.prayerTitle??record.identification?.prayerName??"","englishName");
+   addField("Hebrew prayer name",draft.hebrewName??"","hebrewName");
+   addField("Summary",draft.summary??record.prayerLibrary?.summaries?.at(-1)?.summary??"","summary",true);
+   addField("Instruction (new text creates a permanent instruction ID)",draft.instruction??record.prayerLibrary?.instructions?.at(-1)?.text??"","instruction",true);
+   panel.append(prayerPanel);
    // Sidebar production controls are page-specific and survive spread saves.
    // Select only the original V2 artwork; the PDF renderer embeds the
    // corresponding image when a selection is made.
@@ -2993,7 +3084,8 @@ function saveCurrentSpreadEdits(){
   leadership:JSON.parse(JSON.stringify(r.leadership)),
   production:r.production?JSON.parse(JSON.stringify(r.production)):null,
   prayerTitle:r.prayerTitle,
-  identification:r.identification?JSON.parse(JSON.stringify(r.identification)):null
+  identification:r.identification?JSON.parse(JSON.stringify(r.identification)):null,
+  prayerDraft:r.prayerDraft?JSON.parse(JSON.stringify(r.prayerDraft)):null
  }:null),selectedCues:[...selectedCueBySide]});
  workingCopyStatus();
 }
@@ -3064,7 +3156,7 @@ function checkSectionBoundary(previousPage,currentPage){
 async function navigateSpread(direction){if(!sourcePdfBytes)return;const previousPage=selectedSpreadFirst;
  if(direction>0){for(const record of pageMetadata){if(!record)continue;record.leadership.highlightConfirmed=true;record.leadership.confirmedFingerprint=pageApprovalFingerprint(record);}}
  saveCurrentSpreadEdits();
- if(direction>0){try{await saveCheckpointNow()}catch(e){status("Page approval save failed: "+e.message);return;}}
+ if(direction>0){try{await savePrayerWorkingDatabase();await saveCheckpointNow()}catch(e){status("Page approval save failed: "+e.message);return;}}
  selectedSpreadFirst=Math.max(1,Math.min(2*Math.ceil(sourcePdfPages/2)-1,selectedSpreadFirst+direction*2));updateIntakeInventory();try{await loadSelectedSpread();if(direction>0)checkSectionBoundary(previousPage,selectedSpreadFirst)}catch(e){console.error(e);status("Spread navigation failed: "+e.message)}}
 $("framework-boxes")?.addEventListener("change",async()=>{if(!sourcePdfBytes)return;saveCurrentSpreadEdits();try{await loadSelectedSpread()}catch(e){status("Framework style update failed: "+e.message)}});
 $("previous-spread").addEventListener("click",()=>navigateSpread(-1));
