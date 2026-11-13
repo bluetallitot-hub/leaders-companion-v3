@@ -590,7 +590,7 @@ function renderFacingInstructions(){
    const prior={prayerTitle:record.prayerTitle,identification:structuredClone(record.identification||{}),instructionPrayer:state.instructionPrayer,highlightConfirmed:state.highlightConfirmed};
    record.prayerTitle=value;record.identification??={};record.identification.prayerName=value;state.instructionPrayer=value;state.highlightConfirmed=false;
    save.disabled=true;feedback.textContent="Saving…";
-   try{await saveCheckpointNow();scheduleCanonicalPreview();feedback.textContent="Saved and PDF rebuilt.";renderPageCueEditor();}
+   try{await saveCheckpointNow();scheduleCanonicalPreview();feedback.textContent="Saved. Section title and contents rebuilt.";renderPageCueEditor();}
    catch(error){record.prayerTitle=prior.prayerTitle;record.identification=prior.identification;state.instructionPrayer=prior.instructionPrayer;state.highlightConfirmed=prior.highlightConfirmed;feedback.textContent="Save failed: "+error.message;}
    finally{save.disabled=false;}
   };
@@ -2810,6 +2810,11 @@ const reviewedSectionTransitions=new Set();
 function approvedPrayerName(record){return record?.leadership?.instructionPrayer||record?.prayerTitle||record?.identification?.prayerName||record?.identification?.prayerTitle||"";}
 function confirmedSections(){return (serviceManifest?.sections||[]).filter(s=>s.status==="confirmed").sort((a,b)=>a.startOutputPage-b.startOutputPage)}
 function sectionForPage(page){return confirmedSections().filter(s=>s.startOutputPage<=page).at(-1)||null}
+function renamePrayerEverywhere(sourcePage,newName){
+ for(const map of [spreadEdits,savedSpreadRecords])for(const spread of map.values())for(const record of spread?.pages||[])
+  if(Number(record?.sourcePdfPage||record?.source?.sourcePdfPage)===sourcePage)renamePrayerInSavedRecord(record,newName);
+ for(const record of pageMetadata)if(Number(record?.source?.sourcePdfPage)===sourcePage)renamePrayerInSavedRecord(record,newName);
+}
 function renamePrayerInSavedRecord(record,newName){
  if(!record)return;
  record.prayerTitle=newName;record.identification??={};record.identification.prayerName=newName;
@@ -2834,15 +2839,27 @@ function openSectionReview(previous,next){
  const nextHeading=document.createElement("h3");nextHeading.textContent=next?"Next section: "+next.title:"End of service";dialog.append(nextHeading);
  const nextNote=document.createElement("p");nextNote.textContent=next?"Section title and contents remain draft placeholders until reviewed.":"Review the final section before finishing.";dialog.append(nextNote);
  const save=document.createElement("button");save.type="button";save.textContent="Save section review and continue";
- save.onclick=()=>{
-  for(const [pageIndex,input] of edits){
-   const name=input.value.trim();if(!name)continue;
-   for(const saved of spreadEdits.values())for(const record of saved.pages||[])
-    if(Number(record?.sourcePdfPage||record?.source?.sourcePdfPage)===pageIndex)renamePrayerInSavedRecord(record,name);
+ save.onclick=async()=>{
+  save.disabled=true;
+  const changes=edits.map(([pageIndex,input])=>[Number(pageIndex),input.value.trim()]).filter(([,name])=>name);
+  const backups=new Map();
+  for(const [pageIndex] of changes){
+   const old=workingPages().find(([idx])=>idx===pageIndex)?.[1];
+   if(old)backups.set(pageIndex,approvedPrayerName(old));
   }
-  reviewedSectionTransitions.add(next?.sectionId||"END");
-  saveCheckpointNow().catch(e=>status("Section review checkpoint failed: "+e.message));
-  dialog.close();dialog.remove();
+  try{
+   for(const [pageIndex,name] of changes)renamePrayerEverywhere(pageIndex,name);
+   assembledWorkingPdf=await assembleCachedWorkingPdf();
+   await checkpointWrite();
+   reviewedSectionTransitions.add(next?.sectionId||"END");
+   scheduleCanonicalPreview();
+   dialog.close();dialog.remove();
+   status("Section contents and section page regenerated from updated prayer titles.");
+  }catch(error){
+   for(const [pageIndex,name] of backups)renamePrayerEverywhere(pageIndex,name);
+   try{assembledWorkingPdf=await assembleCachedWorkingPdf();}catch{}
+   save.disabled=false;status("Section review save failed: "+error.message);
+  }
  };
  dialog.append(save);document.body.append(dialog);dialog.showModal();
 }
