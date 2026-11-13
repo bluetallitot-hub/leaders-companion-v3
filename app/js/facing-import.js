@@ -2502,24 +2502,43 @@ async function checkpointRead(){
  cueTextEdits.clear();for(const [key,value] of snapshot.cueTextEdits||[])cueTextEdits.set(key,value);
  cueRoleEdits.clear();for(const [key,value] of snapshot.cueRoleEdits||[])cueRoleEdits.set(key,value);
  const label=$("checkpoint-status");if(label)label.textContent="Restored local checkpoint from "+snapshot.savedAt+".";
+ // One-time upgrade of existing checkpoints; rendering occurs on restore,
+ // never on Download. Preserve all previously saved facing spreads.
+ if(!assembledWorkingPdf){
+  if(label)label.textContent="Upgrading saved spreads to incremental PDF cache…";
+  try{
+   for(const [first,spread] of [...spreadEdits].sort((a,b)=>a[0]-b[0])){
+    if(spread?.pages?.some(Boolean)&&!renderedSpreadPdfs.has(first))
+     renderedSpreadPdfs.set(first,await renderSavedSpreadPdf(first,spread));
+   }
+   assembledWorkingPdf=await assembleCachedWorkingPdf();
+   await checkpointWrite();
+   if(label)label.textContent="Saved spreads upgraded and PDF cached locally.";
+  }catch(error){
+   assembledWorkingPdf=null;
+   if(label)label.textContent="Saved edits restored, but PDF cache upgrade failed: "+error.message;
+   console.error("Incremental PDF cache upgrade failed",error);
+  }
+ }
  workingCopyStatus();return true;
 }
 async function saveCheckpointNow(){
  saveCurrentSpreadEdits();
  const label=$("checkpoint-status");if(label)label.textContent="Rendering and saving current two-page spread…";
  try{
-  const previousSpread=renderedSpreadPdfs.get(selectedSpreadFirst);
+  const targetSpread=selectedSpreadFirst;
+  const previousSpread=renderedSpreadPdfs.get(targetSpread);
   const previousPdf=assembledWorkingPdf;
   try{
-   const spread=spreadEdits.get(selectedSpreadFirst);
+   const spread=spreadEdits.get(targetSpread);
    if(spread?.pages?.some(Boolean)){
-    renderedSpreadPdfs.set(selectedSpreadFirst,await renderSavedSpreadPdf(selectedSpreadFirst,spread));
+    renderedSpreadPdfs.set(targetSpread,await renderSavedSpreadPdf(targetSpread,spread));
    }
    assembledWorkingPdf=await assembleCachedWorkingPdf();
    await checkpointWrite();
   }catch(e){
-   if(previousSpread)renderedSpreadPdfs.set(selectedSpreadFirst,previousSpread);
-   else renderedSpreadPdfs.delete(selectedSpreadFirst);
+   if(previousSpread)renderedSpreadPdfs.set(targetSpread,previousSpread);
+   else renderedSpreadPdfs.delete(targetSpread);
    assembledWorkingPdf=previousPdf;
    throw e;
   }
@@ -3096,14 +3115,13 @@ async function renderSavedSpreadPdf(first,spread){
 // Assemble from finished, cached spread PDFs. This runs on Save, never Download.
 async function assembleCachedWorkingPdf(){
  const out=await PDFLib.PDFDocument.create();
- const saved=checkpointSavedPages().filter(([index])=>!excludedFromProof.has(index));
  // The checkpoint map is refreshed only after the write; use the current
  // spreadEdits snapshot while assembling the just-saved spread.
  const records=[...new Map([...spreadEdits.values()].flatMap(spread=>
   (spread.pages||[]).filter(Boolean).map(record=>[
    Number(record.sourcePdfPage||record.source?.sourcePdfPage),record
   ])).filter(([index])=>Number.isInteger(index)&&index>0))].sort((a,b)=>a[0]-b[0])
-  .filter(([index])=>!excludedFromProof.has(index));
+ ;
  const expected=3+records.length;
  await createMasterFrontMatter(out,{includeSections:false,totalPages:expected});
  const firstSection=editableSectionRecords()[0]||null;
