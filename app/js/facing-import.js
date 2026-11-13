@@ -882,6 +882,8 @@ async function savePrayerWorkingDatabase(){
  prayerWorkingPromise=Promise.resolve(copy);
  const indicator=$("prayer-save-status");if(indicator)indicator.textContent="Prayer Library saved in this browser (not GitHub). Export JSON to preserve a portable copy.";
 }
+$("update-prayer-database")?.addEventListener("click",()=>savePrayerWorkingDatabase().catch(e=>{const el=$("prayer-save-status");if(el)el.textContent="Prayer save failed: "+e.message;}));
+$("export-prayer-database")?.addEventListener("click",()=>exportPrayerWorkingDatabase().catch(e=>status("Prayer export failed: "+e.message)));
 async function exportPrayerWorkingDatabase(){
  const db=await prayerWorkingLibrary(),blob=new Blob([JSON.stringify(db,null,2)+"\\n"],{type:"application/json"});
  const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="prayer-library-v3-working.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -897,6 +899,8 @@ function renderPageCueEditor(){
   panel.append(title);
   if(record){
    const draft=prayerDraftForRecord(record);
+   if(draft.englishName===undefined)draft.englishName=record.prayerLibrary?.englishName??record.leadership?.instructionPrayer??record.prayerTitle??record.identification?.prayerName??"";
+   if(draft.hebrewName===undefined)draft.hebrewName=record.prayerLibrary?.hebrewName??"";
    const prayerPanel=document.createElement("fieldset");prayerPanel.style.cssText="display:grid;gap:6px;margin:8px 0;padding:10px;border:1px solid #9db6ac";
    const legend=document.createElement("legend");legend.textContent="Prayer Library — browser working copy";prayerPanel.append(legend);
    const addField=(label,value,key,multiline=false)=>{
