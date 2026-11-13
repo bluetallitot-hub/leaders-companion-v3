@@ -448,40 +448,12 @@ function v3CuePlan(record,side){
  return window.LCV3CueLayout.layout({cues,side,measure,roleColor:role=>roleColor(role||state.role)});
 }
 function renderInstructionPreviews(){
- for(let side=0;side<2;side++){
-  const canvas=$(side===0?"output-left":"output-right"),record=pageMetadata[side];
-  if(!canvas)continue;
-  const parent=canvas.parentElement;parent.style.position="relative";
-  const displayScale=(canvas.getBoundingClientRect().width||canvas.width||612)/612;
-  // Anchor overlay to the actual canvas rectangle, not the surrounding wrapper.
-  const canvasLeft=canvas.offsetLeft,canvasTop=canvas.offsetTop;
-  const canvasW=canvas.getBoundingClientRect().width||canvas.width;
-  const canvasH=canvas.getBoundingClientRect().height||canvas.height;
-  let instruction=parent.querySelector(".instruction-page-preview");
-  if(!instruction){instruction=document.createElement("div");instruction.className="instruction-page-preview";parent.append(instruction);}
-  const textX=side===0?171.36:59.76;
-  instruction.style.cssText="position:absolute;pointer-events:none;z-index:5;box-sizing:border-box;background:white;overflow:hidden;padding:0;font:"+(12*displayScale)+"px/1.3 Arial,sans-serif;color:#182c36;left:"+(canvasLeft+(textX+2)/612*canvasW)+"px;width:"+(376/612*canvasW)+"px;top:"+(canvasTop+(792-702)/792*canvasH)+"px;height:"+(57/792*canvasH)+"px;";
-  const state=record?.leadership||{},instructions=instructionTextForPage(state);
-  instruction.hidden=!instructions.length;instruction.textContent=instructions.join(" ");
-  let footer=parent.querySelector(".cue-page-preview");
-  if(!footer){footer=document.createElement("div");footer.className="cue-page-preview";parent.append(footer);}
-  footer.style.cssText="position:absolute;pointer-events:none;z-index:5;box-sizing:border-box;background:white;overflow:hidden;left:"+(canvasLeft+(textX+2)/612*canvasW)+"px;width:"+(376/612*canvasW)+"px;top:"+(canvasTop+(792-98)/792*canvasH)+"px;height:"+(50/792*canvasH)+"px;";
-  footer.replaceChildren();
-  const plan=record?v3CuePlan(record,side):[];
-  footer.hidden=!plan.length;
-  for(const row of plan){
-   const place=(value,x,w,dir)=>{
-    if(!value)return;
-    const span=document.createElement("span");span.textContent=value;span.dir=dir;
-    span.style.cssText="position:absolute;white-space:nowrap;overflow:visible;left:"+((x-(textX+2))/376*100)+"%;bottom:"+((row.y-48)/50*100)+"%;line-height:1.3;font:"+row.font+"px Arial,sans-serif;color:"+row.color+";";
-    footer.append(span);
-   };
-   place(row.begin,row.beginX,row.beginW,row.hebrew?"rtl":"ltr");
-   place(row.end,row.endX,row.endW,row.hebrew?"rtl":"ltr");
-   const arrow=document.createElement("span");arrow.textContent=row.hebrew?"←":"→";
-   arrow.style.cssText="position:absolute;left:"+((row.arrowX-(textX+2))/376*100)+"%;bottom:"+((row.y-48)/50*100)+"%;transform:translateX(-50%);font:"+row.font+"px Arial,sans-serif;color:#182c36;";
-   footer.append(arrow);
-  }
+ // The canonical PDF already contains the instruction and cue artwork.
+ // Legacy HTML overlays used white backgrounds that obscured the original
+ // master PDF's horizontal and vertical section borders. Remove them.
+ for(const canvasId of ["output-left","output-right"]){
+  const parent=$(canvasId)?.parentElement;if(!parent)continue;
+  parent.querySelectorAll(".instruction-page-preview,.cue-page-preview").forEach(node=>node.remove());
  }
 }
 function pageApprovalFingerprint(record){
