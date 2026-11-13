@@ -28,3 +28,4 @@ jobs:
           node tests/cue-layout.test.cjs
           node tests/master-template-integration.test.cjs
           node tests/canonical-editor-pipeline.test.cjs
+          node tests/incremental-pdf-export.test.cjs
