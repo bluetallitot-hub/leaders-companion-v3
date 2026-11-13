@@ -27,4 +27,8 @@ assert.doesNotMatch(fields,/\bwipe\(|page\.drawRectangle\(\{x,y,width:w,height:h
 assert.match(source,/function canonicalPageBoxes\(/,"Guides must share the compositor region");
 assert.match(source,/const region=REGIONS\[side\],pad=6;/);
 assert.match(source,/masterPage\.getSize\(\)/,"Master geometry must be checked before compositing");
+assert.match(source,/function checkpointSavedPages\(/,"Export must use saved checkpoint pages");
+assert.match(source,/function showSavedPageInventory\(/,"User must inspect saved page inventory");
+assert.match(source,/excludedFromProof\.has\(n\)/,"User exclusions must constrain proof");
+assert.match(source,/const approved=verifiedWorkingPages\(\)/,"PDF proof must use selected approved pages");
 console.log("PASS: canonical master is sole visible Siddur page renderer, with saved-state-first loading and editor-only guides.");
