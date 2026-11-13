@@ -570,11 +570,26 @@ function renderFacingInstructions(){
   select.add(new Option("Choose an instruction from database",""));
   for(const entry of instructionsByFrequency())select.add(new Option(entry.id+" — "+entry.name+" ["+entry.status+"]",entry.id));
   panel.append(select);
-  const add=document.createElement("button");add.type="button";add.textContent="Add selected instruction to page";
+  const count=document.createElement("div");count.className="instruction-count";
+  count.textContent=entries.length+" instruction"+(entries.length===1?"":"s")+" on this page";panel.append(count);
+  const add=document.createElement("button");add.type="button";add.textContent="+ Add instruction";
+  const addStatus=document.createElement("span");addStatus.setAttribute("role","status");
   add.onclick=async()=>{
-   const template=catalogInstruction(select.value);if(!template)return;
-   const alreadyAssigned=entries.some(e=>e.id===template.id);\n   await saveInstructions([...entries,{id:template.id,text:template.text}]);\n   if(!alreadyAssigned&&state.instructionIds.includes(template.id))recordInstructionUse(template.id);
-  };panel.append(add);
+   const template=catalogInstruction(select.value);
+   if(!template){addStatus.textContent="Choose an instruction from the dropdown first.";return;}
+   if(entries.some(e=>e.id===template.id)){addStatus.textContent="This instruction is already assigned to this page.";return;}
+   add.disabled=true;addStatus.textContent="Adding instruction…";
+   const next=[...entries,{id:template.id,text:template.text}];
+   const previous=[...state.instructionIds],previousApproval=state.highlightConfirmed;
+   state.instructionIds=next.map(e=>String(e.id));state.highlightConfirmed=false;
+   try{
+    await saveCheckpointNow();scheduleCanonicalPreview();recordInstructionUse(template.id);
+    renderFacingInstructions();
+   }catch(error){
+    state.instructionIds=previous;state.highlightConfirmed=previousApproval;
+    addStatus.textContent="Could not add instruction: "+error.message;
+   }finally{add.disabled=false;}
+  };panel.append(add,addStatus);
   const customLabel=document.createElement("label");customLabel.textContent="New database instruction name ";
   const customName=document.createElement("input");customName.type="text";customLabel.append(customName);panel.append(customLabel);
   const customText=document.createElement("textarea");customText.rows=2;customText.placeholder="Instruction wording";customText.setAttribute("aria-label","New database instruction text");panel.append(customText);
