@@ -3750,7 +3750,17 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  // explicit English/LTR page direction reverses the starting edge.
  // Tag/subtag values are intentionally blank until V2 lineage is verified.
  const cueCount=Math.min(3,(state.cues||[]).length);
- if(cueCount){
+ // Temporary explicit Friday Evening printed-page service span confirmed by
+ // the user: 151–181 inclusive. The two language sides sharing printed 159
+ // intentionally share progress. Do not infer PDF source index from 159.
+ const serviceLabel=String(record?.identification?.serviceName||serviceManifest?.serviceName||"").trim();
+ const printedRef=String(record?.source?.originalPageNumber||record?.identification?.printedPageNumber||"").trim();
+ const printedMatch=/^(\\d+)(?:[A-Za-z])?$/.exec(printedRef);
+ const printed=printedMatch?Number(printedMatch[1]):NaN;
+ const fridayEvening=/^Friday Evening$/i.test(serviceLabel);
+ const progress=fridayEvening&&printed>=151&&printed<=181
+  ? (printed-151+1)/(181-151+1) : null;
+ if(true){
   // V3 Outer Lines Only master: the status FIELD is mirrored between
   // facing pages. The x=59.76,y=21.24 measurements used in V3.369
   // came from the unrelated V1 punch-margin PDF and were incorrect.
@@ -3775,8 +3785,13 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   const slotStart=statusX+edgePad,slotEnd=statusX+statusW-edgePad-slotW;
   // One page-level marker, regardless of the number of cues. The highest
   // verified page cue identifier will be displayed here once available.
-  const left=leftToRight?slotStart:slotEnd;
-  const markerLeft=leftToRight?left:left+slotW-markerW;
+  // Move the marker center along the track, not the decorative slot.
+  // For Hebrew RTL, page 151 begins near the right and page 181 ends left.
+  // If the service/page is unresolved, retain a visibly unverified starting
+  // marker until a real mapping is provided rather than inventing progress.
+  const fraction=progress===null?0:Math.max(0,Math.min(1,progress));
+  const markerTravel=statusW-2*edgePad-markerW;
+  const markerLeft=statusX+edgePad+(leftToRight?fraction:1-fraction)*markerTravel;
   const markerBottom=centerY-markerH/2;
   const radius=markerH/2;
   page.drawRectangle({x:markerLeft+radius,y:markerBottom,width:markerW-markerH,height:markerH,color:red});
