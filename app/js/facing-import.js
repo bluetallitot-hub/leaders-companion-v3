@@ -328,7 +328,8 @@ function applyImportedCues(){
    const inRange=cueRange&&Number.isFinite(page)&&page>=cueRange[0]&&page<=cueRange[1];
    const language=String(c.language||"").toUpperCase();
    const supplement=ref.toUpperCase().startsWith("SUP-")||manifestRef.toUpperCase().startsWith("SUP-");
-   const languageMatches=!language||!code||language===code||language==="BOTH"||language==="E/H"||language==="H+E"||language==="H/L";
+   // Source-page OCR language is not a cue eligibility filter: supplements may mix scripts.
+   const languageMatches=true;
    return (supplement?ref.toUpperCase()===manifestRef.toUpperCase():(sameReference||(!manifestRef&&inRange)))&&languageMatches;
   });
   // Canonical CSV begin_cue/end_cue are logical reading boundaries.
@@ -339,7 +340,7 @@ function applyImportedCues(){
    const ending=String(c.end_cue||c.end_cue_hebrew||(isHebrew?c.cue_left:c.cue_right)||"");
    return {
     cueId:c.cue_id||c.test_id||"import-"+i,service:c.service_name||c.service||null,role:c.leader_role||c.role_name||c.role_code||c.role||null,
-    style:c.performance_style||c.style||null,styleSlot:null,startCue:beginning,endCue:ending,
+    style:c.performance_style||c.style||null,styleSlot:null,cueLanguage:/[\u0590-\u05ff]/.test(beginning+" "+ending)?"hebrew":/[A-Za-z]/.test(beginning+" "+ending)?"english":"unknown",startCue:beginning,endCue:ending,
     startCueHebrew:isHebrew?(beginning||c.begin_cue_hebrew||""):(c.begin_cue_hebrew||""),
     endCueHebrew:isHebrew?(ending||c.end_cue_hebrew||""):(c.end_cue_hebrew||""),
     prayer:c.prayer_name||c.prayer_action||c.prayer||null,sourceRow:c.leader_map_source_row||null,
@@ -437,11 +438,7 @@ function v3CuePlan(record,side){
  const state=record?.leadership||{},cues=(state.cues||[]).slice(0,3);
  const ctx=document.createElement("canvas").getContext("2d");
  const measure=(text,font)=>{ctx.font=font+"px Arial, sans-serif";return ctx.measureText(text).width;};
- const sample=cues.map(c=>[c.startCueHebrew,c.endCueHebrew,c.startCue,c.endCue].filter(Boolean).join(" ")).join(" ");
- const hebrewChars=(sample.match(/[\\u0590-\\u05ff]/g)||[]).length;
- const latinChars=(sample.match(/[A-Za-z]/g)||[]).length;
- const lang=hebrewChars>latinChars?"hebrew":latinChars>hebrewChars?"english":String(record?.source?.languageCode||record?.source?.language||"").toLowerCase();
- return window.LCV3CueLayout.layout({cues,side,language:lang,measure,roleColor:role=>roleColor(role||state.role)});
+ return window.LCV3CueLayout.layout({cues,side,measure,roleColor:role=>roleColor(role||state.role)});
 }
 function renderInstructionPreviews(){
  for(let side=0;side<2;side++){
