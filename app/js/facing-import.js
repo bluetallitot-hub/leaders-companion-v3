@@ -3143,11 +3143,22 @@ async function assembleCachedWorkingPdf(){
  await createMasterFrontMatter(out,{includeSections:false,totalPages:expected});
  const firstSection=editableSectionRecords()[0]||null;
  const sectionTitle=String(firstSection?.title||effectiveCover().serviceName||"").trim();
- if(records.length>23)throw Error("First section contents supports 23 entries; cannot omit saved pages silently.");
- const entries=records.map(([index,record])=>({
-  title:String(approvedPrayerName(record)||record?.identification?.prayerName||"Source page "+index).trim(),
-  page:String(record?.source?.originalPageNumber||record?.identification?.printedPageNumber||index)
- }));
+ // Contents represents the FIRST section only, with one entry per prayer
+ // (not one entry per page). Never silently truncate or add another contents page.
+ const sections=editableSectionRecords();
+ const nextSection=firstSection?sections[sections.indexOf(firstSection)+1]:null;
+ const firstRecords=records.filter(([index])=>
+  (!firstSection||index>=Number(firstSection.startOutputPage||1))&&
+  (!nextSection||index<Number(nextSection.startOutputPage||Infinity)));
+ const byPrayer=new Map();
+ for(const [index,record] of firstRecords){
+  const title=String(approvedPrayerName(record)||record?.identification?.prayerName||"Source page "+index).trim();
+  if(!byPrayer.has(title))byPrayer.set(title,{
+   title,page:String(record?.source?.originalPageNumber||record?.identification?.printedPageNumber||index)
+  });
+ }
+ const entries=[...byPrayer.values()];
+ if(entries.length>23)throw Error("The first section has "+entries.length+" unique prayers; its single contents page can fit only 23. No saved pages were omitted.");
  await addSectionMasterPages(out,{title:sectionTitle},entries);
  const indexToPdf=new Map();
  for(const [first,bytes] of [...renderedSpreadPdfs].sort((a,b)=>a[0]-b[0])){
