@@ -2604,7 +2604,7 @@ function scheduleCanonicalPreview(){
  }),350);
 }
 // Editor-only approved placement guides. Never embedded in the generated PDF.
-let showPlacementGuides=false;
+let showPlacementGuides=true;
 function drawPlacementGuides(){
  for(let side=0;side<2;side++){
   const base=$(side===0?"output-left":"output-right");if(!base)continue;
@@ -2642,7 +2642,7 @@ window.addEventListener("resize",()=>{if(canonicalPreviewEnabled)drawPlacementGu
 async function renderCanonicalSpread(epoch){
  if(epoch!==canonicalPreviewEpoch||!canonicalPreviewEnabled)return;
  const signature=JSON.stringify({spread:selectedSpreadFirst,pages:pageMetadata.map(r=>r&&({leadership:r.leadership,production:r.production,source:r.source,identification:r.identification,prayerTitle:r.prayerTitle}))});
- if(signature===canonicalPreviewLastSignature)return;
+ if(signature===canonicalPreviewLastSignature){drawPlacementGuides();return;}
  canonicalPreviewRendering=true;
  try{
   const out=await PDFLib.PDFDocument.create();
