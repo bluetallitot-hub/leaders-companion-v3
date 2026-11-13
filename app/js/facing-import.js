@@ -2603,7 +2603,7 @@ async function renderCanonicalSpread(epoch){
   const available=[];
   for(let side=0;side<2;side++){
    const record=pageMetadata[side];if(!record)continue;
-   await renderCanonicalSiddurPage({out,master,source,sourceIndex:selectedSpreadFirst+side,record,side,font,bold});
+   await renderCanonicalSiddurPage({out,master,source,sourceIndex:Number(record.source?.sourcePdfPage)||selectedSpreadFirst+side,record,side,font,bold});
    available.push(side);
   }
   if(epoch!==canonicalPreviewEpoch)return;
@@ -3027,7 +3027,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  drawKnownFrameworkFields(page,{...record,leadership:{...state,cues:[]},instructionText:""},side,font,bold,{cues:[],instructionText:""});
 }
 // One authoritative PDF page renderer for both live facing-page preview and final export.
-async function renderCanonicalSiddurPage({out,master,source,sourceIndex,record,side,font,bold}){
+async async function renderCanonicalSiddurPage({out,master,source,sourceIndex,record,side,font,bold}){
   const masterIndex=master.getPageCount()>1?Math.min(side,master.getPageCount()-1):0;
   const [masterPage]=await out.copyPages(master,[masterIndex]);
   const page=out.addPage(masterPage);
