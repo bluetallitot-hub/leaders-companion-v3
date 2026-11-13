@@ -412,8 +412,8 @@ async function attachV2Summaries(records=pageMetadata){
   if(unique.length!==1)continue; // Ambiguous or mixed prayer pages need review.
   const prayer=unique[0],siddur=String(record.source?.sourceId||record.source?.siddurId||"").trim();
   const page=String(record.source?.originalPageNumber||"").trim();
-  if(prayer.locations.length&&siddur&&page&&!prayer.locations.some(l=>l.siddurId===siddur&&l.printedPage===page))continue;
-  record.prayerLibrary={prayerId:prayer.prayerId,summaryIds:[...prayer.summaryIds],instructionIds:[...prayer.instructionIds]};
+  // A new Siddur/page occurrence is valid; do not suppress a verified prayer-name match.
+  record.prayerLibrary={prayerId:prayer.prayerId,englishName:prayer.englishName||prayer.canonicalName,hebrewName:prayer.hebrewName||"",summaryIds:[...prayer.summaryIds],instructionIds:[...prayer.instructionIds]};
   record.prayerLibrary.summaries=prayer.summaryIds.map(id=>library.summaries.get(id)).filter(Boolean);
   record.prayerLibrary.instructions=prayer.instructionIds.map(id=>library.instructions.get(id)).filter(Boolean);
  }
@@ -3089,7 +3089,8 @@ function saveCurrentSpreadEdits(){
   production:r.production?JSON.parse(JSON.stringify(r.production)):null,
   prayerTitle:r.prayerTitle,
   identification:r.identification?JSON.parse(JSON.stringify(r.identification)):null,
-  prayerDraft:r.prayerDraft?JSON.parse(JSON.stringify(r.prayerDraft)):null
+  prayerDraft:r.prayerDraft?JSON.parse(JSON.stringify(r.prayerDraft)):null,
+  prayerLibrary:r.prayerLibrary?JSON.parse(JSON.stringify(r.prayerLibrary)):null
  }:null),selectedCues:[...selectedCueBySide]});
  workingCopyStatus();
 }
@@ -3294,6 +3295,7 @@ async function loadSelectedSpread(){
  visibleCueId="";
  await initializeSiddurSpread(sourcePdfBytes.slice());
  const saved=spreadEdits.get(selectedSpreadFirst);
+ await attachV2Summaries(pageMetadata);
  const savedComplete=!!saved?.pages?.length;
  // Restore approved metadata BEFORE building the visible PDF. A saved spread
  // must never briefly display default content or run OCR on stale page geometry.
@@ -3307,6 +3309,8 @@ async function loadSelectedSpread(){
    record.leadership.highlights=record.leadership.highlights||[];
    record.prayerTitle=prior.prayerTitle;
    if(prior.identification)record.identification=JSON.parse(JSON.stringify(prior.identification));
+   if(prior.prayerDraft)record.prayerDraft=JSON.parse(JSON.stringify(prior.prayerDraft));
+   if(prior.prayerLibrary)record.prayerLibrary=JSON.parse(JSON.stringify(prior.prayerLibrary));
   });
   selectedCueBySide=[...(saved.selectedCues||["",""])];
  }else selectedCueBySide=["",""];
