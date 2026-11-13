@@ -36,7 +36,10 @@ function layout({cues=[],side=0,language="",measure,roleColor=()=>"#182c36"}){
   const cueScript=scriptOf(cue);
   if(cueScript==="unknown")throw Error("Cannot determine cue direction from cue text");
   const hebrew=cueScript==="hebrew";
-  const font=Math.min(17,Math.max(10,rowH*.58));
+  // Typography varies with cue count; the approved cue box never resizes.
+  // A single cue gets the largest practical type, while the established
+  // two-/three-cue sizes remain unchanged pending typography approval.
+  const font=cues.length===1?28:Math.min(17,Math.max(10,rowH*.58));
   const begin=shorten(hebrew?(cue.startCueHebrew||cue.startCue||cue.beginCue):(cue.startCue||cue.beginCue||cue.startCueHebrew),font,148,false);
   const end=shorten(hebrew?(cue.endCueHebrew||cue.endCue||cue.endCueText):(cue.endCue||cue.endCueText||cue.endCueHebrew),font,148,true);
   const beginW=width(begin,font),endW=width(end,font);
