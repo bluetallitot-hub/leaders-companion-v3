@@ -3608,27 +3608,34 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  const plan=v3CuePlan(record,side);
  for(const row of plan){
   // Use the same measured text, font, anchors and arrow midpoint as the editor.
-  const drawCue=async(text,x,w)=>{
-   if(!text)return;
-   const factor=3,canvas=document.createElement("canvas");
-   canvas.width=Math.max(1,Math.ceil((w+2)*factor));canvas.height=Math.ceil(row.lineH*factor);
-   const ctx=canvas.getContext("2d");
-   ctx.font=(row.font*factor)+"px "+(row.hebrew?'"Noto Serif Hebrew", "David", "Times New Roman", serif':'Georgia, "Times New Roman", serif');
-   ctx.fillStyle=row.color;ctx.textBaseline="alphabetic";ctx.direction=row.hebrew?"rtl":"ltr";
-   ctx.textAlign=row.hebrew?"right":"left";
-   // Canvas "middle" is a typographic baseline, not the visible glyph center.
-   // Center the actual ink bounds (including Hebrew niqqud when present)
-   // against the arrow and the immutable cue-row center.
-   const metrics=ctx.measureText(text);
-   const ascent=metrics.actualBoundingBoxAscent||row.font*factor*.78;
-   const descent=metrics.actualBoundingBoxDescent||row.font*factor*.22;
-   const baseline=(canvas.height+ascent-descent)/2;
-   if(baseline-ascent<0||baseline+descent>canvas.height)
-    throw Error("Cue glyph exceeds approved row height");
-   ctx.fillText(text,row.hebrew?canvas.width-1:1,baseline);
-   const image=await out.embedPng(canvas.toDataURL("image/png"));
-   page.drawImage(image,{x,y:row.y,width:canvas.width/factor,height:canvas.height/factor});
-  };
+  // Measure both phrases in the same font and at the same scale.
+ // They must share ONE baseline; independently centering their ink produces
+ // visibly different heights for phrases with different ascenders/descenders.
+ const factor=3;
+ const cueFont=(row.font*factor)+"px "+(row.hebrew?'"Noto Serif Hebrew", "David", "Times New Roman", serif':'Georgia, "Times New Roman", serif');
+ const metricCanvas=document.createElement("canvas");
+ const metricCtx=metricCanvas.getContext("2d");
+ metricCtx.font=cueFont;
+ const phraseMetrics=[row.begin,row.end].filter(Boolean).map(t=>metricCtx.measureText(t));
+ const commonAscent=Math.max(...phraseMetrics.map(m=>m.actualBoundingBoxAscent||row.font*factor*.78));
+ const commonDescent=Math.max(...phraseMetrics.map(m=>m.actualBoundingBoxDescent||row.font*factor*.22));
+ const cueCanvasHeight=Math.ceil(row.lineH*factor);
+ const sharedBaseline=(cueCanvasHeight+commonAscent-commonDescent)/2;
+ if(sharedBaseline-commonAscent<0||sharedBaseline+commonDescent>cueCanvasHeight)
+  throw Error("Cue glyphs exceed approved row height");
+ const drawCue=async(text,x,w)=>{
+  if(!text)return;
+  const canvas=document.createElement("canvas");
+  canvas.width=Math.max(1,Math.ceil((w+2)*factor));
+  canvas.height=cueCanvasHeight;
+  const ctx=canvas.getContext("2d");
+  ctx.font=cueFont;ctx.fillStyle=row.color;ctx.textBaseline="alphabetic";
+  ctx.direction=row.hebrew?"rtl":"ltr";
+  ctx.textAlign=row.hebrew?"right":"left";
+  ctx.fillText(text,row.hebrew?canvas.width-1:1,sharedBaseline);
+  const image=await out.embedPng(canvas.toDataURL("image/png"));
+  page.drawImage(image,{x,y:row.y,width:canvas.width/factor,height:canvas.height/factor});
+ };
   await drawCue(row.begin,row.beginX,row.beginW);
   await drawCue(row.end,row.endX,row.endW);
   const y=row.centerY,mid=row.arrowX;
