@@ -3691,20 +3691,21 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  // Tag/subtag values are intentionally blank until V2 lineage is verified.
  const cueCount=Math.min(3,(state.cues||[]).length);
  if(cueCount){
-  // Measured master PDF: x=59.76..591.84; y=21.24..28.44.
-  // Page-wide, independent of narrower cue text column.
-  const statusX=59.76,statusW=532.08,statusY=21.24,statusH=7.20;
+  // V3 Outer Lines Only master: the status FIELD is mirrored between
+  // facing pages. The x=59.76,y=21.24 measurements used in V3.369
+  // came from the unrelated V1 punch-margin PDF and were incorrect.
+  // Match the V3 locked status field below the cue box (cue y=48).
+  const statusX=side===0?20.16:59.76,statusW=532.08,statusY=34,statusH=12;
   const centerY=statusY+statusH/2;
   const grey=PDFLib.rgb(.78,.80,.81),red=PDFLib.rgb(.82,.12,.16);
-  // Heavier status track; keep the stroke and end caps inside the
-  // approved 7.2pt-high status rectangle.
+  // Keep the track inside the fixed V3 status field.
   const trackThickness=4.5,trackInset=trackThickness/2+2;
   page.drawLine({start:{x:statusX+trackInset,y:centerY},
    end:{x:statusX+statusW-trackInset,y:centerY},thickness:trackThickness,color:grey});
   const direction=String(record?.identification?.readingDirection||record?.readingDirection||"").toLowerCase();
   const leftToRight=["ltr","english","left-to-right"].includes(direction);
   // One 48pt slot reserves a 10pt identifier of format "000.0" plus
-  // padding. Marker diameter fits the master 7.2pt-high strip.
+  // padding. Marker diameter fits inside the fixed V3 strip.
   const slotW=48,markerDiameter=6,edgePad=5;
   const slotStart=statusX+edgePad,slotEnd=statusX+statusW-edgePad-slotW;
   // One page-level status marker, regardless of the number of cues.
