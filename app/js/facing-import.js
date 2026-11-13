@@ -300,6 +300,22 @@ function detectCrop(canvas,meta){
  return {left:Math.max(0,left-padX),right:Math.min(w,right+padX),
   top:Math.max(0,top-padY),bottom:Math.min(h,bottom+Math.max(15,Math.round(h*.02)))};
 }
+// TEMPORARY GEOMETRY FIXTURE, not a production melody record. All pages
+// resolve to this one stub until a verified Melody Library selection exists.
+// The link is intentionally non-playable; never advertise it as audio.
+const LCV3_STUB_MELODY=Object.freeze({
+ melodyId:"STUB-MELODY-001",name:"Stub Melody — Layout Test",
+ pitch:"C (STUB)",recordingId:"STUB-RECORDING-001",
+ url:"https://example.com/leaders-companion/stub-melody",
+ urlStatus:"placeholder-not-playable",isStub:true
+});
+function pageMelodyForLayout(record){
+ const selected=String(record?.production?.melodyId||"").trim();
+ // A real selected ID is not silently overwritten by the fixture.
+ return selected&&selected!==LCV3_STUB_MELODY.melodyId
+  ? {melodyId:selected,name:"",pitch:"",recordingId:"",url:"",isStub:false}
+  : LCV3_STUB_MELODY;
+}
 function makeIntakeRecord(meta,sourceIndex){
  const code=meta.language==="Hebrew"?"H":meta.language==="English"?"E":meta.language==="Mixed"?"H+E":null;
  const pageNumber=meta.number||null;
@@ -311,7 +327,7 @@ function makeIntakeRecord(meta,sourceIndex){
    originalHeadingOCR:meta.heading||null,runningHeaderOCR:meta.runningHeader||null},
   identification:{prayerName:null,unitType:null,serviceCode:null,cueId:null,binderOrder:null},
   leadership:{role:null,roleReviewNeeded:true,highlight:null,cues:[],highlights:[]},
-  production:{paperClass:null,color:null,melodyId:null,sourceTextRegion:"V3 Siddur Text",
+  production:{paperClass:null,color:null,melodyId:LCV3_STUB_MELODY.melodyId,sourceTextRegion:"V3 Siddur Text",
    background:"white",imageCleanup:"local paper whitening, enhanced ink contrast, edge-preserving sharpening",
    headerRemoved:"automatic detection",originalPageNumberDisplayed:Boolean(pageNumber)},
   intake:{status:pageNumber&&code&&meta.heading?"processed-unreviewed":"needs-metadata-review",
@@ -592,6 +608,7 @@ function renderInstructionPreviews(){
 }
 function pageApprovalFingerprint(record){
  const state=record.leadership||{};
+ const layoutMelody=pageMelodyForLayout(record); // Every page has a stub fallback; geometry render pending.
  return JSON.stringify({highlights:state.highlights||[],cues:state.cues||[],instructionIds:state.instructionIds||[],instructionPrayer:state.instructionPrayer||"",instructionPosition:state.instructionPosition||"top",instructionOverrides:state.instructionOverrides||{},approvedCrop:record.production?.approvedCrop||null});
 }
 function pageApprovalCurrent(record){
