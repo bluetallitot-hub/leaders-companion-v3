@@ -1,4 +1,8 @@
-# Leader's Companion V3
+# Leader's Companion V3 — Web Application
+
+> **CURRENT SCOPE NOTICE (2026-11-13):** This repository is the **browser-based V3 web application**, not the legacy V2 production system. The Stage 1 text below is a historical prototype description and is **not an active requirements specification**. Do not import V2 Rulebook, workbook, image-generator, publication-pipeline, or V3 migration-roadmap requirements into this web application. The [current web development handoff](docs/DEVELOPMENT_HANDOFF.md) controls scope tracking; explicit web-app approvals and approved web PDF masters govern implementation. Current UI: `app/html/facing-import.html` and `app/html/siddur-intake.html`.
+
+## Historical prototype notes (nonbinding)
 
 A modular, browser-based workbench for producing standardized synagogue service pages. V2 remains untouched.
 
