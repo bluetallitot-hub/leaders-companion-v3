@@ -3745,19 +3745,25 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  page.drawText(heading,{x:center(heading,10,bold),y:gridBottom-21,size:10,font:bold,color:railInk});
  const summary="Summary pending";
  page.drawText(summary,{x:center(summary,9),y:gridBottom-42,size:9,font,color:railMuted});
- // QR is a true square equal to the commentary rail width. A non-playable
- // stub URL must never produce a misleading scannable QR code.
- const qrY=240;
- page.drawRectangle({x:railX,y:qrY,width:railW,height:railW,
+ // Bottom-anchored QR module: square aligned with the same 3pt inset
+ // used for the role badge and 2x2 grid. The name is directly beneath
+ // the square, wholly inside the sidebar and above the cue/status strip.
+ // A placeholder URL MUST NOT become a scannable QR.
+ const qrSize=railW-2*inset,qrX=railX+inset;
+ const melodyNameY=64,qrY=melodyNameY+26;
+ page.drawRectangle({x:qrX,y:qrY,width:qrSize,height:qrSize,
   borderWidth:.65,borderColor:PDFLib.rgb(.67,.72,.75)});
  const qrPending="QR PENDING";
- page.drawText(qrPending,{x:center(qrPending,11,bold),y:qrY+railW/2,size:11,font:bold,color:railMuted});
- const melodyLabel="STUB MELODY";
- page.drawText(melodyLabel,{x:center(melodyLabel,10,bold),y:218,size:10,font:bold,color:railInk});
- const melodyId=layoutMelody.melodyId||"";
- if(melodyId)page.drawText(melodyId,{x:center(melodyId,8),y:203,size:8,font,color:railMuted});
- const linkLabel="LINK: STUB / NOT PLAYABLE";
- page.drawText(linkLabel,{x:center(linkLabel,7),y:188,size:7,font,color:railMuted});
+ page.drawText(qrPending,{x:center(qrPending,11,bold),y:qrY+qrSize/2-4,
+  size:11,font:bold,color:railMuted});
+ const displayMelody=String(layoutMelody.name||layoutMelody.melodyId||"MELODY PENDING");
+ // Fit at most two centered lines below the QR, without truncating
+ // the sidebar boundary or encroaching on the bottom status strip.
+ const melodyText=fitCellText(displayMelody,railW-8,10);
+ melodyText.lines.forEach((line,i)=>{
+  page.drawText(line,{x:center(line,melodyText.size,bold),
+   y:melodyNameY+12-i*12,size:melodyText.size,font:bold,color:railInk});
+ });
  const plan=v3CuePlan(record,side);
  for(const row of plan){
   // Use the same measured text, font, anchors and arrow midpoint as the editor.
