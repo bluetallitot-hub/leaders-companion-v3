@@ -3650,17 +3650,19 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  // Tag/subtag values are intentionally blank until V2 lineage is verified.
  const cueCount=Math.min(3,(state.cues||[]).length);
  if(cueCount){
-  const statusX=textX+2,statusW=376,statusY=34,statusH=12;
+  // Measured master PDF: x=59.76..591.84; y=21.24..28.44.
+  // Page-wide, independent of narrower cue text column.
+  const statusX=59.76,statusW=532.08,statusY=21.24,statusH=7.20;
   const centerY=statusY+statusH/2;
   const grey=PDFLib.rgb(.78,.80,.81),red=PDFLib.rgb(.82,.12,.16);
-  const trackInset=4;
+  const trackInset=0;
   page.drawLine({start:{x:statusX+trackInset,y:centerY},
-   end:{x:statusX+statusW-trackInset,y:centerY},thickness:2,color:grey});
+   end:{x:statusX+statusW-trackInset,y:centerY},thickness:3,color:grey});
   const direction=String(record?.identification?.readingDirection||record?.readingDirection||"").toLowerCase();
   const leftToRight=["ltr","english","left-to-right"].includes(direction);
   // One 48pt slot reserves a 10pt identifier of format "000.0" plus
-  // horizontal padding. The red circular marker is 10pt in diameter.
-  const slotW=48,markerDiameter=10,edgePad=5;
+  // padding. Marker diameter fits the master 7.2pt-high strip.
+  const slotW=48,markerDiameter=6,edgePad=5;
   const slotStart=statusX+edgePad,slotEnd=statusX+statusW-edgePad-slotW;
   // One page-level status marker, regardless of the number of cues.
   // When verified V2 tag/subtag IDs are available, the displayed value
