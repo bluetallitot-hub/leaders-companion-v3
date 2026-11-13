@@ -2375,10 +2375,7 @@ async function createPdf(bytes){
  const source=await pdfjsLib.getDocument({data:bytes.slice()}).promise;
  const out=await PDFLib.PDFDocument.create(),first=Math.max(0,Math.min(source.numPages-1,selectedSpreadFirst-1)),count=Math.min(2,source.numPages-first);
  if(!count)throw Error("No PDF pages found.");
- const font=await out.embedFont(PDFLib.StandardFonts.Helvetica),boldFont=await out.embedFont(PDFLib.StandardFonts.HelveticaBold),records=[];
- const approvedMasterBytes=await window.LCV3Templates.load("siddur");
- const approvedMaster=await PDFLib.PDFDocument.load(approvedMasterBytes);
- if(!approvedMaster.getPageCount())throw Error("Approved Siddur master has no pages.");
+ const records=[];
  for(let i=0;i<count;i++){
   status("Processing source page "+(i+1)+" of "+count+"...");
   const src=await source.getPage(first+i+1),v=src.getViewport({scale:2});
@@ -2388,8 +2385,7 @@ async function createPdf(bytes){
   const meta=await readMetadata(source,first+i,canvas);
   const crop=detectCrop(canvas,meta),cleaned=canvasCrop(canvas,crop);
   cleanPixels(cleaned);
-  const png=await out.embedPng(await (await fetch(cleaned.toDataURL("image/png"))).arrayBuffer());
-  records.push({meta,png,crop,sourceIndex:first+i});
+  records.push({meta,crop,sourceIndex:first+i});
  }
  // Facing placement follows the document's reading direction, never prayer identity.
  // The first PDF page of a Hebrew-direction spread appears on the right.
@@ -2414,17 +2410,9 @@ async function createPdf(bytes){
  applyImportedCues();
  applyCueTextEdits();
  
- for(let i=0;i<records.length;i++){
-  const {meta,png}=records[i];
-  const masterIndex=approvedMaster.getPageCount()>1?Math.min(i,approvedMaster.getPageCount()-1):0;
-  const [approvedPage]=await out.copyPages(approvedMaster,[masterIndex]);
-  const page=out.addPage(approvedPage);
-  drawKnownFrameworkFields(page,pageMetadata[i],i,font,boldFont,null);
-  const r=REGIONS[i],pad=6,scale=Math.min((r.w-2*pad)/png.width,(r.h-2*pad)/png.height);
-  const dw=png.width*scale,dh=png.height*scale;
-  page.drawImage(png,{x:r.x+(r.w-dw)/2,y:r.y+(r.h-dh)/2,width:dw,height:dh});
-
- }
+ // Intake-only page count carrier. It is NEVER rendered or exported.
+ // The canonical approved-master renderer is the sole visual page builder.
+ for(let i=0;i<records.length;i++)out.addPage([W,H]);
  return new Uint8Array(await out.save());
 }
 function refreshMetadataDialog(){
