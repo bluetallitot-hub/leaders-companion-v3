@@ -18,7 +18,7 @@ assert.ok(load.indexOf("if(savedComplete){")<load.indexOf("await renderCanonical
 assert.doesNotMatch(source,/function drawTemplate\(/,"No reconstructed template drawing");
 const canonical=section("async function renderCanonicalSpread(","async function loadSelectedSpread(");
 assert.match(canonical,/await renderCanonicalSiddurPage\(/);
-const exporter=section("async function exportVerifiedWorkingCopy(","function exportProgress(");
+const exporter=source.slice(source.indexOf("async function exportVerifiedWorkingCopy("));
 assert.match(exporter,/await renderCanonicalSiddurPage\(/);
 assert.match(source,/let showPlacementGuides=true;/);
 assert.match(source,/function eligibleSiddurHighlight\(/);
