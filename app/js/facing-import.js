@@ -1302,8 +1302,8 @@ function eligibleSiddurHighlight(side,box){
 // gate, one metadata format. Script-specific OCR and reading order remain separate.
 function cueSpanPosition(record,cue){
  const source=importedCues.find(c=>(c.cue_id||c.test_id)===cue.cueId);
- const range=String(source?.source_page||"").match(/^(\d+)-(\d+)$/);
- const page=Number(record?.source?.originalPageNumber);
+ const range=String(source?.source_page||"").trim().match(/^(\d+)\s*[-–—]\s*(\d+)$/);
+ const page=Number(record?.source?.originalPageNumber||record?.source?.serviceReference);
  if(!range||!Number.isFinite(page)||Number(range[1])>=Number(range[2])||
     page<Number(range[1])||page>Number(range[2]))return null;
  return page===Number(range[1])?"start":page===Number(range[2])?"end":"middle";
@@ -1336,15 +1336,27 @@ function assignCueHighlights(side){
  for(const cue of record.leadership.cues){
   if(record.leadership.highlights.some(h=>h.cueId===cue.cueId&&h.manualApproved)){cue.matchStatus="manual-selection-preserved";matches++;continue;}
   const hebrew=cueHasHebrewScript(cue);
+  const spanBoundary=cueSpanPosition(record,cue);
+  if(spanBoundary==="middle"){
+   const lines=geometry.filter(l=>eligibleSiddurHighlight(side,l)&&!isPageNumberLine(l,ocr,record));
+   const boxes=lines.map(line=>({
+    highlightId:"HL-"+cue.cueId+"-"+line.id,lineId:line.id,cueId:cue.cueId,
+    roleId:cue.role,x:line.x,y:line.y,width:line.width,height:line.height,
+    coordinateSystem:"normalized-top-left",visibleInPdf:false,tentative:true
+   }));
+   if(boxes.length&&recordCueMatch(record,cue,hebrew?"hebrew-spanning-middle":"english-spanning-middle","interior-page",boxes))matches++;
+   else cue.matchStatus="spanning-middle-geometry-review-required";
+   continue;
+  }
   if(hebrew){
    if(!String(cue.startCueHebrew||"").trim()||!String(cue.endCueHebrew||"").trim()){
     cue.matchStatus="missing-Hebrew-cue-review-required";
     continue;
    }
-   const spanBoundary=cueSpanPosition(record,cue);
+
    // A range cue has a beginning on its first page and an ending on its last.
    // Never demand both anchors from either page.
-   const highlights=spanBoundary==="middle"?null:isolatedHebrewCueMatch(side,cue,ocr,spanBoundary);
+   const highlights=isolatedHebrewCueMatch(side,cue,ocr,spanBoundary);
    if(highlights?.length){
     const suppressed=record.leadership.suppressedAutoHighlights||[];
     const allowed=highlights.filter(h=>eligibleSiddurHighlight(side,h)&&!suppressed.some(v=>v.cueId===h.cueId&&
@@ -1361,7 +1373,7 @@ function assignCueHighlights(side){
   }
   // A cue whose source_page is a printed-page range has only one anchor
   // on each boundary page. Match each page independently, including across spreads.
-  const spanBoundary=cueSpanPosition(record,cue);
+
   if(spanBoundary){
    const firstPage=spanBoundary==="start",lastPage=spanBoundary==="end";
    const begin=firstPage?matchingCueLine(ocr,cue.startCue):null;
