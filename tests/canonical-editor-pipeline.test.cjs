@@ -20,7 +20,7 @@ const canonical=section("async function renderCanonicalSpread(","async function 
 assert.match(canonical,/await renderCanonicalSiddurPage\(/);
 const exporter=source.slice(source.indexOf("async function exportVerifiedWorkingCopy("));
 assert.match(exporter,/await renderCanonicalSiddurPage\(/);
-assert.match(source,/let showPlacementGuides=true;/);
+assert.match(source,/let showPlacementGuides=false;/,"Clean master must render without guide overlays by default");
 assert.match(source,/function eligibleSiddurHighlight\(/);
 const fields=section("async function drawApprovedPageFields(","async function renderCanonicalSiddurPage(");
 assert.doesNotMatch(fields,/wipe\(side===0\?21:446/,"Approved side-panel/footer may not be wiped");
