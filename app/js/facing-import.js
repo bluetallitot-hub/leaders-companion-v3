@@ -510,6 +510,34 @@ function renderPageCueEditor(){
   const title=document.createElement("div");title.className="cue-page-title";
   title.textContent=(side===0?"Left":"Right")+" page"+(record?.source?.originalPageNumber?" · "+record.source.originalPageNumber:"");
   panel.append(title);
+  if(record){
+   const pageTitleRow=document.createElement("label");pageTitleRow.textContent="Page prayer title ";
+   const pageTitleInput=document.createElement("input");pageTitleInput.type="text";
+   pageTitleInput.value=record.leadership?.instructionPrayer||record.prayerTitle||record.identification?.prayerName||"";
+   pageTitleInput.setAttribute("aria-label",(side===0?"Left":"Right")+" page prayer title");
+   pageTitleRow.append(pageTitleInput);panel.append(pageTitleRow);
+   const savePageTitle=document.createElement("button");savePageTitle.type="button";savePageTitle.textContent="Save page prayer title";
+   savePageTitle.onclick=()=>{
+    const value=pageTitleInput.value.trim();
+    if(!value){$("page-cue-editor-status").textContent="Page prayer title cannot be empty.";return;}
+    record.prayerTitle=value;record.identification??={};record.identification.prayerName=value;
+    record.leadership.instructionPrayer=value;record.leadership.highlightConfirmed=false;
+    saveCurrentSpreadEdits();renderFacingInstructions();
+    $("page-cue-editor-status").textContent="Page prayer title updated. Save Project Checkpoint to persist.";
+   };
+   panel.append(savePageTitle);
+   const addCue=document.createElement("button");addCue.type="button";addCue.textContent="Add cue to this page";
+   addCue.onclick=()=>{
+    const id="MANUAL-"+Date.now()+"-"+side;
+    const role=cueRoleOptions().keys().next().value||"R";
+    const cue={cueId:id,role,style:"SOLO",prayer:pageTitleInput.value.trim()||"New cue",startCue:"",endCue:"",highlights:[],matchStatus:"unmatched-review-required",manualCreated:true};
+    record.leadership.cues??=[];record.leadership.cues.push(cue);record.leadership.highlightConfirmed=false;
+    selectedCueBySide[side]=id;visibleCueId=id;
+    saveCurrentSpreadEdits();renderPageCueEditor();refreshCueVisibilityPicker();drawHighlights();
+    $("page-cue-editor-status").textContent="New cue created on "+(side===0?"left":"right")+" page. Enter beginning/end text, then Save cue and rematch.";
+   };
+   panel.append(addCue);
+  }
   applyCueRoleEdits();
   const active=cues.find(c=>c.cueId===selectedCueBySide[side])||cues[0];
   const selector=document.createElement("label");selector.className="cue-number-selector";selector.textContent="Cue number ";
