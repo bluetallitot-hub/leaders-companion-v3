@@ -3762,9 +3762,37 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  const melodyNameY=44,qrY=melodyNameY+26;
  page.drawRectangle({x:qrX,y:qrY,width:qrSize,height:qrSize,
   borderWidth:.65,borderColor:PDFLib.rgb(.67,.72,.75)});
- const qrPending="QR PENDING";
- page.drawText(qrPending,{x:center(qrPending,11,bold),y:qrY+qrSize/2-4,
-  size:11,font:bold,color:railMuted});
+ // Geometry-only mock QR: a deterministic decorative module pattern,
+ // NOT encoded data and NOT a scannable URL. Keep the visual footprint of
+ // a real QR for PDF layout testing until verified recordings are available.
+ const qrModules=29,qrQuiet=8,qrInner=qrSize-2*qrQuiet,qrUnit=qrInner/qrModules;
+ const qrBlack=PDFLib.rgb(0,0,0);
+ const finder=(x,y,fx,fy)=>x>=fx&&x<fx+7&&y>=fy&&y<fy+7;
+ const finderInk=(x,y,fx,fy)=>{
+  const dx=x-fx,dy=y-fy;
+  return dx===0||dx===6||dy===0||dy===6||
+   (dx>=2&&dx<=4&&dy>=2&&dy<=4);
+ };
+ const isFinder=(x,y)=>finder(x,y,0,0)||finder(x,y,22,0)||finder(x,y,0,22);
+ const reserved=(x,y)=>(x<=7&&y<=7)||(x>=21&&y<=7)||(x<=7&&y>=21);
+ for(let y=0;y<qrModules;y++)for(let x=0;x<qrModules;x++){
+  const black=isFinder(x,y)?
+   (finder(x,y,0,0)?finderInk(x,y,0,0):
+    finder(x,y,22,0)?finderInk(x,y,22,0):finderInk(x,y,0,22)):
+   (!reserved(x,y)&&((x*19+y*23+x*y*7+((x^y)*11))%17<8));
+  if(black)page.drawRectangle({
+   x:qrX+qrQuiet+x*qrUnit,
+   y:qrY+qrQuiet+(qrModules-1-y)*qrUnit,
+   width:qrUnit+.015,height:qrUnit+.015,color:qrBlack
+  });
+ }
+ // A small central label makes the mock unmistakably a fixture.
+ const testLabel="TEST";
+ const testW=bold.widthOfTextAtSize(testLabel,8);
+ page.drawRectangle({x:qrX+qrSize/2-testW/2-4,y:qrY+qrSize/2-6,
+  width:testW+8,height:15,color:PDFLib.rgb(1,1,1)});
+ page.drawText(testLabel,{x:qrX+qrSize/2-testW/2,y:qrY+qrSize/2-2,
+  size:8,font:bold,color:qrBlack});
  const displayMelody=String(layoutMelody.name||layoutMelody.melodyId||"MELODY PENDING");
  // Fit at most two centered lines below the QR, without truncating
  // the sidebar boundary or encroaching on the bottom status strip.
