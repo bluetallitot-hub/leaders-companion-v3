@@ -3623,16 +3623,14 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   const ctx=canvas.getContext("2d");
   const inset=3*scale;
   const x=inset,y=inset,w=canvas.width-2*inset,h=canvas.height-2*inset;
-  // Square-corner clipping prevents colored panels from crossing the
-  // same uniform 3pt margin on all four sides.
-  ctx.save();ctx.beginPath();ctx.rect(x,y,w,h);ctx.clip();
+  // Square-corner panels: use fillRect directly, never roundRect or
+  // a rounded clipping mask. Preserve equal 3pt margins on all sides.
   const shownRoles=pageRoles.slice(0,4);
   const panels=pageRoles.length===1?1:pageRoles.length===2?2:Math.min(4,pageRoles.length);
   for(let i=0;i<panels;i++){
    ctx.fillStyle=roleColor(shownRoles[i]);
    ctx.fillRect(x+w*i/panels,y,w/panels+.5,h);
   }
-  ctx.restore();
   const labels=pageRoles.length>2?["MULTIPLE"]:pageRoles.slice(0,2).map(code=>String(roleNames.get(code)||code).toUpperCase());
   const fitLabel=(label,cx,available)=>{
    let fontPx=15*scale;
