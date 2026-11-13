@@ -438,6 +438,25 @@ function customInstructionCatalog(){
  try{return JSON.parse(localStorage.getItem(INSTRUCTION_CATALOG_STORAGE)||"[]").filter(e=>e&&e.id&&e.text);}catch{return [];}
 }
 function allInstructionCatalog(){return [...instructionCatalog,...customInstructionCatalog()];}
+const INSTRUCTION_USAGE_STORAGE="leaders-companion-v3-instruction-usage-v1";
+function instructionUsageCounts(){
+ try{const counts=JSON.parse(localStorage.getItem(INSTRUCTION_USAGE_STORAGE)||"{}");return counts&&typeof counts==="object"&&!Array.isArray(counts)?counts:{};}catch{return {};}
+}
+function instructionFrequency(entry,counts){
+ return Math.max(0,Number(entry.linkedCueCount)||0)+Math.max(0,Number(counts[entry.id])||0);
+}
+function instructionsByFrequency(){
+ const counts=instructionUsageCounts();
+ return allInstructionCatalog().slice().sort((a,b)=>
+  instructionFrequency(b,counts)-instructionFrequency(a,counts)||
+  String(a.name||"").localeCompare(String(b.name||""),undefined,{sensitivity:"base"})||
+  String(a.id).localeCompare(String(b.id))
+ );
+}
+function recordInstructionUse(id){
+ try{const counts=instructionUsageCounts();counts[id]=(Math.max(0,Number(counts[id])||0)+1);localStorage.setItem(INSTRUCTION_USAGE_STORAGE,JSON.stringify(counts));}
+ catch(error){console.warn("Instruction usage count not saved",error);}
+}
 function catalogInstruction(id){return allInstructionCatalog().find(e=>e.id===id);}
 fetch("../../data/instruction-library-v2-seed.json",{cache:"no-store"}).then(r=>{if(!r.ok)throw Error("V2 instruction catalog HTTP "+r.status);return r.json()}).then(data=>{
  instructionCatalog=data.entries||[];renderFacingInstructions();
@@ -549,12 +568,12 @@ function renderFacingInstructions(){
   };
   const select=document.createElement("select");select.setAttribute("aria-label","Instruction database for "+(side===0?"left":"right")+" page");
   select.add(new Option("Choose an instruction from database",""));
-  for(const entry of allInstructionCatalog())select.add(new Option(entry.id+" — "+entry.name+" ["+entry.status+"]",entry.id));
+  for(const entry of instructionsByFrequency())select.add(new Option(entry.id+" — "+entry.name+" ["+entry.status+"]",entry.id));
   panel.append(select);
   const add=document.createElement("button");add.type="button";add.textContent="Add selected instruction to page";
   add.onclick=async()=>{
    const template=catalogInstruction(select.value);if(!template)return;
-   await saveInstructions([...entries,{id:template.id,text:template.text}]);
+   const alreadyAssigned=entries.some(e=>e.id===template.id);\n   await saveInstructions([...entries,{id:template.id,text:template.text}]);\n   if(!alreadyAssigned&&state.instructionIds.includes(template.id))recordInstructionUse(template.id);
   };panel.append(add);
   const customLabel=document.createElement("label");customLabel.textContent="New database instruction name ";
   const customName=document.createElement("input");customName.type="text";customLabel.append(customName);panel.append(customLabel);
