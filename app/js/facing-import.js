@@ -488,6 +488,24 @@ function instructionTextForPage(state){
   return legacy?String(legacy.text).replace(/\\{PrayerName\\}/g,state.instructionPrayer||"prayer").replace(/\\{PageNumber\\}/g,state.instructionPageNumber||"").replace(/\\{[^}]+\\}/g,""):"";
  }).filter(Boolean);
 }
+// Paper-stock usage is a derived, read-only instruction, never duplicated
+// in the page's stored instructionIds. The canonical page color is authoritative.
+const PAPER_USAGE_INSTRUCTION_IDS=Object.freeze({N:"PAPER-N",B:"PAPER-B",R:"PAPER-R",O:"PAPER-O",G:"PAPER-G"});
+function paperUsageInstruction(record){
+ const color=String(record?.pageColor||record?.paperColor||record?.identification?.paperColor||record?.identification?.pageColor||"W").toUpperCase().trim().slice(0,1);
+ const id=PAPER_USAGE_INSTRUCTION_IDS[color];
+ if(!id)return null;
+ const entry=catalogInstruction(id);
+ return entry?{id,text:entry.text,color}:null;
+}
+function effectiveInstructionTexts(record){
+ const state=record?.leadership||record||{};
+ const ordinaryIds=(state.instructionIds||[]).filter(id=>!String(id).startsWith("PAPER-"));
+ const texts=instructionTextForPage({...state,instructionIds:ordinaryIds});
+ const automatic=paperUsageInstruction(record);
+ if(automatic)texts.push(automatic.text);
+ return texts;
+}
 // Instruction field uses the existing approved-master placement; dimensions are
 // implementation values pending independent specification approval.
 const INSTRUCTION_FIELD={width:374,height:54,fontSize:12,leading:1.3,padding:3};
@@ -517,10 +535,10 @@ function instructionLayout(text){
  }
  return {lines:visible,trimmed,totalLines:lines.length,maxLines};
 }
-function instructionFitForState(state){
+function instructionFitForState(state,record=null){
  const ids=state.instructionIds||[];
  const missing=ids.filter(id=>!catalogInstruction(String(id))&&!(facingInstructionLibrary?.prayers||[]).some(p=>(p.instructions||[]).some(e=>String(e.instruction_id)===String(id))));
- const layout=instructionLayout(instructionTextForPage(state).join(" "));
+ const layout=instructionLayout(record?effectiveInstructionTexts(record).join(" "):instructionTextForPage(state).join(" "));
  return {...layout,missing};
 }
 function storeCustomInstruction(name,value,existingId=null){
@@ -611,11 +629,17 @@ function renderFacingInstructions(){
   };
   const select=document.createElement("select");select.setAttribute("aria-label","Instruction database for "+(side===0?"left":"right")+" page");
   select.add(new Option("Choose an instruction from database",""));
-  for(const entry of instructionsByFrequency())select.add(new Option(entry.id+" — "+entry.name+" ["+entry.status+"]",entry.id));
+  for(const entry of instructionsByFrequency().filter(e=>!e.id.startsWith("PAPER-")))select.add(new Option(entry.id+" — "+entry.name+" ["+entry.status+"]",entry.id));
   panel.append(select);
   const count=document.createElement("div");count.className="instruction-count";
   count.textContent=entries.length+" instruction"+(entries.length===1?"":"s")+" on this page";panel.append(count);
-  const fit=instructionFitForState(state);
+  const automatic=paperUsageInstruction(record);
+  if(automatic){
+   const auto=document.createElement("p");auto.className="instruction-automatic";
+   auto.textContent="Automatically appended ("+automatic.color+"): "+automatic.text;
+   panel.append(auto);
+  }
+  const fit=instructionFitForState(state,record);
   if(fit.trimmed||fit.missing.length){
    const notice=document.createElement("p");notice.setAttribute("role","alert");
    notice.textContent=(fit.trimmed?"Warning: "+fit.totalLines+" lines exceed the "+fit.maxLines+"-line top instruction field. PDF display will be trimmed; instruction database text is unchanged. ":"")+
@@ -630,7 +654,7 @@ function renderFacingInstructions(){
    if(entries.some(e=>e.id===template.id)){addStatus.textContent="This instruction is already assigned to this page.";return;}
    add.disabled=true;addStatus.textContent="Adding instruction…";
    const next=[...entries,{id:template.id,text:template.text}];
-   const nextFit=instructionFitForState({...state,instructionIds:next.map(e=>e.id)});
+   const nextFit=instructionFitForState({...state,instructionIds:next.map(e=>e.id)},{...record,leadership:{...state,instructionIds:next.map(e=>e.id)}});
    if(nextFit.trimmed&&!window.confirm("The combined instructions need "+nextFit.totalLines+" lines, but the top instruction field fits "+nextFit.maxLines+". The PDF display will be trimmed. The database text will not change. Add anyway?")){
     add.disabled=false;addStatus.textContent="Instruction not added.";return;
    }
@@ -667,7 +691,7 @@ function renderFacingInstructions(){
    const save=document.createElement("button");save.type="button";save.textContent="Save instruction";
    save.onclick=async()=>{const value=textarea.value.trim();if(!value){message.textContent="Enter instruction text.";return;}
     const proposed=entries.map(e=>e.key===entry.key?{...e,text:value}:e);
-    const test=instructionLayout(proposed.map(e=>e.text).join(" "));
+    const test=instructionLayout([...proposed.map(e=>e.text),paperUsageInstruction(record)?.text].filter(Boolean).join(" "));
     if(test.trimmed&&!window.confirm("These instructions need "+test.totalLines+" lines, but the top field fits "+test.maxLines+". The PDF will trim the displayed text; the database text remains complete. Save anyway?"))return;
     save.disabled=true;const current=catalogInstruction(entry.id);const newId=storeCustomInstruction(current?.name||"Edited instruction",value,entry.id.startsWith("V3-")?entry.id:null);await saveInstructions(entries.map(e=>e.key===entry.key?{id:newId,text:value}:e));};
    const revert=document.createElement("button");revert.type="button";revert.textContent="Revert";
@@ -3530,7 +3554,7 @@ function drawLeaderPageFooter(page,record,font,bold){
   page.drawText(label.slice(0,38),{x:left,y:82-i*12,size:7.5,font,color:ink});
  }
  if(cues.length>5)page.drawText("+"+(cues.length-5)+" more cues",{x:left,y:22,size:7,font,color:ink});
- const lines=instructionTextForPage(state).flatMap(t=>pdfWrapLines(t,font,7.5,258));
+ const lines=effectiveInstructionTexts(record).flatMap(t=>pdfWrapLines(t,font,7.5,258));
  if(!lines.length)page.drawText("No instructions assigned.",{x:right,y:82,size:7.5,font,color:ink});
  for(let i=0;i<Math.min(5,lines.length);i++)page.drawText(lines[i],{x:right,y:82-i*12,size:7.5,font,color:ink});
  if(lines.length>5)page.drawText("Additional instructions in project metadata.",{x:right,y:22,size:7,font,color:ink});
@@ -3543,7 +3567,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  // The selected Outer Lines Only PDF is the actual page artwork.
  // Do not paint white rectangles over its section borders or reconstruct them.
  // Place editable text only inside its pre-existing blank regions.
- const instructions=instructionTextForPage(state).filter(x=>String(x||"").trim());
+ const instructions=effectiveInstructionTexts(record).filter(x=>String(x||"").trim());
  const render=async(text,x,y,w,h,{fontSize=12,color="#182c36",rtl=false,prewrapped=false}={})=>{
   const factor=3,canvas=document.createElement("canvas");
   canvas.width=Math.round(w*factor);canvas.height=Math.round(h*factor);
@@ -3837,7 +3861,7 @@ async function exportEditedSinglePage(side){
   copy.drawRectangle({x:mark.x*width,y:(1-mark.y-mark.height)*height,width:mark.width*width,height:mark.height*height,color:PDFLib.rgb(((value>>16)&255)/255,((value>>8)&255)/255,(value&255)/255),opacity:highlightAlpha(mark),blendMode:"Multiply"});
  }
  const instructionState=pageMetadata[side].leadership;
- const instructionLines=instructionTextForPage(instructionState);
+ const instructionLines=effectiveInstructionTexts(pageMetadata[side]);
  if(instructionLines.length){
   const imageCanvas=document.createElement("canvas");
   const imageContext=imageCanvas.getContext("2d");
