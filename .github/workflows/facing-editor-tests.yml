@@ -20,4 +20,6 @@ jobs:
           node --check app/js/cue-layout.js
           node --check app/js/facing-import.js
       - name: Verify cue geometry
-        run: node tests/cue-layout.test.cjs
+        run: |
+          node tests/cue-layout.test.cjs
+          node tests/master-template-integration.test.cjs
