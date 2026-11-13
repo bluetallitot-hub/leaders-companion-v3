@@ -3274,6 +3274,31 @@ function v314Text(page,value,{x,y,size,font,align="left",maxWidth=Infinity}){
  if(width>maxWidth)throw Error("Publication text exceeds its approved field: "+text);
  page.drawText(text,{x:align==="center"?x-width/2:align==="right"?x-width:x,y,size,font,color:PDFLib.rgb(0,0,0)});
 }
+// PDF standard fonts use WinAnsi; render Unicode publication metadata to
+// a transparent canvas and embed as PNG, preserving the approved field geometry.
+async function v314UnicodeText(out,page,value,{x,y,size,align="left",maxWidth=Infinity,bold=false}){
+ const text=String(value??"").trim();
+ if(!text)throw Error("Missing required publication metadata.");
+ const scale=3,rtl=/[\u0590-\u05ff]/u.test(text);
+ const canvas=document.createElement("canvas");
+ const ctx=canvas.getContext("2d");
+ ctx.font=(bold?"bold ":"")+size*scale+"px Arial, sans-serif";
+ const measured=ctx.measureText(text).width/scale;
+ if(measured>maxWidth)throw Error("Publication text exceeds its approved field: "+text);
+ const width=Math.ceil(measured*scale+8*scale),height=Math.ceil(size*scale*1.5);
+ canvas.width=width;canvas.height=height;
+ ctx.font=(bold?"bold ":"")+size*scale+"px Arial, sans-serif";
+ ctx.textBaseline="middle";ctx.textAlign=rtl?"right":"left";ctx.direction=rtl?"rtl":"ltr";ctx.fillStyle="#000";
+ ctx.fillText(text,rtl?width-4*scale:4*scale,height/2);
+ const png=await out.embedPng(canvas.toDataURL("image/png"));
+ const pdfWidth=width/scale,pdfHeight=height/scale;
+ const left=align==="center"?x-pdfWidth/2:align==="right"?x-pdfWidth:x;
+ page.drawImage(png,{x:left,y:y-(pdfHeight-size)/2,width:pdfWidth,height:pdfHeight});
+}
+async function v314PublicationText(out,page,value,options){
+ if(/[^\x20-\x7e]/u.test(String(value)))return v314UnicodeText(out,page,value,options);
+ return v314Text(page,value,options);
+}
 function v314Blank(out){const p=out.addPage([612,792]);v314Border(p);return p;}
 // The approved PDFs are the physical page backgrounds. Placeholder text in the
 // masters is masked only within its designated dynamic field, never redrawn as
