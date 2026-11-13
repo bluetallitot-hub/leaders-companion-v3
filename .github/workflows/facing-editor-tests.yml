@@ -4,6 +4,10 @@ on:
     paths:
       - 'app/js/cue-layout.js'
       - 'app/js/facing-import.js'
+      - 'app/js/v3-template-config.js'
+      - 'app/html/facing-import.html'
+      - 'app/html/siddur-intake.html'
+      - 'templates/pdf/**'
       - 'tests/**'
       - '.github/workflows/facing-editor-tests.yml'
   workflow_dispatch:
@@ -23,3 +27,4 @@ jobs:
         run: |
           node tests/cue-layout.test.cjs
           node tests/master-template-integration.test.cjs
+          node tests/canonical-editor-pipeline.test.cjs
