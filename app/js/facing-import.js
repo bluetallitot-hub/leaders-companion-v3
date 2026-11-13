@@ -445,7 +445,7 @@ function installCueVisibilityPicker(){
 
 let cueCsvRows=[],cueCsvHeaders=[];
 function cueCsvSerialize(){
- const headers=[...new Set([...cueCsvHeaders,...cueCsvRows.flatMap(row=>Object.keys(row))])];
+ const headers=[...new Set([...cueCsvHeaders,"mode",...cueCsvRows.flatMap(row=>Object.keys(row))])];
  const quote=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
  return [headers.map(quote).join(","),...cueCsvRows.map(row=>headers.map(h=>quote(row[h])).join(","))].join("\r\n")+"\r\n";
 }
@@ -4417,8 +4417,8 @@ async function restoreSiddurIntake(){
    if(repaired)status("Corrected "+repaired+" reversed legacy cue pairs in the loaded Intake handoff (in memory).");
   }
  }catch(error){console.warn("Canonical cue comparison unavailable; retained saved Intake cues.",error)}
- cueCsvRows=rows.map(row=>({...row}));cueCsvHeaders=(data.csv?.split(/\r?\n/)[0]||"").split(",").map(h=>h.replace(/^"|"$/g,"").trim().toLowerCase());
- importedCues=rows.filter(c=>String(c.record_type||"CUE").trim().toUpperCase()==="CUE"&&(c.source_page||c.printed_page)&&(c.begin_cue||c.begin_cue_hebrew||c.cue_left)&&(c.end_cue||c.end_cue_hebrew||c.cue_right));
+ cueCsvRows=rows.map(row=>({...row,mode:intakeModeFromRow(row)}));cueCsvHeaders=(data.csv?.split(/\r?\n/)[0]||"").split(",").map(h=>h.replace(/^"|"$/g,"").trim().toLowerCase());
+ importedCues=cueCsvRows.filter(c=>String(c.record_type||"CUE").trim().toUpperCase()==="CUE"&&(c.source_page||c.printed_page)&&(c.begin_cue||c.begin_cue_hebrew||c.cue_left)&&(c.end_cue||c.end_cue_hebrew||c.cue_right));
  roleConfig={id:"role-1",name:$("role-name").value.trim()||"Leader",color:"#F5D03C"};
  filename=(data.pdfName||"siddur.pdf").replace(/\.pdf$/i,"");
  const details=data.masterDetails||{};siddurStyleSheet=data.styleSheet||{framework:"boxes"};
