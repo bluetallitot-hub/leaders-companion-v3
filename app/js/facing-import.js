@@ -2632,6 +2632,22 @@ function scheduleCanonicalPreview(){
 }
 // Editor-only approved placement guides. Never embedded in the generated PDF.
 let showPlacementGuides=true;
+// The guide overlay reads the same canonical regions as the PDF compositor.
+// It never substitutes a second template and is never included in export.
+function canonicalPageBoxes(side){
+ const region=REGIONS[side];
+ const textX=region.x;
+ const contentX=side===0?20.16:444.96;
+ const min=Math.min(textX,contentX),max=Math.max(textX+region.w,contentX+146.88);
+ return [
+  {x:textX,y:710,w:region.w,h:30,label:"Prayer heading"},
+  {x:textX,y:642,w:region.w,h:64,label:"Instructions"},
+  {x:region.x,y:region.y,w:region.w,h:region.h,label:"Prayer text"},
+  {x:textX,y:46,w:region.w,h:52,label:"Cues"},
+  {x:contentX,y:46,w:146.88,h:694,label:"Side panel"},
+  {x:min,y:24,w:max-min,h:18,label:"Footer"}
+ ];
+}
 function drawPlacementGuides(){
  for(let side=0;side<2;side++){
   const base=$(side===0?"output-left":"output-right");if(!base)continue;
@@ -2641,20 +2657,11 @@ function drawPlacementGuides(){
   guide.width=base.width;guide.height=base.height;
   guide.style.cssText="position:absolute;pointer-events:none;z-index:5;left:"+base.offsetLeft+"px;top:"+base.offsetTop+"px;width:"+base.getBoundingClientRect().width+"px;height:"+base.getBoundingClientRect().height+"px;display:"+(showPlacementGuides?"block":"none");
   if(!showPlacementGuides)continue;
-  const ctx=guide.getContext("2d");const sx=guide.width/612,sy=guide.height/792;
-  const textX=side===0?171.36:59.76,contentX=side===0?20.16:444.96;
-  const min=Math.min(textX,contentX),max=Math.max(textX+380.88,contentX+146.88);
-  const boxes=[
-   [textX,710,380.88,30,"Prayer heading"],
-   [textX,642,380.88,64,"Instructions"],
-   [textX,98,380.88,540,"Prayer text"],
-   [textX,46,380.88,52,"Cues"],
-   [contentX,46,146.88,694,"Side panel"],
-   [min,24,max-min,18,"Footer"]
-  ];
-  ctx.save();ctx.strokeStyle="rgba(16,111,129,.85)";ctx.fillStyle="rgba(16,111,129,.85)";ctx.lineWidth=Math.max(1,0.8*sx);ctx.setLineDash([5*sx,3*sx]);
-  for(const [x,y,w,h,label] of boxes){
-   const px=x*sx,py=(792-y-h)*sy;
+  const ctx=guide.getContext("2d"),sx=guide.width/W,sy=guide.height/H;
+  ctx.save();ctx.strokeStyle="rgba(16,111,129,.85)";ctx.fillStyle="rgba(16,111,129,.85)";
+  ctx.lineWidth=Math.max(1,.8*sx);ctx.setLineDash([5*sx,3*sx]);
+  for(const {x,y,w,h,label} of canonicalPageBoxes(side)){
+   const px=x*sx,py=(H-y-h)*sy;
    ctx.strokeRect(px,py,w*sx,h*sy);
    ctx.save();ctx.setLineDash([]);ctx.font=Math.max(9,9*sx)+"px Arial, sans-serif";
    const tw=ctx.measureText(label).width+8*sx;
@@ -3083,8 +3090,8 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  // internal guides. The source image is never erased or rescaled here.
  const boxes={instructions:{x:textX+2,y:645,w:376,h:57},cues:{x:textX+2,y:48,w:376,h:50}};
  for(const b of Object.values(boxes))wipe(b.x,b.y,b.w,b.h);
- wipe(side===0?21:446,24,125,14);
- wipe(side===0?21:446,725,120,13);
+ // Do not erase the approved master's header, footer or side panel.
+ // These are master-owned regions, not editable placeholder content.
  const instructions=instructionTextForPage(state).filter(x=>String(x||"").trim());
  const render=async(text,x,y,w,h,{fontSize=12,color="#182c36",rtl=false}={})=>{
   const factor=3,canvas=document.createElement("canvas");
