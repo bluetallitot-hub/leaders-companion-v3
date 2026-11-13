@@ -2592,7 +2592,7 @@ function scheduleCanonicalPreview(){
  }),350);
 }
 // Editor-only approved placement guides. Never embedded in the generated PDF.
-let showPlacementGuides=true;
+let showPlacementGuides=false;
 function drawPlacementGuides(){
  for(let side=0;side<2;side++){
   const base=$(side===0?"output-left":"output-right");if(!base)continue;
