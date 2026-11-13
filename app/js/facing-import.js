@@ -3637,6 +3637,24 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   page.drawLine({start:{x:tip,y},end:{x:back,y:y+3},thickness:1.3,color:ink});
   page.drawLine({start:{x:tip,y},end:{x:back,y:y-3},thickness:1.3,color:ink});
  }
+ // Status-strip placeholders. Do not fabricate V2 tag/subtag values:
+ // one marker per cue, with 10pt reserved identifier width ("00.0").
+ // The existing master status strip is never moved or resized.
+ const cueCount=Math.min(3,(state.cues||[]).length);
+ if(cueCount){
+  const statusX=textX+2,statusW=376,statusY=34,statusH=12;
+  const markerDiameter=5.5,numberSlot=29;
+  const red=PDFLib.rgb(.82,.12,.16);
+  for(let i=0;i<cueCount;i++){
+   const centerX=statusX+statusW*(i+.5)/cueCount;
+   const totalW=markerDiameter+3+numberSlot;
+   const left=centerX-totalW/2;
+   const centerY=statusY+statusH/2;
+   page.drawCircle({x:left+markerDiameter/2,y:centerY,size:markerDiameter/2,color:red});
+   // Reserve 29pt beside the red dot for up to "00.0" at 10pt.
+   // No digits are printed until V2 tag/subtag mapping is verified.
+  }
+ }
  // Identity is sourced only from record metadata, never from master labels.
  await drawKnownFrameworkFields(page,{...record,leadership:{...state,cues:[]},instructionText:""},side,font,bold,{cues:[],instructionText:""},out);
 }
