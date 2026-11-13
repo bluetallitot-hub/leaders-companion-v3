@@ -379,42 +379,49 @@ function pageModeFromIntake(rows,languageCode){
  return values[0]+"_"+(String(languageCode||"").toUpperCase()==="H"?"H":"E");
 }
 
-// V2 summary snapshot is the authoritative source; join by stable cue ID,
-// never by ambiguous prayer names. Empty summaries remain unassigned.
-let v2SummaryLibraryPromise=null;
-function loadV2Summaries(){
- if(!v2SummaryLibraryPromise)v2SummaryLibraryPromise=fetch(new URL("../../data/summary-library-v2-seed.json",document.baseURI))
-  .then(r=>{if(!r.ok)throw Error("V2 summary library HTTP "+r.status);return r.json();})
+// Prayer-centered V3 library: summaries and instructions belong to prayers,
+// never to individual cues. Cue prayer names are lookup hints only.
+let prayerLibraryPromise=null;
+function loadPrayerLibrary(){
+ if(!prayerLibraryPromise)prayerLibraryPromise=fetch(new URL("../../data/prayer-library-v3.json",document.baseURI))
+  .then(r=>{if(!r.ok)throw Error("Prayer library HTTP "+r.status);return r.json();})
   .then(data=>{
-   const summaries=new Map((data.summaries||[]).map(x=>[String(x.summaryId||"").trim(),x]));
-   const byCue=new Map();
-   for(const link of data.cueSummaryMap||[]){
-    const id=String(link.cueId||"").trim(),summary=summaries.get(String(link.summaryId||"").trim());
-    if(id&&summary)byCue.set(id,summary);
+   const names=new Map(),summaries=new Map(data.summaries.map(x=>[x.summaryId,x]));
+   const instructions=new Map(data.instructions.map(x=>[x.id,x]));
+   const normalize=x=>String(x||"").normalize("NFKC").trim().replace(/\\s+/g," ").toLowerCase();
+   for(const prayer of data.prayers)for(const name of [prayer.canonicalName,...(prayer.aliases||[])]){
+    const key=normalize(name);
+    if(!key)continue;
+    if(!names.has(key))names.set(key,[]);
+    names.get(key).push(prayer);
    }
-   return byCue;
-  }).catch(error=>{console.warn("V2 summaries unavailable:",error);return new Map();});
- return v2SummaryLibraryPromise;
+   return {names,summaries,instructions,normalize};
+  });
+ return prayerLibraryPromise;
 }
 async function attachV2Summaries(records=pageMetadata){
- const byCue=await loadV2Summaries();
+ const library=await loadPrayerLibrary();
  for(const record of records||[]){
   if(!record)continue;
   record.leadership??={};
-  for(const cue of record.leadership.cues||[]){
-   const entry=byCue.get(String(cue.cueId||"").trim());
-   if(entry){
-    cue.summaryId=entry.summaryId;
-    cue.summaryStatus=entry.status;
-    cue.summaryText=entry.summary||"";
-   }
-  }
+  const cues=record.leadership.cues||[];
+  const names=[...new Set(cues.map(c=>String(c.prayer||"").trim()).filter(Boolean))];
+  if(!names.length&&record.identification?.prayerName)names.push(record.identification.prayerName);
+  const matches=names.flatMap(name=>library.names.get(library.normalize(name))||[]);
+  const unique=[...new Map(matches.map(p=>[p.prayerId,p])).values()];
+  if(unique.length!==1)continue; // Ambiguous or mixed prayer pages need review.
+  const prayer=unique[0],siddur=String(record.source?.sourceId||record.source?.siddurId||"").trim();
+  const page=String(record.source?.originalPageNumber||"").trim();
+  if(prayer.locations.length&&siddur&&page&&!prayer.locations.some(l=>l.siddurId===siddur&&l.printedPage===page))continue;
+  record.prayerLibrary={prayerId:prayer.prayerId,summaryIds:[...prayer.summaryIds],instructionIds:[...prayer.instructionIds]};
+  record.prayerLibrary.summaries=prayer.summaryIds.map(id=>library.summaries.get(id)).filter(Boolean);
+  record.prayerLibrary.instructions=prayer.instructionIds.map(id=>library.instructions.get(id)).filter(Boolean);
  }
 }
 function pageSummaryForLayout(record){
- const cues=record?.leadership?.cues||[];
- const entries=cues.filter(c=>String(c.summaryText||"").trim());
- return entries[0]||null;
+ const entries=record?.prayerLibrary?.summaries||[];
+ const entry=entries.find(x=>String(x.summary||"").trim());
+ return entry?{summaryId:entry.summaryId,summaryText:entry.summary,summaryStatus:entry.status}:null;
 }
 function applyImportedCues(){
  if(!pageMetadata.length)return;
