@@ -66,6 +66,12 @@ async function drawKnownFrameworkFields(page,record,side,font,boldFont=font,embe
  };
  if(number){const n=safe(number),w=boldFont.widthOfTextAtSize(n,18);if(w<=42)page.drawText(n,{x:numberX+24-w/2,y:750,size:18,font:boldFont,color:PDFLib.rgb(.82,.12,.16)});}
  page.drawRectangle({x:colorX+1,y:749,width:16,height:18,color:PDFLib.rgb(...rgb)});
+ // Paper-stock locator: code is printed inside the existing locked color box.
+ // W defaults to light gray. Never tint the source Siddur page.
+ const displayedColor="WN BROG".replace(/ /g,"").includes(colorCode)?colorCode:"W";
+ const ink=displayedColor==="B"||displayedColor==="R"?PDFLib.rgb(1,1,1):PDFLib.rgb(.12,.16,.19);
+ const codeWidth=boldFont.widthOfTextAtSize(displayedColor,11);
+ page.drawText(displayedColor,{x:colorX+9-codeWidth/2,y:753,size:11,font:boldFont,color:ink});
  fit(service,serviceX+4,751,458,18,boldFont);
  // The approved title field is 372.8pt wide; Hebrew must be rasterized,
  // since PDF standard fonts cannot encode Hebrew. Align RTL text to the right.
