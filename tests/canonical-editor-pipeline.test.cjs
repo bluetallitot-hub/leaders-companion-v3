@@ -23,7 +23,7 @@ assert.match(exporter,/await renderCanonicalSiddurPage\(/);
 assert.match(source,/let showPlacementGuides=false;/,"Clean master must render without guide overlays by default");
 assert.match(source,/function eligibleSiddurHighlight\(/);
 const fields=section("async function drawApprovedPageFields(","async function renderCanonicalSiddurPage(");
-assert.doesNotMatch(fields,/wipe\(side===0\?21:446/,"Approved side-panel/footer may not be wiped");
+assert.doesNotMatch(fields,/\bwipe\(|page\.drawRectangle\(\{x,y,width:w,height:h,color:white\}/,"Approved Siddur master must never be masked");
 assert.match(source,/function canonicalPageBoxes\(/,"Guides must share the compositor region");
 assert.match(source,/const region=REGIONS\[side\],pad=6;/);
 assert.match(source,/masterPage\.getSize\(\)/,"Master geometry must be checked before compositing");
