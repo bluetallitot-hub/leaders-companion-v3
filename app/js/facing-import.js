@@ -3050,20 +3050,49 @@ function showCoverEditor(){
 const coverButton=document.createElement("button");coverButton.type="button";coverButton.textContent="Edit cover metadata";
 coverButton.onclick=showCoverEditor;
 document.getElementById("download-front-matter")?.parentElement?.append(coverButton);
-async function exportFrontMatterTest(){
+// Single-click working-copy download: exactly cover, first section title,
+// first section contents, then explicitly saved pages. No other pages.
+async function exportSavedPagesDownload(){
+ const saved=checkpointSavedPages().filter(([n])=>!excludedFromProof.has(n));
  const out=await PDFLib.PDFDocument.create();
- await createMasterFrontMatter(out);
- return new Uint8Array(await out.save());
+ await createMasterFrontMatter(out,{includeSections:false,totalPages:3+saved.length});
+ const firstSection=editableSectionRecords()[0]||null;
+ const sectionTitle=String(firstSection?.title||effectiveCover().serviceName||"").trim();
+ const entries=saved.slice(0,23).map(([index,record])=>({
+  title:String(approvedPrayerName(record)||record?.identification?.prayerName||"Source page "+index).trim(),
+  page:String(record?.source?.originalPageNumber||record?.identification?.printedPageNumber||index)
+ }));
+ await addSectionMasterPages(out,{title:sectionTitle},entries);
+ if(saved.length){
+  if(!sourcePdfBytes)throw Error("Load the source Siddur PDF to include saved pages.");
+  const source=await pdfjsLib.getDocument({data:sourcePdfBytes.slice()}).promise;
+  if(!window.LCV3Templates)throw Error("Approved Siddur Page Master is unavailable.");
+  const master=await PDFLib.PDFDocument.load(await window.LCV3Templates.load("siddur"));
+  const font=await out.embedFont(PDFLib.StandardFonts.Helvetica);
+  const bold=await out.embedFont(PDFLib.StandardFonts.HelveticaBold);
+  for(const [sourceIndex,record] of saved){
+   const defaultSide=String(serviceManifest?.facingPageDirection||"hebrew").toLowerCase()==="hebrew"?(sourceIndex%2):((sourceIndex-1)%2);
+   const side=Number(record?.source?.sideIndex??record?.sideIndex??defaultSide)===1?1:0;
+   await renderCanonicalSiddurPage({out,master,source,sourceIndex,record,side,font,bold});
+  }
+ }
+ if(out.getPageCount()!==3+saved.length)throw Error("Unexpected PDF page count.");
+ await out.attach(new TextEncoder().encode(JSON.stringify({
+  schema:"leaders-companion-v3-saved-working-copy",
+  sourceFilename:filename,
+  savedSourcePages:saved.map(([sourceIndex,record])=>({sourceIndex,record}))
+ })),"leaders-companion-project.json",{mimeType:"application/json",description:"Saved web-editor page records"});
+ return {bytes:new Uint8Array(await out.save()),saved:saved.length,total:out.getPageCount()};
 }
 $("download-front-matter")?.addEventListener("click",async()=>{
  const button=$("download-front-matter");button.disabled=true;
  try{
-  const bytes=await exportFrontMatterTest();
-  const url=URL.createObjectURL(new Blob([bytes],{type:"application/pdf"}));
-  const a=document.createElement("a");a.href=url;a.download="leaders-companion-front-matter-3-pages.pdf";
+  const result=await exportSavedPagesDownload();
+  const url=URL.createObjectURL(new Blob([result.bytes],{type:"application/pdf"}));
+  const a=document.createElement("a");a.href=url;a.download=(filename||"leaders-companion")+"-saved-pages.pdf";
   document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-  const label=$("export-status");if(label)label.textContent="Front-matter PDF generated: 3 pages, 0 siddur pages. Open in Apple Preview and test printing.";
- }catch(e){const label=$("export-status");if(label)label.textContent="Front-matter PDF failed: "+e.message;console.error(e)}
+  const label=$("export-status");if(label)label.textContent="Downloaded "+result.total+" pages: cover, first section title, first section contents, and "+result.saved+" saved Siddur page(s).";
+ }catch(e){const label=$("export-status");if(label)label.textContent="PDF download failed: "+e.message;console.error(e)}
  finally{button.disabled=false}
 });
 function pdfWrapLines(text,font,size,maxWidth){
