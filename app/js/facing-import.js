@@ -3658,21 +3658,17 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
    end:{x:statusX+statusW-trackInset,y:centerY},thickness:2,color:grey});
   const direction=String(record?.identification?.readingDirection||record?.readingDirection||"").toLowerCase();
   const leftToRight=["ltr","english","left-to-right"].includes(direction);
-  // 48pt wide reserves a 10pt identifier of format "000.0" plus
+  // One 48pt slot reserves a 10pt identifier of format "000.0" plus
   // horizontal padding. The red circular marker is 10pt in diameter.
   const slotW=48,markerDiameter=10,edgePad=5;
   const slotStart=statusX+edgePad,slotEnd=statusX+statusW-edgePad-slotW;
-  const positions=cueCount===1?[0]:Array.from({length:cueCount},(_,i)=>i/(cueCount-1));
-  for(const fraction of positions){
-   const left=leftToRight
-    ?slotStart+(slotEnd-slotStart)*fraction
-    :slotEnd-(slotEnd-slotStart)*fraction;
-   // Keep the gray track continuous; a text backing can be added when
-   // actual verified identifiers are introduced.
-   const markerX=leftToRight?left+markerDiameter/2:left+slotW-markerDiameter/2;
-   page.drawCircle({x:markerX,y:centerY,size:markerDiameter/2,color:red});
-   // Remaining 38pt is reserved for the verified V2 tag/subtag identifier.
-  }
+  // One page-level status marker, regardless of the number of cues.
+  // When verified V2 tag/subtag IDs are available, the displayed value
+  // must be the highest cue number on this page, never one per cue.
+  const left=leftToRight?slotStart:slotEnd;
+  const markerX=leftToRight?left+markerDiameter/2:left+slotW-markerDiameter/2;
+  page.drawCircle({x:markerX,y:centerY,size:markerDiameter/2,color:red});
+  // Remaining 38pt reserved for the highest verified page cue identifier.
  }
  // Identity is sourced only from record metadata, never from master labels.
  await drawKnownFrameworkFields(page,{...record,leadership:{...state,cues:[]},instructionText:""},side,font,bold,{cues:[],instructionText:""},out);
