@@ -378,6 +378,11 @@ function pageModeFromIntake(rows,languageCode){
  if(values.length!==1)return ""; // Do not silently choose between conflicting roles.
  return values[0]+"_"+(String(languageCode||"").toUpperCase()==="H"?"H":"E");
 }
+function formatFromIntake(rows){
+ const aliases={SOLO:"SOLO",UNISON:"UNISON",ALTERN:"ALTERN",ALTERNATING:"ALTERN",RESP:"RESP",RESPONSIVE:"RESP"};
+ const values=[...new Set(rows.map(row=>aliases[String(row.performance_style||row.style||row.format||"").trim().toUpperCase()]).filter(Boolean))];
+ return values.length===1?values[0]:"";
+}
 function prayerNameFromIntake(row){return String(row.prayer_name||row.prayer_action||row.prayer||"").trim();}
 function assignNextPrayerFromIntake(record,matches){
  record.production??={};
@@ -468,6 +473,10 @@ function applyImportedCues(){
   if(!record.production.modeIcon||record.production.modeSource==="csv"){
    record.production.modeIcon=pageModeFromIntake(matches,code);
    record.production.modeSource="csv";
+  }
+  if(record.production.formatSource!=="manual"){
+   record.production.formatIcon=formatFromIntake(matches);
+   record.production.formatSource="csv";
   }
   // Canonical CSV begin_cue/end_cue are logical reading boundaries.
   // Physical cue_left/cue_right are used only when explicitly supplied.
@@ -961,7 +970,7 @@ function renderPageCueEditor(){
    field("Format",dropdown([
     ["","Not assigned"],["SOLO","Solo"],["UNISON","Unison"],
     ["ALTERN","Alternating"],["RESP","Responsive"]
-   ],record.production.formatIcon,v=>record.production.formatIcon=v));
+   ],record.production.formatIcon,v=>{record.production.formatIcon=v;record.production.formatSource="manual";}));
    const language=String(record.source?.languageCode||"").toUpperCase();
    const suffix=language==="H"?"H":"E";
    field("Mode",dropdown([
