@@ -43,8 +43,8 @@ function layout({cues=[],side=0,language="",measure,roleColor=()=>"#182c36"}){
   const font=cues.length===1?28:Math.min(17,Math.max(10,rowH*.58));
   const beginSource=safe(hebrew?(cue.startCueHebrew||cue.startCue||cue.beginCue):(cue.startCue||cue.beginCue||cue.startCueHebrew));
   const endSource=safe(hebrew?(cue.endCueHebrew||cue.endCue||cue.endCueText):(cue.endCue||cue.endCueText||cue.endCueHebrew));
-  const beginWords=beginSource.split(/\\s+/).filter(Boolean);
-  const endWords=endSource.split(/\\s+/).filter(Boolean);
+  const beginWords=beginSource.split(/\s+/).filter(Boolean);
+  const endWords=endSource.split(/\s+/).filter(Boolean);
   // Optimize both phrases together, rather than imposing an arbitrary
   // 148pt maximum on each. Reserve only the arrow clearance and actual
   // padding, then retain the largest total number of whole words.
@@ -73,7 +73,9 @@ function layout({cues=[],side=0,language="",measure,roleColor=()=>"#182c36"}){
   // Row centers are evenly spaced in the immutable strip. Text and arrow
   // share a vertical center, independent of the cue count.
   const lineH=font*1.18;
-  // Optical adjustment within the immutable cue rectangle: the previous\n  // rasterized serif text sat visibly above the box center in PDF preview.\n  const y=rowCenters[i]-lineH/2-6;
+  // Optical adjustment within the immutable cue rectangle: the previous
+  // rasterized serif text sat visibly above the box center in PDF preview.
+  const y=rowCenters[i]-lineH/2-6;
   const row={begin,end,beginX,endX,beginW,endW,arrowX:(gapLeft+gapRight)/2,
    y,font,rowH,lineH,centerY:rowCenters[i],hebrew,cueLanguage:cueScript,color:roleColor(cue.role||cue.roleId)};
   for(const [x,w] of [[beginX,beginW],[endX,endW]]){
