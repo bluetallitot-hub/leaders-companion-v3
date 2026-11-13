@@ -1,0 +1,19 @@
+name: Cue geometry regression
+on:
+  push:
+    paths:
+      - 'app/js/cue-layout.js'
+      - 'app/js/facing-import.js'
+      - 'tests/cue-layout.test.cjs'
+      - '.github/workflows/cue-geometry.yml'
+  workflow_dispatch:
+jobs:
+  cue-layout:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify deterministic cue layout
+        run: node tests/cue-layout.test.cjs
