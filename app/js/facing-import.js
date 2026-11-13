@@ -541,9 +541,19 @@ function renderPageCueEditor(){
   const name=document.createElement("input");name.type="text";name.value=active.prayer||"";name.setAttribute("aria-label","Prayer name for selected cue");nameLabel.append(name);wrap.append(nameLabel);
   const metadata=document.createElement("div");metadata.className="cue-role-style";metadata.style.cssText="display:flex;flex-wrap:wrap;gap:12px;margin:8px 0;font-size:.95em";
   const roleLabel=document.createElement("label");roleLabel.textContent="Role code ";
-  const roleInput=document.createElement("input");roleInput.type="text";roleInput.value=active.role||"";roleInput.setAttribute("aria-label","Selected cue role code");roleLabel.append(roleInput);
+  const roleInput=document.createElement("select");roleInput.setAttribute("aria-label","Selected cue role code");
+  const roleChoices=cueRoleOptions();for(const cue of importedCues||[])if(cue.role&&!roleChoices.has(String(cue.role)))roleChoices.set(String(cue.role),String(cue.role));
+  if(active.role&&!roleChoices.has(String(active.role)))roleChoices.set(String(active.role),String(active.role));
+  for(const [code,display] of roleChoices)roleInput.add(new Option(code+(display!==code?" — "+display:""),code));
+  roleInput.value=String(active.role||"");roleLabel.append(roleInput);
   const styleLabel=document.createElement("label");styleLabel.textContent="Style ";
-  const styleInput=document.createElement("input");styleInput.type="text";styleInput.value=active.style||"";styleInput.setAttribute("aria-label","Selected cue style");styleLabel.append(styleInput);
+  const styleInput=document.createElement("select");styleInput.setAttribute("aria-label","Selected cue style");
+  const styleChoices=new Set(["SOLO","RESP","UNISON"]);
+  for(const cue of importedCues||[])if(cue.style)styleChoices.add(String(cue.style));
+  for(const page of pageMetadata)for(const cue of page?.leadership?.cues||[])if(cue.style)styleChoices.add(String(cue.style));
+  if(active.style)styleChoices.add(String(active.style));
+  for(const style of styleChoices)styleInput.add(new Option(style,style));
+  styleInput.value=String(active.style||"");styleLabel.append(styleInput);
   metadata.append(roleLabel,styleLabel);wrap.append(metadata);
   const saveMetadata=document.createElement("button");saveMetadata.type="button";saveMetadata.textContent="Save cue metadata";
   saveMetadata.onclick=()=>{
