@@ -3208,11 +3208,11 @@ async function exportVerifiedWorkingCopy(){
   ...(!String(approvedPrayerName(record)||"").trim()?["prayer title"]:[])
  ]})).filter(item=>item.missing.length);
  if(incomplete.length){
-  const details=incomplete.map(item=>"Source page "+item.index+": "+item.missing.join(" and ")).join("\\n");
+  const details=incomplete.map(item=>"Source page "+item.index+": "+item.missing.join(" and ")).join("\n");
   const validCount=approved.length-incomplete.length;
-  if(!validCount)throw Error("No selected, approved Siddur pages have complete metadata. "+details.replace(/\\n/g,"; ")+". Use the separate Cover + Title + Contents button for a front-matter-only PDF.");
-  const omit=window.confirm("These saved, approved pages are missing metadata:\\n"+details+
-   "\\n\\nChoose OK to EXCLUDE ONLY these pages from this PDF proof and continue with the other "+
+  if(!validCount)throw Error("No selected, approved Siddur pages have complete metadata. "+details.replace(/\n/g,"; ")+". Use the separate Cover + Title + Contents button for a front-matter-only PDF.");
+  const omit=window.confirm("These saved, approved pages are missing metadata:\n"+details+
+   "\n\nChoose OK to EXCLUDE ONLY these pages from this PDF proof and continue with the other "+
    validCount+" selected approved page(s). Choose Cancel to keep the selection unchanged and correct the metadata first.");
   if(!omit)throw Error("PDF proof cancelled; no pages were excluded. Complete the missing metadata or explicitly exclude the pages in 'Show pages actually saved'.");
   for(const item of incomplete)excludedFromProof.add(item.index);
