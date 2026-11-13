@@ -432,6 +432,17 @@ function applyCueTextEdits(){
  }
 }
 let facingInstructionLibrary=null;
+let instructionCatalog=[];
+const INSTRUCTION_CATALOG_STORAGE="leaders-companion-v3-custom-instructions-v1";
+function customInstructionCatalog(){
+ try{return JSON.parse(localStorage.getItem(INSTRUCTION_CATALOG_STORAGE)||"[]").filter(e=>e&&e.id&&e.text);}catch{return [];}
+}
+function allInstructionCatalog(){return [...instructionCatalog,...customInstructionCatalog()];}
+function catalogInstruction(id){return allInstructionCatalog().find(e=>e.id===id);}
+fetch("../../data/instruction-library-v2-seed.json",{cache:"no-store"}).then(r=>{if(!r.ok)throw Error("V2 instruction catalog HTTP "+r.status);return r.json()}).then(data=>{
+ instructionCatalog=data.entries||[];renderFacingInstructions();
+}).catch(e=>{const label=$("facing-instruction-status");if(label)label.textContent="V2 instruction catalog unavailable: "+e.message;});
+
 fetch("../../data/prayer-instructions.v1.json",{cache:"no-store"}).then(r=>{if(!r.ok)throw Error("Instruction library HTTP "+r.status);return r.json()}).then(data=>{facingInstructionLibrary=data;renderFacingInstructions()}).catch(e=>{const status=$("facing-instruction-status");if(status)status.textContent="Instruction library unavailable: "+e.message});
 function facingPageWarnings(record){
  const state=record.leadership;
@@ -525,18 +536,30 @@ function renderFacingInstructions(){
    try{await saveCheckpointNow();scheduleCanonicalPreview();renderFacingInstructions();}
    catch(error){state.instructionEntries=previous;state.instructionIds=oldIds;renderFacingInstructions();status("Instruction save failed: "+error.message);}
   };
-  const select=document.createElement("select");select.setAttribute("aria-label","Instruction template for "+(side===0?"left":"right")+" page");
-  select.add(new Option("Custom instruction",""));
-  for(const p of facingInstructionLibrary?.prayers||[])for(const ins of p.instructions||[])
-   select.add(new Option("#"+ins.instruction_id+" — "+p.canonical_title+" — "+ins.text,String(ins.instruction_id)));
+  const select=document.createElement("select");select.setAttribute("aria-label","Instruction database for "+(side===0?"left":"right")+" page");
+  select.add(new Option("Choose an instruction from database",""));
+  for(const entry of allInstructionCatalog())select.add(new Option(entry.id+" — "+entry.name+" ["+entry.status+"]",entry.id));
   panel.append(select);
-  const add=document.createElement("button");add.type="button";add.textContent="Add instruction";
+  const add=document.createElement("button");add.type="button";add.textContent="Add selected instruction to page";
   add.onclick=async()=>{
-   const id=Number(select.value)||null;
-   const template=(facingInstructionLibrary?.prayers||[]).flatMap(p=>p.instructions||[]).find(ins=>Number(ins.instruction_id)===id);
-   const text=template?String(template.text).replace(/\\{PrayerName\\}/g,state.instructionPrayer||"prayer").replace(/\\{PageNumber\\}/g,state.instructionPageNumber||"").replace(/\\{[^}]+\\}/g,""):"";
-   await saveInstructions([...entries,{id:"page-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),templateId:id,text}]);
+   const template=catalogInstruction(select.value);if(!template)return;
+   await saveInstructions([...entries,{id:"page-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),catalogId:template.id,text:template.text}]);
   };panel.append(add);
+  const customLabel=document.createElement("label");customLabel.textContent="New database instruction name ";
+  const customName=document.createElement("input");customName.type="text";customLabel.append(customName);panel.append(customLabel);
+  const customText=document.createElement("textarea");customText.rows=2;customText.placeholder="Instruction wording";customText.setAttribute("aria-label","New database instruction text");panel.append(customText);
+  const customSave=document.createElement("button");customSave.type="button";customSave.textContent="Save new instruction to database";
+  const customStatus=document.createElement("span");customStatus.setAttribute("role","status");
+  customSave.onclick=()=>{
+   const name=customName.value.trim(),text=customText.value.trim();
+   if(!name||!text){customStatus.textContent="Name and instruction text required.";return;}
+   const existing=customInstructionCatalog();
+   const id="V3-"+Date.now()+"-"+Math.random().toString(36).slice(2,6);
+   const item={id,name,text,category:"Custom",status:"Draft",notes:"Created in V3 editor",linkedCueCount:0};
+   try{localStorage.setItem(INSTRUCTION_CATALOG_STORAGE,JSON.stringify([...existing,item]));renderFacingInstructions();}
+   catch(error){customStatus.textContent="Database save failed: "+error.message;}
+  };
+  panel.append(customSave,customStatus);
   for(const entry of entries){
    const line=document.createElement("div");line.className="instruction-selected";
    const textarea=document.createElement("textarea");textarea.value=entry.text||"";textarea.rows=2;
