@@ -482,6 +482,41 @@ function instructionTextForPage(state){
   return legacy?String(legacy.text).replace(/\\{PrayerName\\}/g,state.instructionPrayer||"prayer").replace(/\\{PageNumber\\}/g,state.instructionPageNumber||"").replace(/\\{[^}]+\\}/g,""):"";
  }).filter(Boolean);
 }
+// Instruction field uses the existing approved-master placement; dimensions are
+// implementation values pending independent specification approval.
+const INSTRUCTION_FIELD={width:374,height:54,fontSize:12,leading:1.3,padding:3};
+function instructionLayout(text){
+ const {width,height,fontSize,leading,padding}=INSTRUCTION_FIELD;
+ const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");
+ ctx.font=fontSize+"px Arial, sans-serif";
+ const maxWidth=width-padding*2,maxLines=Math.floor((height-1)/(fontSize*leading));
+ const words=String(text||"").trim().split(/\\s+/).filter(Boolean);
+ const lines=[];let current="";
+ for(const word of words){
+  const trial=current?current+" "+word:word;
+  if(current&&ctx.measureText(trial).width>maxWidth){lines.push(current);current=word;}
+  else current=trial;
+ }
+ if(current)lines.push(current);
+ // Trim the visible copy only, at word boundaries where possible.
+ const trimmed=lines.length>maxLines||lines.some(line=>ctx.measureText(line).width>maxWidth);
+ const visible=lines.slice(0,maxLines);
+ if(trimmed&&visible.length){
+  let last=visible[visible.length-1],ellipsis="…";
+  while(last&&ctx.measureText(last+ellipsis).width>maxWidth){
+   const shorter=last.replace(/\\s+\\S+$/,"");
+   last=shorter===last?last.slice(0,-1):shorter;
+  }
+  visible[visible.length-1]=last+ellipsis;
+ }
+ return {lines:visible,trimmed,totalLines:lines.length,maxLines};
+}
+function instructionFitForState(state){
+ const ids=state.instructionIds||[];
+ const missing=ids.filter(id=>!catalogInstruction(String(id))&&!(facingInstructionLibrary?.prayers||[]).some(p=>(p.instructions||[]).some(e=>String(e.instruction_id)===String(id))));
+ const layout=instructionLayout(instructionTextForPage(state).join(" "));
+ return {...layout,missing};
+}
 function storeCustomInstruction(name,value,existingId=null){
  const items=customInstructionCatalog(),old=items.find(e=>e.id===existingId);
  const id=old?.id||"V3-"+Date.now()+"-"+Math.random().toString(36).slice(2,7);
@@ -572,6 +607,13 @@ function renderFacingInstructions(){
   panel.append(select);
   const count=document.createElement("div");count.className="instruction-count";
   count.textContent=entries.length+" instruction"+(entries.length===1?"":"s")+" on this page";panel.append(count);
+  const fit=instructionFitForState(state);
+  if(fit.trimmed||fit.missing.length){
+   const notice=document.createElement("p");notice.setAttribute("role","alert");
+   notice.textContent=(fit.trimmed?"Warning: "+fit.totalLines+" lines exceed the "+fit.maxLines+"-line top instruction field. PDF display will be trimmed; instruction database text is unchanged. ":"")+
+    (fit.missing.length?"Missing instruction IDs: "+fit.missing.join(", "):"");
+   panel.append(notice);
+  }
   const add=document.createElement("button");add.type="button";add.textContent="+ Add instruction";
   const addStatus=document.createElement("span");addStatus.setAttribute("role","status");
   add.onclick=async()=>{
@@ -580,6 +622,10 @@ function renderFacingInstructions(){
    if(entries.some(e=>e.id===template.id)){addStatus.textContent="This instruction is already assigned to this page.";return;}
    add.disabled=true;addStatus.textContent="Adding instruction…";
    const next=[...entries,{id:template.id,text:template.text}];
+   const nextFit=instructionFitForState({...state,instructionIds:next.map(e=>e.id)});
+   if(nextFit.trimmed&&!window.confirm("The combined instructions need "+nextFit.totalLines+" lines, but the top instruction field fits "+nextFit.maxLines+". The PDF display will be trimmed. The database text will not change. Add anyway?")){
+    add.disabled=false;addStatus.textContent="Instruction not added.";return;
+   }
    const previous=[...state.instructionIds],previousApproval=state.highlightConfirmed;
    state.instructionIds=next.map(e=>String(e.id));state.highlightConfirmed=false;
    try{
@@ -3443,7 +3489,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  // Do not paint white rectangles over its section borders or reconstruct them.
  // Place editable text only inside its pre-existing blank regions.
  const instructions=instructionTextForPage(state).filter(x=>String(x||"").trim());
- const render=async(text,x,y,w,h,{fontSize=12,color="#182c36",rtl=false}={})=>{
+ const render=async(text,x,y,w,h,{fontSize=12,color="#182c36",rtl=false,prewrapped=false}={})=>{
   const factor=3,canvas=document.createElement("canvas");
   canvas.width=Math.round(w*factor);canvas.height=Math.round(h*factor);
   const ctx=canvas.getContext("2d");
@@ -3451,7 +3497,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
   ctx.fillStyle=color;ctx.textBaseline="top";
   ctx.direction=rtl?"rtl":"ltr";ctx.textAlign=rtl?"right":"left";
   const safeText=String(text||"").replace(/י[\u0591-\u05c7]*ה[\u0591-\u05c7]*ו[\u0591-\u05c7]*ה[\u0591-\u05c7]*/g,"ה׳");
-  const words=safeText.split(/\s+/).filter(Boolean),lines=[];let line="";
+  const words=prewrapped?[]:safeText.split(/\s+/).filter(Boolean),lines=prewrapped?safeText.split("\\n"):[];let line="";
   for(const word of words){
    const trial=line?line+" "+word:word;
    if(ctx.measureText(trial).width>canvas.width-18&&line){lines.push(line);line=word;}
@@ -3467,7 +3513,8 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  };
  if(instructions.length){
   const joined=instructions.join(" ");
-  await render(joined,textX+3,648,374,54,{fontSize:12,rtl:/[\u0590-\u05ff]/.test(joined)});
+  const fitted=instructionLayout(joined);
+  await render(fitted.lines.join("\\n"),textX+3,648,374,54,{fontSize:12,rtl:/[\\u0590-\\u05ff]/.test(joined),prewrapped:true});
  }
  const plan=v3CuePlan(record,side);
  for(const row of plan){
