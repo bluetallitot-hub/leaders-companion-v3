@@ -2479,7 +2479,7 @@ async function checkpointWrite(){
  if(!sourcePdfBytes)throw Error("No source PDF loaded.");
  const snapshot={schema:"leaders-companion-checkpoint-v1",savedAt:new Date().toISOString(),
   filename,sourcePages:sourcePdfPages,sourceBytes:sourcePdfBytes.length,
-  coverMetadata,sections:serviceManifest?.sections||[],spreads:[...savedSpreadRecords.entries()],excludedFromProof:[...excludedFromProof],cueTextEdits:[...cueTextEdits.entries()],
+  coverMetadata,sectionCoverMetadata,sections:serviceManifest?.sections||[],spreads:[...savedSpreadRecords.entries()],excludedFromProof:[...excludedFromProof],cueTextEdits:[...cueTextEdits.entries()],
   cueRoleEdits:[...cueRoleEdits.entries()],renderedSpreadPdfs:[...renderedSpreadPdfs.entries()],assembledWorkingPdf};
  const db=await checkpointDb();
  try{
@@ -2503,6 +2503,7 @@ async function checkpointRead(){
  });}finally{db.close();}
  if(!snapshot||snapshot.sourceBytes!==sourcePdfBytes.length||snapshot.sourcePages!==sourcePdfPages)return false;
  coverMetadata=snapshot.coverMetadata||coverMetadata;
+ sectionCoverMetadata=snapshot.sectionCoverMetadata||sectionCoverMetadata;
  if(serviceManifest&&snapshot.sections)serviceManifest.sections=snapshot.sections;
  spreadEdits.clear();savedSpreadRecords.clear();
  for(const [key,value] of snapshot.spreads||[]){spreadEdits.set(Number(key),value);savedSpreadRecords.set(Number(key),JSON.parse(JSON.stringify(value)));}
@@ -2997,6 +2998,22 @@ function workingCopyStatus(){
 }
 // Metadata records are authoritative. Master text anchors supply positions and font sizes.
 let coverMetadata={serviceName:"",subtitle:"",congregation:"",edition:""};
+// Metadata owned by the generated section-cover page, not the service cover.
+let sectionCoverMetadata=null;
+function initializeSectionCoverMetadata(){
+ if(sectionCoverMetadata?.title)return;
+ const first=(serviceManifest?.sections||[]).find(s=>s.status==="confirmed"&&String(s.title||"").trim());
+ const service=String(serviceManifest?.serviceName||coverMetadata.serviceName||"").trim();
+ sectionCoverMetadata={pageType:"section-cover",sectionId:first?.sectionId||"SEC-001",
+  title:String(first?.title||(/^Friday Evening$/i.test(service)?"Kabbalat Shabbat":"")).trim(),
+  parentService:service,titleApproved:!!first||/^Friday Evening$/i.test(service)};
+}
+function sectionCoverTitle(){
+ initializeSectionCoverMetadata();
+ const title=String(sectionCoverMetadata?.title||"").trim();
+ if(!title||!sectionCoverMetadata.titleApproved)throw Error("Approve the section cover title in Edit section cover metadata.");
+ return title;
+}
 function effectiveCover(){return {...coverMetadata,serviceName:coverMetadata.serviceName||serviceManifest?.serviceName||filename};}
 function editableSectionRecords(){return confirmedSections();}
 // V3.314: publication masters are rendered from metadata and approved geometry.
@@ -3105,6 +3122,29 @@ function showCoverEditor(){
   saveCheckpointNow().catch(e=>status(e.message));dialog.close();dialog.remove();
  };dialog.append(save);document.body.append(dialog);dialog.showModal();
 }
+function showSectionCoverEditor(){
+ initializeSectionCoverMetadata();
+ document.getElementById("section-cover-metadata-dialog")?.remove();
+ const dialog=document.createElement("dialog");dialog.id="section-cover-metadata-dialog";dialog.style.cssText="padding:24px;width:min(550px,90vw)";
+ const heading=document.createElement("h2");heading.textContent="Section cover page metadata";dialog.append(heading);
+ const info=document.createElement("p");info.textContent="Page type: Section Cover · Parent service: "+(sectionCoverMetadata.parentService||"Not set");dialog.append(info);
+ const label=document.createElement("label");label.textContent="Section title ";
+ const input=document.createElement("input");input.value=sectionCoverMetadata.title||"";input.required=true;label.append(input);dialog.append(label);
+ const save=document.createElement("button");save.type="button";save.textContent="Approve and save section title";
+ const message=document.createElement("p");message.setAttribute("role","status");
+ save.onclick=async()=>{
+  const title=input.value.trim();if(!title){message.textContent="Enter a section title.";return;}
+  const previous=sectionCoverMetadata,previousPdf=assembledWorkingPdf;
+  sectionCoverMetadata={...previous,pageType:"section-cover",title,titleApproved:true};
+  save.disabled=true;
+  try{assembledWorkingPdf=await assembleCachedWorkingPdf();await checkpointWrite();dialog.close();dialog.remove();}
+  catch(error){sectionCoverMetadata=previous;assembledWorkingPdf=previousPdf;message.textContent="Not saved: "+error.message;save.disabled=false;}
+ };
+ dialog.append(document.createElement("br"),save,message);document.body.append(dialog);dialog.showModal();
+}
+const sectionCoverButton=document.createElement("button");sectionCoverButton.type="button";
+sectionCoverButton.textContent="Edit section cover metadata";sectionCoverButton.onclick=showSectionCoverEditor;
+document.getElementById("download-front-matter")?.parentElement?.append(sectionCoverButton);
 const coverButton=document.createElement("button");coverButton.type="button";coverButton.textContent="Edit cover metadata";
 coverButton.onclick=showCoverEditor;
 document.getElementById("download-front-matter")?.parentElement?.append(coverButton);
@@ -3142,7 +3182,7 @@ async function assembleCachedWorkingPdf(){
  const expected=3+records.length;
  await createMasterFrontMatter(out,{includeSections:false,totalPages:expected});
  const firstSection=editableSectionRecords()[0]||null;
- const sectionTitle=String(firstSection?.title||effectiveCover().serviceName||"").trim();
+ const sectionTitle=sectionCoverTitle();
  // Contents represents the FIRST section only, with one entry per prayer
  // (not one entry per page). Never silently truncate or add another contents page.
  const sections=editableSectionRecords();
@@ -3696,6 +3736,7 @@ async function restoreSiddurIntake(){
  sourcePdfPages=source.numPages;selectedSpreadFirst=1;spreadEdits.clear();resetIncrementalPdfState();cueRoleEdits.clear();
  updateIntakeInventory();
  await checkpointRead();
+ initializeSectionCoverMetadata();
  await ensureInitialWorkingPdf();
  await loadSelectedSpread();
  status("Restored "+data.pdfName+" and "+importedCues.length+" cue rows. The PDF contains selected service pages.");
