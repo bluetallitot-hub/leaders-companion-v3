@@ -4,7 +4,8 @@
   "source": {
     "summaries": "data/summary-library-v2-seed.json",
     "instructions": "data/instruction-library-v2-seed.json",
-    "method": "exact normalized prayer-name matching; explicit cue-ID instruction provenance only; no inferred instruction associations"
+    "method": "exact normalized prayer-name matching; explicit cue-ID instruction provenance only; no inferred instruction associations",
+    "instructionAssociations": "Explicit instruction_id in data/SH-FE_V3_Intake_v2.0.csv, matched to unique prayer identity by cue ID or exact prayer name"
   },
   "prayers": [
     {
@@ -20,7 +21,9 @@
       "summaryIds": [
         "SUM-001"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-008"
+      ],
       "sourceCueIds": [
         "SH-FE-C001"
       ],
@@ -42,7 +45,9 @@
       "summaryIds": [
         "SUM-002"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-009"
+      ],
       "sourceCueIds": [
         "SH-FE-C002"
       ],
@@ -64,7 +69,9 @@
       "summaryIds": [
         "SUM-003"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-010"
+      ],
       "sourceCueIds": [
         "SH-FE-C003"
       ],
@@ -86,7 +93,9 @@
       "summaryIds": [
         "SUM-004"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-011"
+      ],
       "sourceCueIds": [
         "SH-FE-C004"
       ],
@@ -108,7 +117,9 @@
       "summaryIds": [
         "SUM-005"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-012"
+      ],
       "sourceCueIds": [
         "SH-FE-C005",
         "SH-FE-C007",
@@ -134,7 +145,9 @@
       "summaryIds": [
         "SUM-006"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-013"
+      ],
       "sourceCueIds": [
         "SH-FE-C006"
       ],
@@ -156,7 +169,9 @@
       "summaryIds": [
         "SUM-007"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-013"
+      ],
       "sourceCueIds": [
         "SH-FE-C008"
       ],
@@ -178,7 +193,9 @@
       "summaryIds": [
         "SUM-008"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-013"
+      ],
       "sourceCueIds": [
         "SH-FE-C010"
       ],
@@ -200,7 +217,9 @@
       "summaryIds": [
         "SUM-009"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-013"
+      ],
       "sourceCueIds": [
         "SH-FE-C012"
       ],
@@ -222,7 +241,9 @@
       "summaryIds": [
         "SUM-010"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-012"
+      ],
       "sourceCueIds": [
         "SH-FE-C014"
       ],
@@ -244,7 +265,9 @@
       "summaryIds": [
         "SUM-011"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-009"
+      ],
       "sourceCueIds": [
         "SH-FE-C015"
       ],
@@ -266,7 +289,9 @@
       "summaryIds": [
         "SUM-012"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-010"
+      ],
       "sourceCueIds": [
         "SH-FE-C016"
       ],
@@ -288,7 +313,9 @@
       "summaryIds": [
         "SUM-013"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-012"
+      ],
       "sourceCueIds": [
         "SH-FE-C017"
       ],
@@ -310,7 +337,9 @@
       "summaryIds": [
         "SUM-014"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-009"
+      ],
       "sourceCueIds": [
         "SH-FE-C018"
       ],
@@ -332,7 +361,9 @@
       "summaryIds": [
         "SUM-015"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-010"
+      ],
       "sourceCueIds": [
         "SH-FE-C019"
       ],
@@ -358,7 +389,9 @@
       "summaryIds": [
         "SUM-016"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-010"
+      ],
       "sourceCueIds": [
         "SH-FE-C020",
         "SH-FE-C035"
@@ -393,7 +426,9 @@
       "summaryIds": [
         "SUM-017"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-011"
+      ],
       "sourceCueIds": [
         "SH-FE-C021",
         "SH-FE-C051",
@@ -422,7 +457,9 @@
       "summaryIds": [
         "SUM-018"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-013"
+      ],
       "sourceCueIds": [
         "SH-FE-C022",
         "RH-AM-C012"
@@ -445,7 +482,9 @@
       "summaryIds": [
         "SUM-019"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-010"
+      ],
       "sourceCueIds": [
         "SH-FE-C023"
       ],
@@ -467,7 +506,9 @@
       "summaryIds": [
         "SUM-020"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-013"
+      ],
       "sourceCueIds": [
         "SH-FE-C024"
       ],
@@ -489,7 +530,9 @@
       "summaryIds": [
         "SUM-021"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-010"
+      ],
       "sourceCueIds": [
         "SH-FE-C025"
       ],
@@ -542,7 +585,9 @@
       "summaryIds": [
         "SUM-023"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-015"
+      ],
       "sourceCueIds": [
         "SH-FE-C027",
         "YK-KN-C032"
@@ -598,7 +643,9 @@
       "summaryIds": [
         "SUM-025"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-015"
+      ],
       "sourceCueIds": [
         "SH-FE-C029",
         "RH-AM-C021"
@@ -625,7 +672,9 @@
       "summaryIds": [
         "SUM-026"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-010"
+      ],
       "sourceCueIds": [
         "SH-FE-C030",
         "RH-AM-C022"
@@ -652,7 +701,9 @@
       "summaryIds": [
         "SUM-027"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-009"
+      ],
       "sourceCueIds": [
         "SH-FE-C031",
         "YK-KN-C034"
@@ -697,7 +748,9 @@
       "summaryIds": [
         "SUM-029"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-012"
+      ],
       "sourceCueIds": [
         "SH-FE-C033"
       ],
@@ -719,7 +772,9 @@
       "summaryIds": [
         "SUM-030"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-012"
+      ],
       "sourceCueIds": [
         "SH-FE-C034"
       ],
@@ -741,7 +796,9 @@
       "summaryIds": [
         "SUM-031"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-016"
+      ],
       "sourceCueIds": [
         "SH-FE-C036"
       ],
@@ -763,7 +820,9 @@
       "summaryIds": [
         "SUM-032"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-013"
+      ],
       "sourceCueIds": [
         "SH-FE-C037"
       ],
@@ -785,7 +844,9 @@
       "summaryIds": [
         "SUM-033"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-015"
+      ],
       "sourceCueIds": [
         "SH-FE-C038"
       ],
@@ -815,7 +876,9 @@
       "summaryIds": [
         "SUM-034"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-013"
+      ],
       "sourceCueIds": [
         "SH-FE-C039",
         "RH-AM-C029",
@@ -839,7 +902,9 @@
       "summaryIds": [
         "SUM-035"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-017"
+      ],
       "sourceCueIds": [
         "SH-FE-C040"
       ],
@@ -869,7 +934,9 @@
       "summaryIds": [
         "SUM-036"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-018"
+      ],
       "sourceCueIds": [
         "SH-FE-C041",
         "RH-AM-C032",
@@ -901,7 +968,9 @@
       "summaryIds": [
         "SUM-037"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-012"
+      ],
       "sourceCueIds": [
         "SH-FE-C042",
         "RH-AM-C033",
@@ -925,7 +994,9 @@
       "summaryIds": [
         "SUM-038"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-012"
+      ],
       "sourceCueIds": [
         "SH-FE-C043"
       ],
@@ -947,7 +1018,9 @@
       "summaryIds": [
         "SUM-039"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-012"
+      ],
       "sourceCueIds": [
         "SH-FE-C044"
       ],
@@ -969,7 +1042,9 @@
       "summaryIds": [
         "SUM-040"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-012"
+      ],
       "sourceCueIds": [
         "SH-FE-C045"
       ],
@@ -991,7 +1066,9 @@
       "summaryIds": [
         "SUM-041"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-015"
+      ],
       "sourceCueIds": [
         "SH-FE-C046"
       ],
@@ -1013,7 +1090,9 @@
       "summaryIds": [
         "SUM-042"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-012"
+      ],
       "sourceCueIds": [
         "SH-FE-C047"
       ],
@@ -1039,7 +1118,9 @@
       "summaryIds": [
         "SUM-043"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-019"
+      ],
       "sourceCueIds": [
         "SH-FE-C048",
         "RH-AM-C073"
@@ -1066,7 +1147,9 @@
       "summaryIds": [
         "SUM-044"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-020"
+      ],
       "sourceCueIds": [
         "SH-FE-C049",
         "RH-AM-C074"
@@ -1084,7 +1167,9 @@
       "summaryIds": [
         "SUM-045"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-021"
+      ],
       "sourceCueIds": [
         "SH-FE-C050",
         "RH-FE-C046"
@@ -1115,7 +1200,9 @@
       "summaryIds": [
         "SUM-046"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-012"
+      ],
       "sourceCueIds": [
         "SH-FE-C052",
         "RH-AM-C134",
@@ -1139,7 +1226,9 @@
       "summaryIds": [
         "SUM-047"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-012"
+      ],
       "sourceCueIds": [
         "SH-FE-C053"
       ],
@@ -1161,7 +1250,9 @@
       "summaryIds": [
         "SUM-048"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-012"
+      ],
       "sourceCueIds": [
         "SH-FE-C054"
       ],
@@ -1183,7 +1274,9 @@
       "summaryIds": [
         "SUM-049"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-022"
+      ],
       "sourceCueIds": [
         "SH-FE-C055"
       ],
@@ -1205,7 +1298,9 @@
       "summaryIds": [
         "SUM-050"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-023"
+      ],
       "sourceCueIds": [
         "SH-FE-C056"
       ],
@@ -2285,7 +2380,9 @@
       "summaryIds": [
         "SUM-098"
       ],
-      "instructionIds": [],
+      "instructionIds": [
+        "INS-004"
+      ],
       "sourceCueIds": [
         "RH-AM-C045",
         "SH-FE-C001A"
@@ -13999,6 +14096,62 @@
       "kind": "instruction-needs-prayer-association",
       "instructionId": "PAPER-G",
       "name": "Green — Second Day"
+    },
+    {
+      "kind": "csv-instruction-association-unresolved",
+      "cue": "SH-FE-C026",
+      "prayer": "Shema",
+      "instruction": "INS-014",
+      "matches": 2,
+      "found": true
+    },
+    {
+      "kind": "csv-instruction-association-unresolved",
+      "cue": "SH-FE-C032",
+      "prayer": "Mi Chamocha",
+      "instruction": "INS-012",
+      "matches": 2,
+      "found": true
+    },
+    {
+      "kind": "csv-instruction-association-unresolved",
+      "cue": "SH-FE-C057",
+      "prayer": "Our God, God of Our Fathers",
+      "instruction": "INS-013",
+      "matches": 0,
+      "found": true
+    },
+    {
+      "kind": "csv-instruction-association-unresolved",
+      "cue": "SH-FE-C048B",
+      "prayer": "Hashkavot Names",
+      "instruction": "INS-019",
+      "matches": 0,
+      "found": true
+    },
+    {
+      "kind": "csv-instruction-association-unresolved",
+      "cue": "SH-FE-C048A",
+      "prayer": "Hashkavot Ending",
+      "instruction": "INS-019",
+      "matches": 0,
+      "found": true
+    },
+    {
+      "kind": "csv-instruction-association-unresolved",
+      "cue": "SH-FE-C055A",
+      "prayer": "Sabbath Blessings — Ladino",
+      "instruction": "INS-022",
+      "matches": 0,
+      "found": true
+    },
+    {
+      "kind": "csv-instruction-association-unresolved",
+      "cue": "SH-FE-C055B",
+      "prayer": "Sabbath Blessings — English",
+      "instruction": "INS-022",
+      "matches": 0,
+      "found": true
     }
   ],
   "schemaNotes": "Prayer identity has canonical English and Hebrew names. Blank Hebrew names are unverified and must not be invented. Both save actions must persist changes through an authenticated write service before reporting success."
