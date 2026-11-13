@@ -55,3 +55,6 @@ The generated section cover now has `sectionCoverMetadata` (pageType, sectionId,
 
 ## V3.345 — 2026-11-13 — inline cue metadata editing (NOT BROWSER VERIFIED)
 The cue editor now displays editable prayer name, role code and style fields where the previous read-only prayer/Role/Style labels appeared. Save cue metadata updates the current page cue, matching page cue/highlight role references, in-memory imported cue row, and current spread edits. User must Save Project Checkpoint to persist the spread; source CSV persistence and full reload regression are not yet verified. Commits 384b925de19c70e0d7df2b1ee3d3af64c726c270, 4d473c660d866a6318b831a1af0b39497a3dbc03, 7913c316fde4c76841cb3176f0a73e4867223a0f. V3.345. Browser/CI verification pending.
+
+## V3.346 — 2026-11-13 — cue role/style dropdowns (BROWSER UNVERIFIED)
+Replaced free-text role code and style inputs in selected-cue metadata with dropdowns. Role choices use cueRoleOptions plus imported cue role codes; style choices use SOLO/RESP/UNISON plus observed imported/current page styles. Selection is set from active cue whenever renderPageCueEditor runs, including cue number change. Save cue metadata behavior unchanged. JS commit 51ff74555411bf4a47e6dd7a7f10c66b0a463b2a; HTML/cache bbdc30fd05161de2c43a06b6ef1e319c126e5674, 6440edf1f20773e90d09d61e6f2bb7e72e6d5d88. Browser/CI not yet verified.
