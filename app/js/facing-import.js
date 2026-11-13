@@ -2493,7 +2493,7 @@ async function checkpointWrite(){
  if(!sourcePdfBytes)throw Error("No source PDF loaded.");
  const snapshot={schema:"leaders-companion-checkpoint-v1",savedAt:new Date().toISOString(),
   filename,sourcePages:sourcePdfPages,sourceBytes:sourcePdfBytes.length,
-  coverMetadata,sections:serviceManifest?.sections||[],spreads:[...spreadEdits.entries()],cueTextEdits:[...cueTextEdits.entries()],
+  coverMetadata,sections:serviceManifest?.sections||[],spreads:[...spreadEdits.entries()],excludedFromProof:[...excludedFromProof],cueTextEdits:[...cueTextEdits.entries()],
   cueRoleEdits:[...cueRoleEdits.entries()]};
  const db=await checkpointDb();
  try{
@@ -2503,6 +2503,7 @@ async function checkpointWrite(){
    tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);
   });
  }finally{db.close();}
+ excludedFromProof=new Set();
  explicitlySavedPages=new Map(snapshot.spreads.flatMap(([,spread])=>(spread.pages||[]).filter(Boolean).map(record=>[Number(record.sourcePdfPage||record.source?.sourcePdfPage),JSON.parse(JSON.stringify(record))])).filter(([n])=>Number.isInteger(n)&&n>0));
  const label=$("checkpoint-status");if(label)label.textContent="Saved locally: "+snapshot.savedAt+" — "+explicitlySavedPages.size+" pages in checkpoint, "+verifiedWorkingPages().length+" approved.";
  return snapshot;
@@ -2520,6 +2521,7 @@ async function checkpointRead(){
  if(serviceManifest&&snapshot.sections)serviceManifest.sections=snapshot.sections;
  spreadEdits.clear();
  for(const [key,value] of snapshot.spreads||[])spreadEdits.set(Number(key),value);
+ excludedFromProof=new Set(snapshot.excludedFromProof||[]);
  explicitlySavedPages=new Map((snapshot.spreads||[]).flatMap(([,spread])=>(spread.pages||[]).filter(Boolean).map(record=>[Number(record.sourcePdfPage||record.source?.sourcePdfPage),JSON.parse(JSON.stringify(record))])).filter(([n])=>Number.isInteger(n)&&n>0));
  cueTextEdits.clear();for(const [key,value] of snapshot.cueTextEdits||[])cueTextEdits.set(key,value);
  cueRoleEdits.clear();for(const [key,value] of snapshot.cueRoleEdits||[])cueRoleEdits.set(key,value);
@@ -2913,11 +2915,12 @@ function workingPages(){
 // A saved checkpoint, not mere navigation or automatic OCR, defines the
 // exportable working set. The user can inspect this list before PDF proof.
 let explicitlySavedPages=new Map();
+let excludedFromProof=new Set();
 function checkpointSavedPages(){
  return [...explicitlySavedPages].sort((a,b)=>a[0]-b[0]);
 }
 function verifiedWorkingPages(){
- return checkpointSavedPages().filter(([,record])=>pageApprovalCurrent(record));
+ return checkpointSavedPages().filter(([n,record])=>!excludedFromProof.has(n)&&pageApprovalCurrent(record));
 }
 function showSavedPageInventory(){
  const pages=checkpointSavedPages();
@@ -2925,6 +2928,15 @@ function showSavedPageInventory(){
  const text="SAVED CHECKPOINT — "+pages.length+" pages\n"+(lines.join("\n")||"No pages have been explicitly saved yet.");
  const dialog=document.createElement("dialog");dialog.style.cssText="padding:22px;max-width:min(760px,94vw);max-height:80vh;overflow:auto";
  const heading=document.createElement("h2");heading.textContent="Pages actually saved";dialog.append(heading);
+ const explanation=document.createElement("p");explanation.textContent="Check only the saved, approved pages to include in the next PDF proof. Draft pages cannot be included until approved.";dialog.append(explanation);
+ for(const [n,record] of pages){
+  const label=document.createElement("label");label.style.cssText="display:block;padding:6px 0";
+  const check=document.createElement("input");check.type="checkbox";
+  check.checked=!excludedFromProof.has(n)&&pageApprovalCurrent(record);check.disabled=!pageApprovalCurrent(record);
+  check.onchange=()=>{if(check.checked)excludedFromProof.delete(n);else excludedFromProof.add(n);invalidateFinalPdfProof();};
+  label.append(check,document.createTextNode(" Source page "+n+" — "+(approvedPrayerName(record)||"Prayer title missing")+" ("+(pageApprovalCurrent(record)?"approved":"draft")+")"));
+  dialog.append(label);
+ }
  const pre=document.createElement("pre");pre.style.cssText="white-space:pre-wrap;line-height:1.6";pre.textContent=text;dialog.append(pre);
  const close=document.createElement("button");close.textContent="Close";close.onclick=()=>dialog.close();dialog.append(close);
  dialog.addEventListener("close",()=>dialog.remove());document.body.append(dialog);dialog.showModal();
@@ -3480,7 +3492,7 @@ let finalPdfProof=null,finalPdfProofUrl=null;
 function finalPdfSignature(){
  saveCurrentSpreadEdits();
  return JSON.stringify({pages:checkpointSavedPages(),sections:editableSectionRecords(),cover:effectiveCover(),
-  service:serviceManifest,filename,sourcePages:sourcePdfPages});
+  service:serviceManifest,filename,sourcePages:sourcePdfPages,excluded:[...excludedFromProof]});
 }
 function invalidateFinalPdfProof(){
  finalPdfProof=null;
