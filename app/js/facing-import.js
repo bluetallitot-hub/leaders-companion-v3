@@ -3667,10 +3667,8 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
    const left=leftToRight
     ?slotStart+(slotEnd-slotStart)*fraction
     :slotEnd-(slotEnd-slotStart)*fraction;
-   // White knockout behind the identifier keeps the gray track from
-   // running through the future 10pt text; geometry remains unchanged.
-   page.drawRectangle({x:left,y:statusY+.5,width:slotW,height:statusH-1,
-    color:PDFLib.rgb(1,1,1)});
+   // Keep the gray track continuous; a text backing can be added when
+   // actual verified identifiers are introduced.
    const markerX=leftToRight?left+markerDiameter/2:left+slotW-markerDiameter/2;
    page.drawCircle({x:markerX,y:centerY,size:markerDiameter/2,color:red});
    // Remaining 38pt is reserved for the verified V2 tag/subtag identifier.
