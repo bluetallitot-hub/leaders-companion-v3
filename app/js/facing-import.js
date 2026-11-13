@@ -3027,7 +3027,7 @@ async function drawApprovedPageFields(page,record,side,out,font,bold){
  drawKnownFrameworkFields(page,{...record,leadership:{...state,cues:[]},instructionText:""},side,font,bold,{cues:[],instructionText:""});
 }
 // One authoritative PDF page renderer for both live facing-page preview and final export.
-async async function renderCanonicalSiddurPage({out,master,source,sourceIndex,record,side,font,bold}){
+async function renderCanonicalSiddurPage({out,master,source,sourceIndex,record,side,font,bold}){
   const masterIndex=master.getPageCount()>1?Math.min(side,master.getPageCount()-1):0;
   const [masterPage]=await out.copyPages(master,[masterIndex]);
   const page=out.addPage(masterPage);
