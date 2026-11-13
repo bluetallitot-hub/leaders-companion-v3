@@ -3070,7 +3070,7 @@ async function drawApprovedContentsPage(out,entries){
  entries.forEach((entry,i)=>{
   const y=V314.section.firstEntryY-i*V314.section.entryStep;
   v314Text(page,entry.title,{x:70,y,size:13,font,maxWidth:385});
-  v314Text(page,String(entry.page),{x:542,y,size:13,font,align:"right",maxWidth:68});
+  v314Text(page,String(entry.page),{x:542,y,size:String(entry.page)==="Supplement"?10:13,font,align:"right",maxWidth:68});
  });
  return page;
 }
@@ -3154,7 +3154,7 @@ async function assembleCachedWorkingPdf(){
  for(const [index,record] of firstRecords){
   const title=String(approvedPrayerName(record)||record?.identification?.prayerName||"Source page "+index).trim();
   if(!byPrayer.has(title))byPrayer.set(title,{
-   title,page:String(record?.source?.originalPageNumber||record?.identification?.printedPageNumber||index)
+   title,page:(()=>{const ref=String(record?.source?.originalPageNumber||record?.identification?.printedPageNumber||"").trim();return /^SUP[-_]/i.test(ref)?"Supplement":ref||String(index);})()
   });
  }
  const entries=[...byPrayer.values()];
