@@ -3149,7 +3149,12 @@ async function renderCanonicalSiddurPage({out,master,source,sourceIndex,record,s
   const masterIndex=master.getPageCount()>1?Math.min(side,master.getPageCount()-1):0;
   const [masterPage]=await out.copyPages(master,[masterIndex]);
   const page=out.addPage(masterPage);
+  const {width:masterWidth,height:masterHeight}=masterPage.getSize();
+  if(Math.abs(masterWidth-W)>.5||Math.abs(masterHeight-H)>.5)
+   throw Error("Approved Siddur master page "+(masterIndex+1)+" is "+masterWidth+" × "+masterHeight+"; expected "+W+" × "+H+". Refusing to overlay incorrect geometry.");
   const region=REGIONS[side],pad=6;
+  if(region.x<0||region.y<0||region.x+region.w>masterWidth||region.y+region.h>masterHeight)
+   throw Error("Siddur source region exceeds the approved master page bounds.");
   // Export the same cleaned, cropped Siddur content used by the Facing Editor,
   // not a scaled copy of the original uncropped PDF page.
   const sourcePage=await source.getPage(sourceIndex);
