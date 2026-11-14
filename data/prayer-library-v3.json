@@ -15135,6 +15135,15 @@
       "originalVerse": "",
       "englishLabel": "Concluding Bracha",
       "hebrewLabel": "ברכה"
+    },
+    {
+      "parentPrayerId": "PR-0020",
+      "prayerId": "PR-0021",
+      "number": 2,
+      "component": "Hebrew Final",
+      "originalVerse": "",
+      "englishLabel": "Vahavtcha",
+      "hebrewLabel": "ואהבתך"
     }
   ]
 }
