@@ -62,7 +62,7 @@
     },
     {
       "prayerId": "PR-0003",
-      "canonicalName": "Arbaim Shana",
+      "canonicalName": "Psalm 95",
       "aliases": [],
       "locations": [
         {
@@ -79,12 +79,12 @@
       "sourceCueIds": [
         "SH-FE-C003"
       ],
-      "englishName": "Arbaim Shana",
-      "hebrewName": "",
+      "englishName": "Psalm 95",
+      "hebrewName": "לכו נרננה",
       "aliasesEnglish": [],
       "aliasesHebrew": [],
-      "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortEnglishName": "Psalm 95",
+      "shortHebrewName": "לכו נרננה"
     },
     {
       "prayerId": "PR-0004",
@@ -8853,7 +8853,7 @@
     {
       "summaryId": "SUM-003",
       "prayerAction": "Arbaim Shana",
-      "summary": "“Arbaim Shana”—“forty years”—comes from the closing section of **Psalm 95:7–11**, attributed to **King David**. It recalls the wilderness generation that repeatedly tested God after the Exodus. Their forty years of wandering become a warning against hardening the heart and refusing to recognize God’s ways. The passage shifts the psalm from joyful praise to moral challenge: worship is incomplete unless hearing God leads to trust, responsiveness, and faithfulness.",
+      "summary": "Psalm 95 opens with a joyful invitation to worship the Lord then shifts dramatically from praise to warning, recalling the Israelites' rebellion. The psalm reminds us that worship requires more than joyful words; it demands listening, faithfulness, and a willingness to learn from the mistakes of previous generations. As the opening psalm of Kabbalat Shabbat, it invites us to enter sacred time with both gratitude and humility.",
       "status": "AI Draft",
       "notes": "",
       "linkedCueCount": "1",
