@@ -431,11 +431,11 @@
         "SH-FE-C035"
       ],
       "englishName": "Kaddish L'Ela",
-      "hebrewName": "",
+      "hebrewName": "קדיש לעילא",
       "aliasesEnglish": [],
       "aliasesHebrew": [],
-      "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortEnglishName": "Kaddish L'Ela",
+      "shortHebrewName": "קדיש לעילא"
     },
     {
       "prayerId": "PR-0017",
@@ -9049,7 +9049,7 @@
     {
       "summaryId": "SUM-016",
       "prayerAction": "Kaddish L'Ela",
-      "summary": "Kaddish is an **Aramaic** doxology magnifying and sanctifying God’s name and praying for divine sovereignty, redemption, life, and peace. Its central congregational response—“May His great name be blessed forever and ever”—became one of Jewish prayer’s most recognizable affirmations. The prayer contains no confession and little direct petition for the individual; its focus is the greatness of God and the hope that divine peace and wholeness will become manifest in the world.",
+      "summary": "Kaddish is an **Aramaic** doxology magnifying and sanctifying God’s name and praying for divine sovereignty, redemption, life, and peace. Its central congregational response—“May His great name be blessed forever and ever”—became one of Jewish prayer’s most recognizable affirmations. It is also known as Chatzi Kaddish. The prayer contains no confession and little direct petition for the individual; its focus is the greatness of God and the hope that divine peace and wholeness will become manifest in the world. Its use is primarily as a separator between sections of the service.",
       "status": "AI Draft",
       "notes": "",
       "linkedCueCount": "2",
