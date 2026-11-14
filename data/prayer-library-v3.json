@@ -480,7 +480,7 @@
     },
     {
       "prayerId": "PR-0018",
-      "canonicalName": "Blessed Art Thou",
+      "canonicalName": "Bringest Eventide",
       "aliases": [],
       "locations": [
         {
@@ -502,12 +502,12 @@
         "SH-FE-C022",
         "RH-AM-C012"
       ],
-      "englishName": "Blessed Art Thou",
-      "hebrewName": "",
+      "englishName": "Bringest Eventide",
+      "hebrewName": "מעריב ערבים",
       "aliasesEnglish": [],
       "aliasesHebrew": [],
-      "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortEnglishName": "Bringest Eventide",
+      "shortHebrewName": "מעריב ערבים"
     },
     {
       "prayerId": "PR-0019",
@@ -9067,7 +9067,7 @@
     {
       "summaryId": "SUM-018",
       "prayerAction": "Blessed Art Thou",
-      "summary": "Maariv Aravim treats nightfall as an act of creation renewed every evening: God changes times, orders the stars, and alternates light and darkness. On Rosh Hashanah evening that daily theology acquires unusual force. The congregation is not only watching one day become night but entering a new year. The blessing deliberately remains universal rather than mentioning Rosh Hashanah; the ordinary cycle of evening becomes the frame within which the extraordinary sacred day begins.",
+      "summary": "Maariv Aravim presents the arrival of night as an act of creation renewed every evening. The blessing praises the Lord for changing the times and seasons, ordering the stars, and alternating light and darkness. Rather than treating nightfall as merely a natural occurrence, it invites us to recognize the divine order underlying the daily cycle. As the first blessing before the evening Shema, it connects the rhythm of our daily lives to the ongoing work of creation, reminding us that each evening offers an opportunity to recognize the Lord's presence in the world.",
       "status": "AI Draft",
       "notes": "",
       "linkedCueCount": "2",
