@@ -28,11 +28,11 @@
         "SH-FE-C001"
       ],
       "englishName": "Blessing over Shabbat Candles",
-      "hebrewName": "",
+      "hebrewName": "הדלקת נרות",
       "aliasesEnglish": [],
       "aliasesHebrew": [],
-      "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortEnglishName": "Candles",
+      "shortHebrewName": "נרות"
     },
     {
       "prayerId": "PR-0002",
@@ -8835,7 +8835,7 @@
     {
       "summaryId": "SUM-001",
       "prayerAction": "Blessing over Shabbat Candles",
-      "summary": "The blessing over the Shabbat candles marks the transition from the ordinary week into sacred time. By lighting the candles before Shabbat and reciting the blessing, the home welcomes the holiness, peace, and rest of Shabbat.",
+      "summary": "The blessing over the Shabbat candles marks the transition from the ordinary week into sacred time. By lighting the candles before Shabbat and reciting the blessing, we welcome the holiness, peace, and rest of Shabbat.",
       "status": "AI Draft",
       "notes": "",
       "linkedCueCount": "1",
