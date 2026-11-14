@@ -15126,6 +15126,15 @@
       "originalVerse": "",
       "englishLabel": "Tzadik K'Tamar",
       "hebrewLabel": "צדיק כתמר"
+    },
+    {
+      "parentPrayerId": "PR-0018",
+      "prayerId": "PR-0019",
+      "number": 2,
+      "component": "Hebrew Final",
+      "originalVerse": "",
+      "englishLabel": "Concluding Bracha",
+      "hebrewLabel": "ברכה"
     }
   ]
 }
