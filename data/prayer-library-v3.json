@@ -136,11 +136,11 @@
         "SH-FE-C013"
       ],
       "englishName": "L'cha Dodi",
-      "hebrewName": "",
+      "hebrewName": "לכה דודי",
       "aliasesEnglish": [],
       "aliasesHebrew": [],
-      "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortEnglishName": "L'cha Dodi",
+      "shortHebrewName": "לכה דודי"
     },
     {
       "prayerId": "PR-0006",
@@ -12421,7 +12421,7 @@
     {
       "id": "INS-012",
       "name": "Hebrew Unison",
-      "text": "Please join in Hebrew.",
+      "text": "We sing the chorus in Hebrew and the verses are read in English",
       "category": "Participation",
       "status": "AI Draft",
       "notes": "Reusable for Hebrew UNISON units.",
