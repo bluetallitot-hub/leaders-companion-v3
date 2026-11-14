@@ -348,11 +348,11 @@
         "SH-FE-C017"
       ],
       "englishName": "Derabbanan Kaddish",
-      "hebrewName": "",
+      "hebrewName": "קדיש דרבנן",
       "aliasesEnglish": [],
       "aliasesHebrew": [],
-      "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortEnglishName": "Derabbanan Kaddish",
+      "shortHebrewName": "קדיש דרבנן"
     },
     {
       "prayerId": "PR-0014",
@@ -9022,7 +9022,7 @@
     {
       "summaryId": "SUM-013",
       "prayerAction": "Derabbanan Kaddish",
-      "summary": "Kaddish deRabbanan is an **Aramaic** form of Kaddish associated with Torah study and rabbinic teaching. In addition to magnifying God’s name, it asks for peace, grace, lovingkindness, and compassion upon Israel, the rabbis, their students, and all who engage in Torah. Its distinctive emphasis is the community of learning: study is treated not merely as intellectual activity but as sacred work deserving protection, blessing, and peace.",
+      "summary": "Kaddish deRabbanan is an **Aramaic** form of Kaddish associated with Torah study and rabbinic teaching. In addition to magnifying God’s name, it asks for peace, grace, lovingkindness, and compassion upon Israel, the rabbis, their students, and all who engage in Torah study (which we just did). The preceding reading is from the Talmud Berachot.",
       "status": "AI Draft",
       "notes": "",
       "linkedCueCount": "1",
