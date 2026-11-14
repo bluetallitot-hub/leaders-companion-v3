@@ -15144,6 +15144,33 @@
       "originalVerse": "",
       "englishLabel": "Vahavtcha",
       "hebrewLabel": "ואהבתך"
+    },
+    {
+      "parentPrayerId": "PR-0022",
+      "prayerId": "PR-0023",
+      "number": 2,
+      "component": "",
+      "originalVerse": "",
+      "englishLabel": "And Thou Shalt Love",
+      "hebrewLabel": "ואהבת"
+    },
+    {
+      "parentPrayerId": "PR-0022",
+      "prayerId": "PR-0024",
+      "number": 3,
+      "component": "",
+      "originalVerse": "",
+      "englishLabel": "And It Shall Be",
+      "hebrewLabel": "והיה אם שמע"
+    },
+    {
+      "parentPrayerId": "PR-0022",
+      "prayerId": "PR-0025",
+      "number": 4,
+      "component": "",
+      "originalVerse": "",
+      "englishLabel": "And the Lord Spoke",
+      "hebrewLabel": "ויאמר"
     }
   ]
 }
