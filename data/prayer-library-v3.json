@@ -15108,6 +15108,15 @@
       "originalVerse": "",
       "englishLabel": "Come with Rejoicing",
       "hebrewLabel": "בואי בשלום"
+    },
+    {
+      "parentPrayerId": "PR-0011",
+      "prayerId": "PR-0012",
+      "number": 2,
+      "component": "Hebrew Final",
+      "originalVerse": "",
+      "englishLabel": "Adonai Oz",
+      "hebrewLabel": "יי עז לעמו יתן"
     }
   ]
 }
