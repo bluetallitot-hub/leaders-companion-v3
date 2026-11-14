@@ -278,7 +278,7 @@
     },
     {
       "prayerId": "PR-0011",
-      "canonicalName": "Peace Within Thy",
+      "canonicalName": "Peace Within Thy Walls",
       "aliases": [],
       "locations": [
         {
@@ -295,12 +295,12 @@
       "sourceCueIds": [
         "SH-FE-C015"
       ],
-      "englishName": "Peace Within Thy",
-      "hebrewName": "",
+      "englishName": "Peace Within Thy Walls",
+      "hebrewName": "אמר רבי אליעזר",
       "aliasesEnglish": [],
       "aliasesHebrew": [],
-      "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortEnglishName": "Peace within Thy Walls",
+      "shortHebrewName": "אמר רבי אליעזר"
     },
     {
       "prayerId": "PR-0012",
