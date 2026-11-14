@@ -15180,6 +15180,15 @@
       "originalVerse": "",
       "englishLabel": "LeMaan Tizkeru",
       "hebrewLabel": "למען"
+    },
+    {
+      "parentPrayerId": "PR-0027",
+      "prayerId": "PR-0028",
+      "number": 2,
+      "component": "Hebrew Final",
+      "originalVerse": "",
+      "englishLabel": "Mi Chamocha",
+      "hebrewLabel": "מי כמכה"
     }
   ]
 }
