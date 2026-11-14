@@ -271,7 +271,10 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "archived": true,
+      "archivedReason": "Removed from active master prayer dropdown by user request; retain canonical record and associations",
+      "archivedAt": "2026-11-14"
     },
     {
       "prayerId": "PR-0011",
