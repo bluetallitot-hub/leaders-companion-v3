@@ -140,7 +140,8 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "L'cha Dodi",
-      "shortHebrewName": "לכה דודי"
+      "shortHebrewName": "לכה דודי",
+      "mainSubsectionComponent": "Hebrew chorus"
     },
     {
       "prayerId": "PR-0006",
@@ -8829,6 +8830,81 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": ""
+    },
+    {
+      "prayerId": "PR-0387",
+      "canonicalName": "Candles",
+      "englishName": "Candles",
+      "hebrewName": "נרות",
+      "shortEnglishName": "",
+      "shortHebrewName": "",
+      "aliases": [],
+      "aliasesEnglish": [],
+      "aliasesHebrew": [],
+      "locations": [],
+      "summaryIds": [],
+      "instructionIds": [],
+      "sourceCueIds": []
+    },
+    {
+      "prayerId": "PR-0388",
+      "canonicalName": "Shake off",
+      "englishName": "Shake off",
+      "hebrewName": "התנערי מעפר",
+      "shortEnglishName": "",
+      "shortHebrewName": "",
+      "aliases": [],
+      "aliasesEnglish": [],
+      "aliasesHebrew": [],
+      "locations": [],
+      "summaryIds": [],
+      "instructionIds": [],
+      "sourceCueIds": []
+    },
+    {
+      "prayerId": "PR-0389",
+      "canonicalName": "Stir Thyself",
+      "englishName": "Stir Thyself",
+      "hebrewName": "התעוררי התעוררי",
+      "shortEnglishName": "",
+      "shortHebrewName": "",
+      "aliases": [],
+      "aliasesEnglish": [],
+      "aliasesHebrew": [],
+      "locations": [],
+      "summaryIds": [],
+      "instructionIds": [],
+      "sourceCueIds": []
+    },
+    {
+      "prayerId": "PR-0390",
+      "canonicalName": "Shame and Dishonor",
+      "englishName": "Shame and Dishonor",
+      "hebrewName": "לא תבושי",
+      "shortEnglishName": "",
+      "shortHebrewName": "",
+      "aliases": [],
+      "aliasesEnglish": [],
+      "aliasesHebrew": [],
+      "locations": [],
+      "summaryIds": [],
+      "instructionIds": [],
+      "sourceCueIds": []
+    },
+    {
+      "prayerId": "PR-0391",
+      "canonicalName": "Those Who",
+      "englishName": "Those Who",
+      "hebrewName": "והיו למשיסה",
+      "shortEnglishName": "",
+      "shortHebrewName": "",
+      "aliases": [],
+      "aliasesEnglish": [],
+      "aliasesHebrew": [],
+      "locations": [],
+      "summaryIds": [],
+      "instructionIds": [],
+      "sourceCueIds": []
     }
   ],
   "summaries": [
@@ -14938,6 +15014,87 @@
       "hebrewLabel": "ארבעים שנה",
       "beginDesignation": "",
       "endDesignation": ""
+    },
+    {
+      "parentPrayerId": "PR-0005",
+      "prayerId": "PR-0006",
+      "number": 2,
+      "component": "",
+      "originalVerse": "",
+      "englishLabel": "Keep and Remember",
+      "hebrewLabel": "שמור וזכור"
+    },
+    {
+      "parentPrayerId": "PR-0005",
+      "prayerId": "PR-0007",
+      "number": 4,
+      "component": "",
+      "originalVerse": "",
+      "englishLabel": "Come Let Us Welcome",
+      "hebrewLabel": "לקראת שבת"
+    },
+    {
+      "parentPrayerId": "PR-0005",
+      "prayerId": "PR-0387",
+      "number": 6,
+      "component": "",
+      "originalVerse": "",
+      "englishLabel": "Zion God's City",
+      "hebrewLabel": "מקדש מלך"
+    },
+    {
+      "parentPrayerId": "PR-0005",
+      "prayerId": "PR-0388",
+      "number": 8,
+      "component": "",
+      "originalVerse": "",
+      "englishLabel": "Shake off",
+      "hebrewLabel": "התנערי מעפר"
+    },
+    {
+      "parentPrayerId": "PR-0005",
+      "prayerId": "PR-0389",
+      "number": 10,
+      "component": "",
+      "originalVerse": "",
+      "englishLabel": "Stir Thyself",
+      "hebrewLabel": "התעוררי התעוררי"
+    },
+    {
+      "parentPrayerId": "PR-0005",
+      "prayerId": "PR-0390",
+      "number": 12,
+      "component": "",
+      "originalVerse": "",
+      "englishLabel": "Shame and Dishonor",
+      "hebrewLabel": "לא תבושי"
+    },
+    {
+      "parentPrayerId": "PR-0005",
+      "prayerId": "PR-0391",
+      "number": 14,
+      "component": "",
+      "originalVerse": "",
+      "englishLabel": "Those Who",
+      "hebrewLabel": "והיו למשיסה"
+    },
+    {
+      "parentPrayerId": "PR-0005",
+      "prayerId": "PR-0008",
+      "number": 16,
+      "component": "",
+      "originalVerse": "",
+      "englishLabel": "Eastward and Westward",
+      "hebrewLabel": "ימין ושמול"
+    },
+    {
+      "parentPrayerId": "PR-0005",
+      "prayerId": "PR-0009",
+      "number": 18,
+      "component": "",
+      "originalVerse": "",
+      "englishLabel": "Come with Rejoicing",
+      "hebrewLabel": "בואי בשלום"
     }
   ]
 }
