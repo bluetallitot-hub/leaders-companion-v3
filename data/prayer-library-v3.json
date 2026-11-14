@@ -15171,6 +15171,15 @@
       "originalVerse": "",
       "englishLabel": "And the Lord Spoke",
       "hebrewLabel": "ויאמר"
+    },
+    {
+      "parentPrayerId": "PR-0022",
+      "prayerId": "PR-0026",
+      "number": 5,
+      "component": "Hebrew Final",
+      "originalVerse": "",
+      "englishLabel": "LeMaan Tizkeru",
+      "hebrewLabel": "למען"
     }
   ]
 }
