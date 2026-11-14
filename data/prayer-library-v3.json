@@ -235,7 +235,7 @@
         "SUM-009"
       ],
       "instructionIds": [
-        "INS-013"
+        "INS-108"
       ],
       "sourceCueIds": [
         "SH-FE-C012"
@@ -13503,6 +13503,16 @@
       "notes": "Automatically appended by paper color G; not manually assigned to page instructionIds.",
       "linkedCueCount": 0,
       "source": "v2-instruction-library"
+    },
+    {
+      "id": "INS-108",
+      "name": "Boi V'Shalom",
+      "text": "We face the entrance and rise",
+      "category": "Subsection",
+      "status": "Draft",
+      "notes": "Created in Prayer Editor for subsection of PR-0005",
+      "linkedCueCount": 0,
+      "source": "prayer-editor"
     }
   ],
   "review": [
