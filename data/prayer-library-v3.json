@@ -15117,6 +15117,15 @@
       "originalVerse": "",
       "englishLabel": "Adonai Oz",
       "hebrewLabel": "יי עז לעמו יתן"
+    },
+    {
+      "parentPrayerId": "PR-0014",
+      "prayerId": "PR-0015",
+      "number": 2,
+      "component": "Hebrew Final",
+      "originalVerse": "",
+      "englishLabel": "Tzadik K'Tamar",
+      "hebrewLabel": "צדיק כתמר"
     }
   ]
 }
