@@ -472,11 +472,11 @@
         "RH-AM-C130"
       ],
       "englishName": "Barchu",
-      "hebrewName": "",
+      "hebrewName": "ברכו",
       "aliasesEnglish": [],
       "aliasesHebrew": [],
-      "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortEnglishName": "Barchu",
+      "shortHebrewName": "ברכו"
     },
     {
       "prayerId": "PR-0018",
@@ -9058,7 +9058,7 @@
     {
       "summaryId": "SUM-017",
       "prayerAction": "Barchu",
-      "summary": "Barchu is not simply another line of praise: it is the formal summons that begins the public evening prayer sequence. Leader and congregation answer one another, making its communal character essential. In this Rosh Hashanah service it follows the introductory Shabbat and New Year material and announces that the service is entering the blessings surrounding the Shema. The High Holiday melody can make a very short text carry the atmosphere of the season before the words themselves become specifically seasonal.",
+      "summary": "Barchu is not simply another line of praise: it is the formal summons to communal worship that introduces the blessings surrounding the Shema. Leader and congregation respond to one another, affirming their shared commitment to bless the Lord. This brief exchange marks a transition from the introductory prayers to the central evening service. Its call-and-response structure emphasizes that public prayer is a collective act, bringing the congregation together in worship.",
       "status": "AI Draft",
       "notes": "",
       "linkedCueCount": "4",
