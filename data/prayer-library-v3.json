@@ -14927,5 +14927,17 @@
     }
   ],
   "schemaNotes": "Canonical English and Hebrew names plus optional short English and Hebrew display names. Short names are aliases for lookup, not independent prayer identities. Blank values are unverified.",
-  "prayerSubsections": []
+  "prayerSubsections": [
+    {
+      "parentPrayerId": "PR-0002",
+      "prayerId": "PR-0003",
+      "number": 2,
+      "component": "Hebrew End",
+      "originalVerse": "",
+      "englishLabel": "Conclusion to Psalm 95",
+      "hebrewLabel": "ארבעים שנה",
+      "beginDesignation": "",
+      "endDesignation": ""
+    }
+  ]
 }
