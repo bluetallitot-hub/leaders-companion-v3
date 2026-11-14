@@ -14926,5 +14926,18 @@
       "found": true
     }
   ],
-  "schemaNotes": "Canonical English and Hebrew names plus optional short English and Hebrew display names. Short names are aliases for lookup, not independent prayer identities. Blank values are unverified."
+  "schemaNotes": "Canonical English and Hebrew names plus optional short English and Hebrew display names. Short names are aliases for lookup, not independent prayer identities. Blank values are unverified.",
+  "prayerSubsections": [
+    {
+      "parentPrayerId": "PR-0003",
+      "prayerId": "PR-0002",
+      "number": 2,
+      "component": "Hebrew End",
+      "originalVerse": "",
+      "englishLabel": "Final Verse",
+      "hebrewLabel": "ארבעים שנה",
+      "beginDesignation": "",
+      "endDesignation": ""
+    }
+  ]
 }
