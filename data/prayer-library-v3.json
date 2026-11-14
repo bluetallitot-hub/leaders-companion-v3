@@ -589,7 +589,7 @@
     },
     {
       "prayerId": "PR-0022",
-      "canonicalName": "Shema Yisrael + VeAhavta",
+      "canonicalName": "Shema",
       "aliases": [],
       "locations": [
         {
@@ -609,12 +609,12 @@
         "SH-FE-C026",
         "RH-AM-C019"
       ],
-      "englishName": "Shema Yisrael + VeAhavta",
-      "hebrewName": "",
+      "englishName": "Shema",
+      "hebrewName": "שמע",
       "aliasesEnglish": [],
       "aliasesHebrew": [],
-      "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortEnglishName": "Shema",
+      "shortHebrewName": "שמע"
     },
     {
       "prayerId": "PR-0023",
