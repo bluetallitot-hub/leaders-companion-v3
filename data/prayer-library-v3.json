@@ -88,7 +88,7 @@
     },
     {
       "prayerId": "PR-0004",
-      "canonicalName": "Mizmor LeDavid",
+      "canonicalName": "Psalm 29",
       "aliases": [],
       "locations": [
         {
@@ -105,12 +105,12 @@
       "sourceCueIds": [
         "SH-FE-C004"
       ],
-      "englishName": "Mizmor LeDavid",
-      "hebrewName": "",
+      "englishName": "Psalm 29",
+      "hebrewName": "מזמור לדוד",
       "aliasesEnglish": [],
       "aliasesHebrew": [],
-      "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortEnglishName": "Psalm 29",
+      "shortHebrewName": "מזמור לדוד"
     },
     {
       "prayerId": "PR-0005",
@@ -8862,7 +8862,7 @@
     {
       "summaryId": "SUM-004",
       "prayerAction": "Mizmor LeDavid",
-      "summary": "Psalm 29 is especially apt at the opening of this Rosh Hashanah Friday-evening service because its sevenfold “voice of the Lord” moves through creation with overwhelming power and ends unexpectedly in peace. Rabbinic and liturgical tradition made the psalm part of Kabbalat Shabbat; here it also supplies a fitting High Holiday soundscape of kingship, awe, and judgment. The final turn—God gives strength to the people and blesses them with peace—moves the congregation from cosmic power toward the welcome of Shabbat.",
+      "summary": "Psalm 29 portrays the Lord's majesty through the imagery of a powerful thunderstorm. Seven references to the divine voice describe its power over the waters, its ability to shatter cedars, shake the wilderness, and illuminate the heavens. The psalm moves from the overwhelming forces of nature to the heavenly sanctuary, where all proclaim God's glory. It concludes by transforming this display of divine power into a blessing: the Lord grants strength to His people and blesses them with peace. ",
       "status": "AI Draft",
       "notes": "",
       "linkedCueCount": "1",
