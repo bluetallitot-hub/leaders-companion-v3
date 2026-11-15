@@ -16579,7 +16579,7 @@
       "found": true
     }
   ],
-  "schemaNotes": "Canonical English and Hebrew names plus optional short English and Hebrew display names. Short names are aliases for lookup, not independent prayer identities. Blank values are unverified. Conditionals: prayer color null inherits service page color (service may default to white), conditions [] means always; subsection null inherits parent, [] explicitly always; cue overrides subsection overrides prayer.",
+  "schemaNotes": "Canonical English and Hebrew names plus optional short English and Hebrew display names. Short names are aliases for lookup, not independent prayer identities. Blank values are unverified. Conditionals: prayer color null inherits service page color (service may default to white), conditions [] means always; subsection null inherits parent, [] explicitly always; cue overrides subsection overrides prayer. V3.438: sectionContexts stores day/time by siddur and section; conditionalSummaries stores scoped summary overrides. Canonical default summaries are preserved and protected from intake editing.",
   "prayerSubsections": [
     {
       "parentPrayerId": "PR-0002",
@@ -16792,5 +16792,7 @@
       "conditions": null,
       "conditionColor": null
     }
-  ]
+  ],
+  "sectionContexts": [],
+  "conditionalSummaries": []
 }
