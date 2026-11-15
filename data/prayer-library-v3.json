@@ -33,7 +33,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "Candles",
       "shortHebrewName": "נרות",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -61,7 +61,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "Psalm 95",
       "shortHebrewName": "לכו נרננה",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -89,7 +89,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "Psalm 95",
       "shortHebrewName": "לכו נרננה",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -117,7 +117,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "Psalm 29",
       "shortHebrewName": "מזמור לדוד",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -150,7 +150,7 @@
       "shortEnglishName": "L'cha Dodi",
       "shortHebrewName": "לכה דודי",
       "mainSubsectionComponent": "Hebrew chorus",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -178,7 +178,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -206,7 +206,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -234,7 +234,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -262,7 +262,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -293,7 +293,7 @@
       "archived": true,
       "archivedReason": "Removed from active master prayer dropdown by user request; retain canonical record and associations",
       "archivedAt": "2026-11-14",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -321,7 +321,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "Peace within Thy Walls",
       "shortHebrewName": "אמר רבי אליעזר",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -349,7 +349,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -377,7 +377,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "Derabbanan Kaddish",
       "shortHebrewName": "קדיש דרבנן",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -405,7 +405,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "Psalm 92",
       "shortHebrewName": "מזמור שיר",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -433,7 +433,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -466,7 +466,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "Kaddish L'Ela",
       "shortHebrewName": "קדיש לעילא",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -509,7 +509,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "Barchu",
       "shortHebrewName": "ברכו",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -542,7 +542,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "Bringest Eventide",
       "shortHebrewName": "מעריב ערבים",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -570,7 +570,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -598,7 +598,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "With Everlasting Love",
       "shortHebrewName": "אהבת עולם",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -626,7 +626,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -657,7 +657,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "Shema",
       "shortHebrewName": "שמע",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -690,7 +690,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -723,7 +723,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -756,7 +756,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -789,7 +789,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -822,7 +822,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "True and Unchanging",
       "shortHebrewName": "אמת ואמונה",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -848,7 +848,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -876,7 +876,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "Hashkiveinu",
       "shortHebrewName": "השכיבנו",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -904,7 +904,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "Veshamru",
       "shortHebrewName": "ושמרו",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -932,7 +932,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -960,7 +960,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -988,7 +988,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1026,7 +1026,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1054,7 +1054,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1092,7 +1092,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1130,7 +1130,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1158,7 +1158,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1186,7 +1186,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1214,7 +1214,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1242,7 +1242,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1270,7 +1270,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1303,7 +1303,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1336,7 +1336,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1360,7 +1360,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1398,7 +1398,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1426,7 +1426,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1454,7 +1454,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1482,7 +1482,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1510,7 +1510,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1536,7 +1536,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1562,7 +1562,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1581,7 +1581,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1612,7 +1612,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1638,7 +1638,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1664,7 +1664,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1683,7 +1683,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1709,7 +1709,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1735,7 +1735,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1761,7 +1761,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1797,7 +1797,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1823,7 +1823,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1842,7 +1842,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1868,7 +1868,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1894,7 +1894,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1920,7 +1920,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1946,7 +1946,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1972,7 +1972,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -1998,7 +1998,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2024,7 +2024,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2050,7 +2050,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2076,7 +2076,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2102,7 +2102,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2128,7 +2128,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2154,7 +2154,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2180,7 +2180,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2206,7 +2206,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2232,7 +2232,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2258,7 +2258,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2284,7 +2284,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2310,7 +2310,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2336,7 +2336,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2372,7 +2372,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2403,7 +2403,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2434,7 +2434,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2460,7 +2460,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2486,7 +2486,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2507,7 +2507,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2538,7 +2538,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2574,7 +2574,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2600,7 +2600,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2626,7 +2626,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2652,7 +2652,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2678,7 +2678,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2704,7 +2704,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2730,7 +2730,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2756,7 +2756,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2785,7 +2785,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2806,7 +2806,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2832,7 +2832,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2858,7 +2858,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2884,7 +2884,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2910,7 +2910,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2946,7 +2946,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -2989,7 +2989,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3015,7 +3015,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3041,7 +3041,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3067,7 +3067,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3093,7 +3093,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3119,7 +3119,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3145,7 +3145,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3171,7 +3171,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3212,7 +3212,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3238,7 +3238,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3264,7 +3264,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3295,7 +3295,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3321,7 +3321,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3347,7 +3347,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3373,7 +3373,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3404,7 +3404,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3431,7 +3431,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3457,7 +3457,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3480,7 +3480,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3501,7 +3501,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3527,7 +3527,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3553,7 +3553,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3597,7 +3597,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3623,7 +3623,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3711,7 +3711,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3737,7 +3737,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3784,7 +3784,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3820,7 +3820,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3846,7 +3846,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3867,7 +3867,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3893,7 +3893,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3919,7 +3919,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3945,7 +3945,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3971,7 +3971,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -3997,7 +3997,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4023,7 +4023,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4049,7 +4049,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4075,7 +4075,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4117,7 +4117,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4149,7 +4149,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4175,7 +4175,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4201,7 +4201,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4227,7 +4227,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4253,7 +4253,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4279,7 +4279,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4305,7 +4305,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4331,7 +4331,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4357,7 +4357,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4383,7 +4383,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4414,7 +4414,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4440,7 +4440,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4466,7 +4466,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4492,7 +4492,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4523,7 +4523,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4549,7 +4549,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4575,7 +4575,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4601,7 +4601,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4622,7 +4622,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4648,7 +4648,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4674,7 +4674,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4700,7 +4700,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4719,7 +4719,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4740,7 +4740,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4761,7 +4761,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4782,7 +4782,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4808,7 +4808,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4834,7 +4834,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4860,7 +4860,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4886,7 +4886,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4912,7 +4912,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4938,7 +4938,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4957,7 +4957,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -4978,7 +4978,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5004,7 +5004,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5030,7 +5030,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5056,7 +5056,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5075,7 +5075,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5094,7 +5094,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5113,7 +5113,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5132,7 +5132,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5158,7 +5158,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5186,7 +5186,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5217,7 +5217,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5243,7 +5243,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5269,7 +5269,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5295,7 +5295,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5326,7 +5326,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5357,7 +5357,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5383,7 +5383,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5409,7 +5409,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5445,7 +5445,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5471,7 +5471,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5497,7 +5497,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5523,7 +5523,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5544,7 +5544,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5563,7 +5563,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5582,7 +5582,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5601,7 +5601,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5620,7 +5620,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5639,7 +5639,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5665,7 +5665,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5684,7 +5684,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5710,7 +5710,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5736,7 +5736,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5762,7 +5762,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5788,7 +5788,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5814,7 +5814,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5840,7 +5840,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5871,7 +5871,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5897,7 +5897,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5923,7 +5923,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5949,7 +5949,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -5975,7 +5975,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6001,7 +6001,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6027,7 +6027,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6053,7 +6053,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6079,7 +6079,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6105,7 +6105,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6131,7 +6131,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6157,7 +6157,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6188,7 +6188,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6214,7 +6214,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6240,7 +6240,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6266,7 +6266,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6292,7 +6292,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6318,7 +6318,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6344,7 +6344,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6365,7 +6365,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6386,7 +6386,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6412,7 +6412,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6443,7 +6443,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6475,7 +6475,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6501,7 +6501,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6527,7 +6527,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6553,7 +6553,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6572,7 +6572,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6603,7 +6603,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6624,7 +6624,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6650,7 +6650,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6676,7 +6676,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6702,7 +6702,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6733,7 +6733,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6759,7 +6759,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6785,7 +6785,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6816,7 +6816,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6837,7 +6837,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6863,7 +6863,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6889,7 +6889,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6915,7 +6915,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6941,7 +6941,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6967,7 +6967,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -6993,7 +6993,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7019,7 +7019,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7045,7 +7045,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7071,7 +7071,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7097,7 +7097,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7123,7 +7123,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7149,7 +7149,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7175,7 +7175,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7196,7 +7196,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7222,7 +7222,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7253,7 +7253,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7279,7 +7279,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7305,7 +7305,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7331,7 +7331,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7357,7 +7357,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7383,7 +7383,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7409,7 +7409,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7435,7 +7435,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7461,7 +7461,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7487,7 +7487,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7513,7 +7513,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7532,7 +7532,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7551,7 +7551,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7570,7 +7570,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7589,7 +7589,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7608,7 +7608,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7627,7 +7627,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7646,7 +7646,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7665,7 +7665,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7684,7 +7684,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7703,7 +7703,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7722,7 +7722,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7741,7 +7741,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7760,7 +7760,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7779,7 +7779,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7798,7 +7798,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7817,7 +7817,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7836,7 +7836,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7855,7 +7855,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7874,7 +7874,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7893,7 +7893,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7912,7 +7912,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7931,7 +7931,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7950,7 +7950,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7969,7 +7969,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -7988,7 +7988,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8007,7 +8007,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8026,7 +8026,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8045,7 +8045,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8064,7 +8064,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8083,7 +8083,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8102,7 +8102,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8121,7 +8121,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8140,7 +8140,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8159,7 +8159,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8178,7 +8178,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8197,7 +8197,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8216,7 +8216,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8235,7 +8235,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8254,7 +8254,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8273,7 +8273,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8292,7 +8292,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8311,7 +8311,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8330,7 +8330,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8349,7 +8349,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8368,7 +8368,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8387,7 +8387,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8406,7 +8406,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8425,7 +8425,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8444,7 +8444,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8463,7 +8463,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8482,7 +8482,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8501,7 +8501,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8520,7 +8520,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8539,7 +8539,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8558,7 +8558,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8577,7 +8577,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8596,7 +8596,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8615,7 +8615,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8634,7 +8634,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8653,7 +8653,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8672,7 +8672,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8691,7 +8691,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8710,7 +8710,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8729,7 +8729,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8748,7 +8748,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8767,7 +8767,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8786,7 +8786,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8805,7 +8805,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8824,7 +8824,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8843,7 +8843,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8862,7 +8862,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8881,7 +8881,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8900,7 +8900,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8919,7 +8919,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8938,7 +8938,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8957,7 +8957,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8976,7 +8976,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -8995,7 +8995,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9014,7 +9014,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9033,7 +9033,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9052,7 +9052,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9071,7 +9071,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9090,7 +9090,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9109,7 +9109,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9128,7 +9128,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9147,7 +9147,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9166,7 +9166,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9185,7 +9185,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9204,7 +9204,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9223,7 +9223,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9242,7 +9242,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9261,7 +9261,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9280,7 +9280,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9299,7 +9299,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9318,7 +9318,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9337,7 +9337,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9356,7 +9356,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9375,7 +9375,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9394,7 +9394,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9413,7 +9413,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9432,7 +9432,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9451,7 +9451,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9470,7 +9470,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9489,7 +9489,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9508,7 +9508,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9527,7 +9527,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9546,7 +9546,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9565,7 +9565,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9584,7 +9584,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9603,7 +9603,7 @@
       "aliasesHebrew": [],
       "shortEnglishName": "",
       "shortHebrewName": "",
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9620,7 +9620,7 @@
       "summaryIds": [],
       "instructionIds": [],
       "sourceCueIds": [],
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9637,7 +9637,7 @@
       "summaryIds": [],
       "instructionIds": [],
       "sourceCueIds": [],
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9654,7 +9654,7 @@
       "summaryIds": [],
       "instructionIds": [],
       "sourceCueIds": [],
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9671,7 +9671,7 @@
       "summaryIds": [],
       "instructionIds": [],
       "sourceCueIds": [],
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     },
     {
@@ -9688,7 +9688,7 @@
       "summaryIds": [],
       "instructionIds": [],
       "sourceCueIds": [],
-      "conditionColor": "white",
+      "conditionColor": null,
       "conditions": []
     }
   ],
@@ -15797,7 +15797,7 @@
       "found": true
     }
   ],
-  "schemaNotes": "Canonical English and Hebrew names plus optional short English and Hebrew display names. Short names are aliases for lookup, not independent prayer identities. Blank values are unverified. Conditionals: prayer defaults white and [] (always); subsection null inherits parent, [] explicitly always; cue overrides subsection overrides prayer.",
+  "schemaNotes": "Canonical English and Hebrew names plus optional short English and Hebrew display names. Short names are aliases for lookup, not independent prayer identities. Blank values are unverified. Conditionals: prayer color null inherits service page color (service may default to white), conditions [] means always; subsection null inherits parent, [] explicitly always; cue overrides subsection overrides prayer.",
   "prayerSubsections": [
     {
       "parentPrayerId": "PR-0002",
