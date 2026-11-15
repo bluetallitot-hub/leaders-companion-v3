@@ -32,7 +32,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "Candles",
-      "shortHebrewName": "נרות"
+      "shortHebrewName": "נרות",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0002",
@@ -58,7 +60,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "Psalm 95",
-      "shortHebrewName": "לכו נרננה"
+      "shortHebrewName": "לכו נרננה",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0003",
@@ -84,7 +88,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "Psalm 95",
-      "shortHebrewName": "לכו נרננה"
+      "shortHebrewName": "לכו נרננה",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0004",
@@ -110,7 +116,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "Psalm 29",
-      "shortHebrewName": "מזמור לדוד"
+      "shortHebrewName": "מזמור לדוד",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0005",
@@ -141,7 +149,9 @@
       "aliasesHebrew": [],
       "shortEnglishName": "L'cha Dodi",
       "shortHebrewName": "לכה דודי",
-      "mainSubsectionComponent": "Hebrew chorus"
+      "mainSubsectionComponent": "Hebrew chorus",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0006",
@@ -167,7 +177,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0007",
@@ -193,7 +205,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0008",
@@ -219,7 +233,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0009",
@@ -245,7 +261,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0010",
@@ -274,7 +292,9 @@
       "shortHebrewName": "",
       "archived": true,
       "archivedReason": "Removed from active master prayer dropdown by user request; retain canonical record and associations",
-      "archivedAt": "2026-11-14"
+      "archivedAt": "2026-11-14",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0011",
@@ -300,7 +320,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "Peace within Thy Walls",
-      "shortHebrewName": "אמר רבי אליעזר"
+      "shortHebrewName": "אמר רבי אליעזר",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0012",
@@ -326,7 +348,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0013",
@@ -352,7 +376,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "Derabbanan Kaddish",
-      "shortHebrewName": "קדיש דרבנן"
+      "shortHebrewName": "קדיש דרבנן",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0014",
@@ -378,7 +404,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "Psalm 92",
-      "shortHebrewName": "מזמור שיר"
+      "shortHebrewName": "מזמור שיר",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0015",
@@ -404,7 +432,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0016",
@@ -435,7 +465,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "Kaddish L'Ela",
-      "shortHebrewName": "קדיש לעילא"
+      "shortHebrewName": "קדיש לעילא",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0017",
@@ -476,7 +508,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "Barchu",
-      "shortHebrewName": "ברכו"
+      "shortHebrewName": "ברכו",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0018",
@@ -507,7 +541,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "Bringest Eventide",
-      "shortHebrewName": "מעריב ערבים"
+      "shortHebrewName": "מעריב ערבים",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0019",
@@ -533,7 +569,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0020",
@@ -559,7 +597,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "With Everlasting Love",
-      "shortHebrewName": "אהבת עולם"
+      "shortHebrewName": "אהבת עולם",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0021",
@@ -585,7 +625,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0022",
@@ -614,7 +656,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "Shema",
-      "shortHebrewName": "שמע"
+      "shortHebrewName": "שמע",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0023",
@@ -645,7 +689,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0024",
@@ -676,7 +722,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0025",
@@ -707,7 +755,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0026",
@@ -738,7 +788,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0027",
@@ -769,7 +821,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "True and Unchanging",
-      "shortHebrewName": "אמת ואמונה"
+      "shortHebrewName": "אמת ואמונה",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0028",
@@ -793,7 +847,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0029",
@@ -819,7 +875,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "Hashkiveinu",
-      "shortHebrewName": "השכיבנו"
+      "shortHebrewName": "השכיבנו",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0030",
@@ -845,7 +903,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "Veshamru",
-      "shortHebrewName": "ושמרו"
+      "shortHebrewName": "ושמרו",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0031",
@@ -871,7 +931,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0032",
@@ -897,7 +959,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0033",
@@ -923,7 +987,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0034",
@@ -959,7 +1025,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0035",
@@ -985,7 +1053,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0036",
@@ -1021,7 +1091,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0037",
@@ -1057,7 +1129,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0038",
@@ -1083,7 +1157,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0039",
@@ -1109,7 +1185,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0040",
@@ -1135,7 +1213,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0041",
@@ -1161,7 +1241,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0042",
@@ -1187,7 +1269,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0043",
@@ -1218,7 +1302,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0044",
@@ -1249,7 +1335,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0045",
@@ -1271,7 +1359,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0046",
@@ -1307,7 +1397,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0047",
@@ -1333,7 +1425,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0048",
@@ -1359,7 +1453,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0049",
@@ -1385,7 +1481,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0050",
@@ -1411,7 +1509,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0051",
@@ -1435,7 +1535,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0052",
@@ -1459,7 +1561,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0053",
@@ -1476,7 +1580,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0054",
@@ -1505,7 +1611,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0055",
@@ -1529,7 +1637,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0056",
@@ -1553,7 +1663,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0057",
@@ -1570,7 +1682,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0058",
@@ -1594,7 +1708,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0059",
@@ -1618,7 +1734,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0060",
@@ -1642,7 +1760,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0061",
@@ -1676,7 +1796,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0062",
@@ -1700,7 +1822,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0063",
@@ -1717,7 +1841,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0064",
@@ -1741,7 +1867,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0065",
@@ -1765,7 +1893,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0066",
@@ -1789,7 +1919,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0067",
@@ -1813,7 +1945,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0068",
@@ -1837,7 +1971,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0069",
@@ -1861,7 +1997,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0070",
@@ -1885,7 +2023,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0071",
@@ -1909,7 +2049,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0072",
@@ -1933,7 +2075,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0073",
@@ -1957,7 +2101,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0074",
@@ -1981,7 +2127,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0075",
@@ -2005,7 +2153,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0076",
@@ -2029,7 +2179,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0077",
@@ -2053,7 +2205,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0078",
@@ -2077,7 +2231,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0079",
@@ -2101,7 +2257,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0080",
@@ -2125,7 +2283,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0081",
@@ -2149,7 +2309,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0082",
@@ -2173,7 +2335,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0083",
@@ -2207,7 +2371,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0084",
@@ -2236,7 +2402,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0085",
@@ -2265,7 +2433,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0086",
@@ -2289,7 +2459,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0087",
@@ -2313,7 +2485,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0088",
@@ -2332,7 +2506,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0089",
@@ -2361,7 +2537,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0090",
@@ -2395,7 +2573,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0091",
@@ -2419,7 +2599,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0092",
@@ -2443,7 +2625,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0093",
@@ -2467,7 +2651,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0094",
@@ -2491,7 +2677,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0095",
@@ -2515,7 +2703,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0096",
@@ -2539,7 +2729,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0097",
@@ -2563,7 +2755,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0098",
@@ -2590,7 +2784,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0099",
@@ -2609,7 +2805,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0100",
@@ -2633,7 +2831,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0101",
@@ -2657,7 +2857,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0102",
@@ -2681,7 +2883,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0103",
@@ -2705,7 +2909,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0104",
@@ -2739,7 +2945,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0105",
@@ -2780,7 +2988,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0106",
@@ -2804,7 +3014,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0107",
@@ -2828,7 +3040,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0108",
@@ -2852,7 +3066,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0109",
@@ -2876,7 +3092,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0110",
@@ -2900,7 +3118,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0111",
@@ -2924,7 +3144,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0112",
@@ -2948,7 +3170,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0113",
@@ -2987,7 +3211,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0114",
@@ -3011,7 +3237,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0115",
@@ -3035,7 +3263,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0116",
@@ -3064,7 +3294,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0117",
@@ -3088,7 +3320,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0118",
@@ -3112,7 +3346,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0119",
@@ -3136,7 +3372,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0120",
@@ -3165,7 +3403,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0121",
@@ -3190,7 +3430,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0122",
@@ -3214,7 +3456,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0123",
@@ -3235,7 +3479,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0124",
@@ -3254,7 +3500,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0125",
@@ -3278,7 +3526,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0126",
@@ -3302,7 +3552,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0127",
@@ -3344,7 +3596,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0128",
@@ -3368,7 +3622,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0129",
@@ -3454,7 +3710,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0130",
@@ -3478,7 +3736,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0131",
@@ -3523,7 +3783,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0132",
@@ -3557,7 +3819,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0133",
@@ -3581,7 +3845,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0134",
@@ -3600,7 +3866,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0135",
@@ -3624,7 +3892,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0136",
@@ -3648,7 +3918,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0137",
@@ -3672,7 +3944,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0138",
@@ -3696,7 +3970,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0139",
@@ -3720,7 +3996,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0140",
@@ -3744,7 +4022,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0141",
@@ -3768,7 +4048,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0142",
@@ -3792,7 +4074,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0143",
@@ -3832,7 +4116,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0144",
@@ -3862,7 +4148,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0145",
@@ -3886,7 +4174,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0146",
@@ -3910,7 +4200,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0147",
@@ -3934,7 +4226,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0148",
@@ -3958,7 +4252,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0149",
@@ -3982,7 +4278,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0150",
@@ -4006,7 +4304,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0151",
@@ -4030,7 +4330,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0152",
@@ -4054,7 +4356,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0153",
@@ -4078,7 +4382,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0154",
@@ -4107,7 +4413,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0155",
@@ -4131,7 +4439,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0156",
@@ -4155,7 +4465,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0157",
@@ -4179,7 +4491,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0158",
@@ -4208,7 +4522,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0159",
@@ -4232,7 +4548,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0160",
@@ -4256,7 +4574,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0161",
@@ -4280,7 +4600,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0162",
@@ -4299,7 +4621,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0163",
@@ -4323,7 +4647,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0164",
@@ -4347,7 +4673,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0165",
@@ -4371,7 +4699,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0166",
@@ -4388,7 +4718,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0167",
@@ -4407,7 +4739,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0168",
@@ -4426,7 +4760,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0169",
@@ -4445,7 +4781,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0170",
@@ -4469,7 +4807,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0171",
@@ -4493,7 +4833,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0172",
@@ -4517,7 +4859,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0173",
@@ -4541,7 +4885,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0174",
@@ -4565,7 +4911,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0175",
@@ -4589,7 +4937,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0176",
@@ -4606,7 +4956,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0177",
@@ -4625,7 +4977,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0178",
@@ -4649,7 +5003,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0179",
@@ -4673,7 +5029,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0180",
@@ -4697,7 +5055,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0181",
@@ -4714,7 +5074,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0182",
@@ -4731,7 +5093,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0183",
@@ -4748,7 +5112,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0184",
@@ -4765,7 +5131,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0185",
@@ -4789,7 +5157,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0186",
@@ -4815,7 +5185,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0187",
@@ -4844,7 +5216,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0188",
@@ -4868,7 +5242,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0189",
@@ -4892,7 +5268,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0190",
@@ -4916,7 +5294,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0191",
@@ -4945,7 +5325,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0192",
@@ -4974,7 +5356,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0193",
@@ -4998,7 +5382,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0194",
@@ -5022,7 +5408,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0195",
@@ -5056,7 +5444,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0196",
@@ -5080,7 +5470,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0197",
@@ -5104,7 +5496,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0198",
@@ -5128,7 +5522,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0199",
@@ -5147,7 +5543,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0200",
@@ -5164,7 +5562,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0201",
@@ -5181,7 +5581,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0202",
@@ -5198,7 +5600,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0203",
@@ -5215,7 +5619,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0204",
@@ -5232,7 +5638,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0205",
@@ -5256,7 +5664,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0206",
@@ -5273,7 +5683,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0207",
@@ -5297,7 +5709,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0208",
@@ -5321,7 +5735,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0209",
@@ -5345,7 +5761,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0210",
@@ -5369,7 +5787,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0211",
@@ -5393,7 +5813,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0212",
@@ -5417,7 +5839,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0213",
@@ -5446,7 +5870,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0214",
@@ -5470,7 +5896,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0215",
@@ -5494,7 +5922,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0216",
@@ -5518,7 +5948,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0217",
@@ -5542,7 +5974,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0218",
@@ -5566,7 +6000,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0219",
@@ -5590,7 +6026,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0220",
@@ -5614,7 +6052,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0221",
@@ -5638,7 +6078,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0222",
@@ -5662,7 +6104,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0223",
@@ -5686,7 +6130,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0224",
@@ -5710,7 +6156,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0225",
@@ -5739,7 +6187,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0226",
@@ -5763,7 +6213,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0227",
@@ -5787,7 +6239,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0228",
@@ -5811,7 +6265,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0229",
@@ -5835,7 +6291,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0230",
@@ -5859,7 +6317,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0231",
@@ -5883,7 +6343,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0232",
@@ -5902,7 +6364,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0233",
@@ -5921,7 +6385,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0234",
@@ -5945,7 +6411,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0235",
@@ -5974,7 +6442,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0236",
@@ -6004,7 +6474,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0237",
@@ -6028,7 +6500,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0238",
@@ -6052,7 +6526,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0239",
@@ -6076,7 +6552,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0240",
@@ -6093,7 +6571,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0241",
@@ -6122,7 +6602,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0242",
@@ -6141,7 +6623,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0243",
@@ -6165,7 +6649,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0244",
@@ -6189,7 +6675,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0245",
@@ -6213,7 +6701,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0246",
@@ -6242,7 +6732,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0247",
@@ -6266,7 +6758,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0248",
@@ -6290,7 +6784,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0249",
@@ -6319,7 +6815,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0250",
@@ -6338,7 +6836,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0251",
@@ -6362,7 +6862,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0252",
@@ -6386,7 +6888,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0253",
@@ -6410,7 +6914,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0254",
@@ -6434,7 +6940,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0255",
@@ -6458,7 +6966,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0256",
@@ -6482,7 +6992,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0257",
@@ -6506,7 +7018,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0258",
@@ -6530,7 +7044,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0259",
@@ -6554,7 +7070,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0260",
@@ -6578,7 +7096,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0261",
@@ -6602,7 +7122,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0262",
@@ -6626,7 +7148,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0263",
@@ -6650,7 +7174,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0264",
@@ -6669,7 +7195,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0265",
@@ -6693,7 +7221,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0266",
@@ -6722,7 +7252,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0267",
@@ -6746,7 +7278,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0268",
@@ -6770,7 +7304,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0269",
@@ -6794,7 +7330,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0270",
@@ -6818,7 +7356,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0271",
@@ -6842,7 +7382,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0272",
@@ -6866,7 +7408,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0273",
@@ -6890,7 +7434,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0274",
@@ -6914,7 +7460,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0275",
@@ -6938,7 +7486,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0276",
@@ -6962,7 +7512,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0277",
@@ -6979,7 +7531,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0278",
@@ -6996,7 +7550,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0279",
@@ -7013,7 +7569,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0280",
@@ -7030,7 +7588,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0281",
@@ -7047,7 +7607,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0282",
@@ -7064,7 +7626,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0283",
@@ -7081,7 +7645,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0284",
@@ -7098,7 +7664,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0285",
@@ -7115,7 +7683,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0286",
@@ -7132,7 +7702,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0287",
@@ -7149,7 +7721,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0288",
@@ -7166,7 +7740,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0289",
@@ -7183,7 +7759,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0290",
@@ -7200,7 +7778,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0291",
@@ -7217,7 +7797,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0292",
@@ -7234,7 +7816,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0293",
@@ -7251,7 +7835,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0294",
@@ -7268,7 +7854,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0295",
@@ -7285,7 +7873,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0296",
@@ -7302,7 +7892,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0297",
@@ -7319,7 +7911,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0298",
@@ -7336,7 +7930,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0299",
@@ -7353,7 +7949,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0300",
@@ -7370,7 +7968,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0301",
@@ -7387,7 +7987,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0302",
@@ -7404,7 +8006,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0303",
@@ -7421,7 +8025,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0304",
@@ -7438,7 +8044,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0305",
@@ -7455,7 +8063,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0306",
@@ -7472,7 +8082,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0307",
@@ -7489,7 +8101,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0308",
@@ -7506,7 +8120,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0309",
@@ -7523,7 +8139,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0310",
@@ -7540,7 +8158,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0311",
@@ -7557,7 +8177,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0312",
@@ -7574,7 +8196,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0313",
@@ -7591,7 +8215,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0314",
@@ -7608,7 +8234,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0315",
@@ -7625,7 +8253,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0316",
@@ -7642,7 +8272,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0317",
@@ -7659,7 +8291,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0318",
@@ -7676,7 +8310,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0319",
@@ -7693,7 +8329,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0320",
@@ -7710,7 +8348,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0321",
@@ -7727,7 +8367,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0322",
@@ -7744,7 +8386,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0323",
@@ -7761,7 +8405,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0324",
@@ -7778,7 +8424,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0325",
@@ -7795,7 +8443,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0326",
@@ -7812,7 +8462,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0327",
@@ -7829,7 +8481,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0328",
@@ -7846,7 +8500,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0329",
@@ -7863,7 +8519,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0330",
@@ -7880,7 +8538,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0331",
@@ -7897,7 +8557,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0332",
@@ -7914,7 +8576,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0333",
@@ -7931,7 +8595,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0334",
@@ -7948,7 +8614,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0335",
@@ -7965,7 +8633,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0336",
@@ -7982,7 +8652,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0337",
@@ -7999,7 +8671,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0338",
@@ -8016,7 +8690,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0339",
@@ -8033,7 +8709,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0340",
@@ -8050,7 +8728,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0341",
@@ -8067,7 +8747,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0342",
@@ -8084,7 +8766,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0343",
@@ -8101,7 +8785,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0344",
@@ -8118,7 +8804,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0345",
@@ -8135,7 +8823,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0346",
@@ -8152,7 +8842,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0347",
@@ -8169,7 +8861,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0348",
@@ -8186,7 +8880,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0349",
@@ -8203,7 +8899,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0350",
@@ -8220,7 +8918,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0351",
@@ -8237,7 +8937,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0352",
@@ -8254,7 +8956,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0353",
@@ -8271,7 +8975,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0354",
@@ -8288,7 +8994,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0355",
@@ -8305,7 +9013,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0356",
@@ -8322,7 +9032,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0357",
@@ -8339,7 +9051,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0358",
@@ -8356,7 +9070,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0359",
@@ -8373,7 +9089,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0360",
@@ -8390,7 +9108,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0361",
@@ -8407,7 +9127,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0362",
@@ -8424,7 +9146,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0363",
@@ -8441,7 +9165,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0364",
@@ -8458,7 +9184,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0365",
@@ -8475,7 +9203,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0366",
@@ -8492,7 +9222,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0367",
@@ -8509,7 +9241,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0368",
@@ -8526,7 +9260,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0369",
@@ -8543,7 +9279,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0370",
@@ -8560,7 +9298,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0371",
@@ -8577,7 +9317,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0372",
@@ -8594,7 +9336,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0373",
@@ -8611,7 +9355,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0374",
@@ -8628,7 +9374,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0375",
@@ -8645,7 +9393,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0376",
@@ -8662,7 +9412,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0377",
@@ -8679,7 +9431,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0378",
@@ -8696,7 +9450,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0379",
@@ -8713,7 +9469,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0380",
@@ -8730,7 +9488,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0381",
@@ -8747,7 +9507,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0382",
@@ -8764,7 +9526,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0383",
@@ -8781,7 +9545,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0384",
@@ -8798,7 +9564,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0385",
@@ -8815,7 +9583,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0386",
@@ -8832,7 +9602,9 @@
       "aliasesEnglish": [],
       "aliasesHebrew": [],
       "shortEnglishName": "",
-      "shortHebrewName": ""
+      "shortHebrewName": "",
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0387",
@@ -8847,7 +9619,9 @@
       "locations": [],
       "summaryIds": [],
       "instructionIds": [],
-      "sourceCueIds": []
+      "sourceCueIds": [],
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0388",
@@ -8862,7 +9636,9 @@
       "locations": [],
       "summaryIds": [],
       "instructionIds": [],
-      "sourceCueIds": []
+      "sourceCueIds": [],
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0389",
@@ -8877,7 +9653,9 @@
       "locations": [],
       "summaryIds": [],
       "instructionIds": [],
-      "sourceCueIds": []
+      "sourceCueIds": [],
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0390",
@@ -8892,7 +9670,9 @@
       "locations": [],
       "summaryIds": [],
       "instructionIds": [],
-      "sourceCueIds": []
+      "sourceCueIds": [],
+      "conditionColor": "white",
+      "conditions": []
     },
     {
       "prayerId": "PR-0391",
@@ -8907,7 +9687,9 @@
       "locations": [],
       "summaryIds": [],
       "instructionIds": [],
-      "sourceCueIds": []
+      "sourceCueIds": [],
+      "conditionColor": "white",
+      "conditions": []
     }
   ],
   "summaries": [
@@ -15015,7 +15797,7 @@
       "found": true
     }
   ],
-  "schemaNotes": "Canonical English and Hebrew names plus optional short English and Hebrew display names. Short names are aliases for lookup, not independent prayer identities. Blank values are unverified.",
+  "schemaNotes": "Canonical English and Hebrew names plus optional short English and Hebrew display names. Short names are aliases for lookup, not independent prayer identities. Blank values are unverified. Conditionals: prayer defaults white and [] (always); subsection null inherits parent, [] explicitly always; cue overrides subsection overrides prayer.",
   "prayerSubsections": [
     {
       "parentPrayerId": "PR-0002",
@@ -15026,7 +15808,9 @@
       "englishLabel": "Conclusion to Psalm 95",
       "hebrewLabel": "ארבעים שנה",
       "beginDesignation": "",
-      "endDesignation": ""
+      "endDesignation": "",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0005",
@@ -15035,7 +15819,9 @@
       "component": "",
       "originalVerse": "",
       "englishLabel": "Keep and Remember",
-      "hebrewLabel": "שמור וזכור"
+      "hebrewLabel": "שמור וזכור",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0005",
@@ -15044,7 +15830,9 @@
       "component": "",
       "originalVerse": "",
       "englishLabel": "Come Let Us Welcome",
-      "hebrewLabel": "לקראת שבת"
+      "hebrewLabel": "לקראת שבת",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0005",
@@ -15053,7 +15841,9 @@
       "component": "",
       "originalVerse": "",
       "englishLabel": "Zion God's City",
-      "hebrewLabel": "מקדש מלך"
+      "hebrewLabel": "מקדש מלך",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0005",
@@ -15062,7 +15852,9 @@
       "component": "",
       "originalVerse": "",
       "englishLabel": "Shake off",
-      "hebrewLabel": "התנערי מעפר"
+      "hebrewLabel": "התנערי מעפר",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0005",
@@ -15071,7 +15863,9 @@
       "component": "",
       "originalVerse": "",
       "englishLabel": "Stir Thyself",
-      "hebrewLabel": "התעוררי התעוררי"
+      "hebrewLabel": "התעוררי התעוררי",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0005",
@@ -15080,7 +15874,9 @@
       "component": "",
       "originalVerse": "",
       "englishLabel": "Shame and Dishonor",
-      "hebrewLabel": "לא תבושי"
+      "hebrewLabel": "לא תבושי",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0005",
@@ -15089,7 +15885,9 @@
       "component": "",
       "originalVerse": "",
       "englishLabel": "Those Who",
-      "hebrewLabel": "והיו למשיסה"
+      "hebrewLabel": "והיו למשיסה",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0005",
@@ -15098,7 +15896,9 @@
       "component": "",
       "originalVerse": "",
       "englishLabel": "Eastward and Westward",
-      "hebrewLabel": "ימין ושמול"
+      "hebrewLabel": "ימין ושמול",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0005",
@@ -15107,7 +15907,9 @@
       "component": "",
       "originalVerse": "",
       "englishLabel": "Come with Rejoicing",
-      "hebrewLabel": "בואי בשלום"
+      "hebrewLabel": "בואי בשלום",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0011",
@@ -15116,7 +15918,9 @@
       "component": "Hebrew Final",
       "originalVerse": "",
       "englishLabel": "Adonai Oz",
-      "hebrewLabel": "יי עז לעמו יתן"
+      "hebrewLabel": "יי עז לעמו יתן",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0014",
@@ -15125,7 +15929,9 @@
       "component": "Hebrew Final",
       "originalVerse": "",
       "englishLabel": "Tzadik K'Tamar",
-      "hebrewLabel": "צדיק כתמר"
+      "hebrewLabel": "צדיק כתמר",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0018",
@@ -15134,7 +15940,9 @@
       "component": "Hebrew Final",
       "originalVerse": "",
       "englishLabel": "Concluding Bracha",
-      "hebrewLabel": "ברכה"
+      "hebrewLabel": "ברכה",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0020",
@@ -15143,7 +15951,9 @@
       "component": "Hebrew Final",
       "originalVerse": "",
       "englishLabel": "Vahavtcha",
-      "hebrewLabel": "ואהבתך"
+      "hebrewLabel": "ואהבתך",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0022",
@@ -15152,7 +15962,9 @@
       "component": "",
       "originalVerse": "",
       "englishLabel": "And Thou Shalt Love",
-      "hebrewLabel": "ואהבת"
+      "hebrewLabel": "ואהבת",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0022",
@@ -15161,7 +15973,9 @@
       "component": "",
       "originalVerse": "",
       "englishLabel": "And It Shall Be",
-      "hebrewLabel": "והיה אם שמע"
+      "hebrewLabel": "והיה אם שמע",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0022",
@@ -15170,7 +15984,9 @@
       "component": "",
       "originalVerse": "",
       "englishLabel": "And the Lord Spoke",
-      "hebrewLabel": "ויאמר"
+      "hebrewLabel": "ויאמר",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0022",
@@ -15179,7 +15995,9 @@
       "component": "Hebrew Final",
       "originalVerse": "",
       "englishLabel": "LeMaan Tizkeru",
-      "hebrewLabel": "למען"
+      "hebrewLabel": "למען",
+      "conditions": null,
+      "conditionColor": null
     },
     {
       "parentPrayerId": "PR-0027",
@@ -15188,7 +16006,9 @@
       "component": "Hebrew Final",
       "originalVerse": "",
       "englishLabel": "Mi Chamocha",
-      "hebrewLabel": "מי כמכה"
+      "hebrewLabel": "מי כמכה",
+      "conditions": null,
+      "conditionColor": null
     }
   ]
 }
