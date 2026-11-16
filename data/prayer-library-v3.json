@@ -987,15 +987,16 @@
         "SH-FE-C036"
       ],
       "englishName": "Amidah",
-      "hebrewName": "",
+      "hebrewName": "עמידה",
       "aliasesEnglish": [],
       "aliasesHebrew": [],
-      "shortEnglishName": "",
-      "shortHebrewName": "",
+      "shortEnglishName": "Amidah",
+      "shortHebrewName": "עמידה",
       "conditionColor": null,
       "conditions": [],
       "conditionCode": "W",
-      "conditionDisplayName": "Always include"
+      "conditionDisplayName": "Always include",
+      "familiarity": "common"
     },
     {
       "prayerId": "PR-0032",
@@ -10748,11 +10749,21 @@
     {
       "summaryId": "SUM-031",
       "prayerAction": "Amidah",
-      "summary": "The Rosh Hashanah evening Amidah combines the familiar architecture of the standing prayer with the theology of the Day of Remembrance: divine kingship, judgment, memory, holiness of the festival, and hope for life. Because this Rosh Hashanah is also Shabbat, the Amidah must hold both sacred identities at once. That makes the prayer a liturgical intersection rather than simply a longer holiday Amidah: weekly creation and rest meet the annual renewal of the year before the same God addressed as both covenantal protector and King.",
+      "summary": "The Amidah, meaning “standing prayer,” is the central prayer of Jewish worship, traditionally recited while standing in silent devotion. Its blessings begin with praise of the Lord and conclude with thanksgiving and prayers for peace. The weekday Amidah includes petitions for wisdom, forgiveness, healing, and redemption, while Shabbat and festival versions replace these requests with blessings celebrating the holiness of the day. Rooted in the traditions of the ancient rabbis, the Amidah combines communal worship with personal reflection, inviting each individual to stand before the Lord with humility, gratitude, and hope.",
       "status": "AI Draft",
       "notes": "",
       "linkedCueCount": "1",
-      "prayerId": "PR-0031"
+      "prayerId": "PR-0031",
+      "revisions": [
+        {
+          "previousText": "The Rosh Hashanah evening Amidah combines the familiar architecture of the standing prayer with the theology of the Day of Remembrance: divine kingship, judgment, memory, holiness of the festival, and hope for life. Because this Rosh Hashanah is also Shabbat, the Amidah must hold both sacred identities at once. That makes the prayer a liturgical intersection rather than simply a longer holiday Amidah: weekly creation and rest meet the annual renewal of the year before the same God addressed as both covenantal protector and King.",
+          "changedAt": "2026-11-16T13:08:39.336Z",
+          "source": "Prayer Editor manual edit",
+          "editor": "GitHub token holder (identity not independently verified)"
+        }
+      ],
+      "lastEditedAt": "2026-11-16T13:08:39.338Z",
+      "lastEditedVia": "Prayer Editor"
     },
     {
       "summaryId": "SUM-032",
